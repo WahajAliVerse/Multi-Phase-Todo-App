@@ -1,0 +1,4 @@
+# Python 3.12+ requirements
+# For this project, we're using only standard libraries
+# But pytest is needed for testing
+pytest>=7.0.0
