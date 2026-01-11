@@ -212,6 +212,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.12+ + Standard libraries only (no external dependencies) (001-console-todo-app)
 - In-memory using lists/dicts (no persistence to disk) (001-console-todo-app)
+- Python 3.12+ for backend, TypeScript 5.x for frontend + FastAPI, SQLAlchemy, Next.js 14+, Redux Toolkit, MUI (001-fullstack-todo-app)
+- SQLite via SQLAlchemy ORM with potential migration path to PostgreSQL (001-fullstack-todo-app)
 
 ## Recent Changes
 - 001-console-todo-app: Added Python 3.12+ + Standard libraries only (no external dependencies)
