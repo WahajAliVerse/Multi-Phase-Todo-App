@@ -1,7 +1,7 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Full-Stack Web Application (Phase II)
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `001-fullstack-todo-app` | **Date**: 2026-01-18 | **Spec**: [link]
+**Input**: Feature specification from `/specs/002-fullstack-todo-app/spec.md`
 
 **Note**: This template is filled in by the `/sp.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
@@ -12,14 +12,23 @@ This plan implements a full-stack web application (Phase II) that builds upon th
 ## Technical Context
 
 **Language/Version**: Python 3.12+ for backend, TypeScript 5.x for frontend
-**Primary Dependencies**: FastAPI (backend), Next.js 14+ (frontend), SQLAlchemy (ORM), Redux Toolkit (state management)
+**Primary Dependencies**: FastAPI (backend), Next.js 14+ with App Router (frontend), SQLAlchemy (ORM), Redux Toolkit with RTK Query (state management), Tailwind CSS (styling)
 **Storage**: SQLite (initial development) with migration path to PostgreSQL (production)
 **Testing**: pytest (backend), Jest/React Testing Library (frontend), Cypress (E2E)
 **Target Platform**: Web application (responsive design for desktop/mobile)
 **Project Type**: Web (frontend + backend)
 **Performance Goals**: <200ms API response time (p95), <3s page load time, sub-2s search/filter operations
-**Constraints**: WCAG 2.1 AA compliance, JWT authentication with httpOnly cookies, 95% test coverage
+**Constraints**: WCAG 2.1 AA compliance, JWT authentication with httpOnly cookies, 95% test coverage, mobile-first responsive design
 **Scale/Scope**: Up to 10,000 tasks per user, responsive design for mobile/desktop
+**Authentication**: JWT-based authentication with login/register endpoints and secure token storage
+**Frontend Structure**: Next.js App Router with layout.tsx, loading.tsx, error.tsx, and route handlers
+**Error Handling**: React Error Boundaries with user-friendly error messages
+**Navigation**: Clear navigation patterns with breadcrumbs and logical routing structure
+**Development Approach**: TDD approach with tests written before implementation for all features
+**Test Coverage**: Maintain 95% test coverage across all components (backend, frontend, API, E2E)
+**Performance**: Meet specific performance criteria: API response times <200ms (p95), page load times <3s, search/filter operations <2s
+**Accessibility**: Implement comprehensive WCAG 2.1 AA compliance with specific accessibility features
+**Scheduler**: Clarify the recurring task scheduler implementation approach with specific technology and architecture
 
 ## Constitution Check
 
@@ -53,6 +62,17 @@ This plan implements a full-stack web application (Phase II) that builds upon th
 - Frontend structure supports Next.js best practices ✅
 - Backend structure follows FastAPI conventions ✅
 - Security and authentication properly planned ✅
+- Next.js App Router with layout.tsx, loading.tsx, error.tsx properly planned ✅
+- JWT-based authentication with secure token storage implemented ✅
+- Redux Toolkit with RTK Query for state management planned ✅
+- Mobile-first responsive design with Tailwind CSS implemented ✅
+- React Error Boundaries for error handling included ✅
+- Clear navigation patterns with breadcrumbs and logical routing structure implemented ✅
+- TDD approach with tests written before implementation included ✅
+- 95% test coverage across all components planned ✅
+- Specific performance criteria implementation included ✅
+- WCAG 2.1 AA compliance with specific accessibility features implemented ✅
+- Recurring task scheduler implementation approach with specific technology and architecture defined ✅
 
 ## Project Structure
 
@@ -127,9 +147,12 @@ frontend/
 │   │   ├── ThemeToggle/
 │   │   │   ├── ThemeToggle.tsx
 │   │   │   └── ThemeToggle.module.css
-│   │   └── TaskFilters/
-│   │       ├── TaskFilters.tsx
-│   │       └── TaskFilters.module.css
+│   │   ├── TaskFilters/
+│   │   │   ├── TaskFilters.tsx
+│   │   │   └── TaskFilters.module.css
+│   │   └── Navigation/
+│   │       ├── Navigation.tsx
+│   │       └── Navigation.module.css
 │   ├── services/
 │   │   ├── api.ts
 │   │   └── auth.ts

@@ -153,6 +153,20 @@ Users need to assign due dates to tasks and receive notifications to help manage
 - **FR-033**: System MUST implement structured logging with Winston or similar logging library
 - **FR-034**: System MUST use React error boundaries to catch and handle UI errors gracefully
 - **FR-035**: System MUST return consistent error response format with appropriate HTTP status codes
+- **FR-036**: System MUST use Redux Toolkit with RTK Query for state management and API calls
+- **FR-037**: System MUST implement responsive design with mobile-first approach using Tailwind CSS
+- **FR-038**: System MUST implement comprehensive error handling with React Error Boundaries and user-friendly error messages
+- **FR-039**: System MUST implement clear navigation patterns with breadcrumbs and logical routing structure
+- **FR-040**: System MUST follow Test-Driven Development (TDD) approach with tests written before implementation for all features
+- **FR-041**: System MUST maintain 95% test coverage across all components (backend, frontend, API, E2E)
+- **FR-042**: System MUST meet specific performance criteria: API response times <200ms (p95), page load times <3s, search/filter operations <2s
+- **FR-043**: System MUST implement comprehensive WCAG 2.1 AA compliance with specific accessibility features
+- **FR-044**: System MUST clarify the recurring task scheduler implementation approach with specific technology and architecture
+- **FR-045**: System MUST include explicit TDD tasks before implementation begins to ensure compliance with constitution requirement
+- **FR-046**: System MUST include tasks to ensure 95% test coverage across all components as required by constitution
+- **FR-047**: System MUST include more granular performance-related tasks to ensure specific implementation of performance requirements
+- **FR-048**: System MUST include detailed tasks for recurring task scheduler implementation to address the underspecified requirement
+- **FR-049**: System MUST include specific WCAG 2.1 AA compliance implementation tasks to address the underspecified accessibility requirements
 
 ### Key Entities *(include if feature involves data)*
 
@@ -230,3 +244,19 @@ Users need to assign due dates to tasks and receive notifications to help manage
 - Q: Specify database schema relationships and indexing strategy → A: Use SQLAlchemy models with proper foreign key relationships; create indexes on frequently queried fields like user_id, status, priority, and due_date; implement proper cascade behaviors
 - Q: Detail the environment variable configuration for local development → A: Use .env.local files for sensitive data; define DATABASE_URL, JWT_SECRET, PORT, NODE_ENV, NEXT_PUBLIC_API_URL; separate configs for dev/prod environments
 - Q: Clarify the complete error handling and logging setup → A: Implement structured logging with Winston/Bunyan; use error boundaries in React; return consistent error response format; log security events and performance metrics
+- Q: What Next.js router approach should be used for the frontend? → A: Use Next.js App Router with layout.tsx, loading.tsx, error.tsx, and route handlers following Next.js 14+ best practices
+- Q: What authentication approach should be implemented? → A: Implement JWT-based authentication with login/register endpoints and secure token storage
+- Q: What state management solution should be used? → A: Use Redux Toolkit with RTK Query for state management and API calls
+- Q: What approach should be taken for responsive design? → A: Implement responsive design with mobile-first approach using Tailwind CSS
+- Q: How should error handling be implemented in the UI? → A: Implement comprehensive error handling with React Error Boundaries and user-friendly error messages
+- Q: What navigation patterns should be implemented for the Next.js application? → A: Define clear navigation patterns with breadcrumbs and logical routing structure
+- Q: Should the development follow TDD approach with tests written before implementation? → A: Require TDD approach with tests written before implementation for all features
+- Q: What test coverage percentage should be maintained across the application? → A: Require 95% test coverage across all components (backend, frontend, API, E2E)
+- Q: What specific performance criteria should be defined for the application? → A: Define specific measurable performance criteria: API response times <200ms (p95), page load times <3s, search/filter operations <2s
+- Q: What accessibility compliance level should be implemented? → A: Implement comprehensive WCAG 2.1 AA compliance with specific accessibility features
+- Q: How should the recurring task scheduler be implemented? → A: Clarify the recurring task scheduler implementation approach with specific technology and architecture
+- Q: Should explicit TDD tasks be added before implementation begins to ensure compliance with constitution requirement? → A: Add explicit TDD tasks before implementation begins
+- Q: Should tasks be added to ensure 95% test coverage across all components as required by constitution? → A: Add tasks to ensure 95% test coverage across all components
+- Q: Should more granular performance-related tasks be added in tasks.md to ensure specific implementation of performance requirements? → A: Add more granular performance-related tasks in tasks.md
+- Q: Should detailed tasks be added for recurring task scheduler implementation to address the underspecified requirement? → A: Add detailed tasks for recurring task scheduler implementation
+- Q: Should specific WCAG 2.1 AA compliance implementation tasks be added to address the underspecified accessibility requirements? → A: Add specific WCAG 2.1 AA compliance implementation tasks
