@@ -1,43 +1,51 @@
-# Research Summary for Full-Stack Todo Application
+# Research Findings: Full-Stack Web Application (Phase II)
 
-## Decision: Technology Stack Selection
-**Rationale**: Using Python 3.12+, FastAPI, Next.js, TypeScript 5.x, SQLAlchemy, and Redux Toolkit aligns with the constitution requirements and provides a modern, efficient stack for the application.
-**Alternatives considered**:
-- Different backend frameworks (Django, Flask) - FastAPI chosen for performance and modern features
-- Different frontend frameworks (React with CRA, Vue) - Next.js chosen for full-stack integration
-- Different state management (Zustand, Context API) - Redux Toolkit chosen for complex state needs
+## Decision: Next.js App Router Implementation
+**Rationale**: Based on the spec requirements and Next.js best practices, we'll implement the app router with layout.tsx for shared UI, loading.tsx for loading states, error.tsx for error boundaries, and route handlers for API endpoints. This provides better performance and SEO compared to the pages router.
+**Alternatives considered**: Pages router, traditional SPA with client-side rendering
+**Chosen**: App router for better performance and modern Next.js practices
 
-## Decision: Database Strategy
-**Rationale**: Using SQLite with SQLAlchemy ORM provides a lightweight, easy-to-deploy solution that meets the initial requirements while allowing for migration to PostgreSQL as specified in the constitution.
-**Alternatives considered**:
-- PostgreSQL from the start (more complex setup for initial development)
-- MongoDB (would not align with relational data model requirements)
-- In-memory storage (would not meet persistence requirements)
+## Decision: FastAPI Backend Framework
+**Rationale**: The spec explicitly mentions using FastAPI for the backend. FastAPI offers automatic API documentation, type validation, and high performance with async support.
+**Alternatives considered**: Flask, Django, Express.js
+**Chosen**: FastAPI as specified in requirements
 
-## Decision: Authentication Approach
-**Rationale**: JWT-based authentication with refresh tokens provides stateless, scalable authentication that works well with REST APIs and meets security requirements.
-**Alternatives considered**:
-- Session-based authentication (requires server-side state management)
-- OAuth-only approach (too limited for application requirements)
-- Basic authentication (less secure than JWT approach)
+## Decision: SQLite to PostgreSQL Migration Strategy
+**Rationale**: Following the constitution's data persistence strategy, we'll start with SQLite for development and testing, with a migration path to PostgreSQL for production.
+**Alternatives considered**: MySQL, MongoDB, direct PostgreSQL implementation
+**Chosen**: SQLite for development with PostgreSQL migration path
 
-## Decision: Frontend State Management
-**Rationale**: Using Redux Toolkit for global state and React hooks for local state provides a balanced approach that handles complex state requirements while keeping simple state local.
-**Alternatives considered**:
-- Pure Context API (would become unwieldy with complex state)
-- Zustand or Jotai (less ecosystem support than Redux)
-- Only React hooks (insufficient for complex global state needs)
+## Decision: Authentication Implementation
+**Rationale**: Using JWT-based authentication with refresh tokens as specified in the clarifications, storing tokens securely in httpOnly cookies to prevent XSS attacks.
+**Alternatives considered**: Session-based authentication, OAuth providers
+**Chosen**: JWT with httpOnly cookies for security and scalability
 
-## Decision: API Design Patterns
-**Rationale**: Following RESTful principles with proper HTTP status codes, authentication, and consistent error handling aligns with industry standards and the constitution requirements.
-**Alternatives considered**:
-- GraphQL (adds complexity without clear benefit for this use case)
-- RPC-style APIs (less standardized than REST)
-- Event-driven architecture (unnecessarily complex for this application)
+## Decision: State Management Solution
+**Rationale**: Using Redux Toolkit for global state management and React hooks for local state, as specified in the functional requirements. RTK Query will be used for API calls.
+**Alternatives considered**: Context API alone, Zustand, MobX
+**Chosen**: Redux Toolkit with RTK Query as specified
 
-## Decision: UI/UX Approach
-**Rationale**: Implementing light/dark themes with responsive design and accessibility features (WCAG 2.1 AA compliance) fulfills the requirements for modern UI experience.
-**Alternatives considered**:
-- Single theme only (would not meet user preference requirements)
-- Desktop-only design (would not meet responsive requirement)
-- Minimal accessibility support (would not meet compliance requirements)
+## Decision: Database Schema Design
+**Rationale**: Implementing SQLAlchemy models with proper foreign key relationships, indexes on frequently queried fields (user_id, status, priority, due_date), and proper cascade behaviors as specified in the requirements.
+**Alternatives considered**: Raw SQL queries, other ORMs
+**Chosen**: SQLAlchemy ORM with proper relationships and indexing
+
+## Decision: Environment Configuration
+**Rationale**: Using .env.local files for sensitive configuration data with separate configs for development and production environments as specified in the requirements.
+**Alternatives considered**: Hardcoded values, centralized config service
+**Chosen**: .env.local files with environment-specific configurations
+
+## Decision: Error Handling and Logging
+**Rationale**: Implementing structured logging with Winston/Bunyan equivalent for Python (such as structlog), using React error boundaries, and returning consistent error response format as specified.
+**Alternatives considered**: Basic print statements, centralized error service
+**Chosen**: Structured logging with error boundaries and consistent error responses
+
+## Decision: API Endpoint Structure
+**Rationale**: Using RESTful endpoints with JWT authentication, implementing login/register endpoints at /api/auth/login and /api/auth/register, protecting routes with middleware.
+**Alternatives considered**: GraphQL, gRPC
+**Chosen**: RESTful API as specified in requirements
+
+## Decision: Performance Optimization
+**Rationale**: Implementing code splitting with React.lazy and dynamic imports for performance optimization as specified in the requirements, with target response times under 200ms.
+**Alternatives considered**: Client-side rendering only, server-side rendering only
+**Chosen**: App router with selective code splitting and performance optimization

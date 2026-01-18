@@ -1,0 +1,373 @@
+# API Contract: Task Management System
+
+## Base URL
+`https://api.todoapp.com/api/v1` (production)  
+`http://localhost:8000/api/v1` (development)
+
+## Authentication
+All endpoints require JWT authentication in the form of a Bearer token in the Authorization header:
+```
+Authorization: Bearer <jwt_token>
+```
+
+## Common Response Format
+
+Success response:
+```json
+{
+  "success": true,
+  "data": { /* response data */ },
+  "message": "Optional message"
+}
+```
+
+Error response:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": { /* optional error details */ }
+  }
+}
+```
+
+## API Endpoints
+
+### Authentication
+
+#### POST /auth/login
+Login user and return JWT tokens
+- Request:
+```json
+{
+  "username_or_email": "string",
+  "password": "string"
+}
+```
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "access_token": "jwt_token",
+    "refresh_token": "jwt_token",
+    "user": {
+      "id": "uuid",
+      "username": "string",
+      "email": "string"
+    }
+  }
+}
+```
+
+#### POST /auth/register
+Register a new user
+- Request:
+```json
+{
+  "username": "string (3-50 chars)",
+  "email": "valid email",
+  "password": "string (min 8 chars)"
+}
+```
+- Response (201):
+```json
+{
+  "success": true,
+  "data": {
+    "access_token": "jwt_token",
+    "refresh_token": "jwt_token",
+    "user": {
+      "id": "uuid",
+      "username": "string",
+      "email": "string"
+    }
+  }
+}
+```
+
+#### POST /auth/refresh
+Refresh access token using refresh token
+- Request:
+```json
+{
+  "refresh_token": "jwt_token"
+}
+```
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "access_token": "new_jwt_token"
+  }
+}
+```
+
+### Tasks
+
+#### GET /tasks
+Get all tasks for the authenticated user
+- Query Parameters:
+  - `status`: Filter by status ('active', 'completed')
+  - `priority`: Filter by priority ('low', 'medium', 'high')
+  - `due_date_from`: Filter tasks with due date >= this date (ISO 8601)
+  - `due_date_to`: Filter tasks with due date <= this date (ISO 8601)
+  - `search`: Search in title and description
+  - `sort_by`: Sort by ('created_at', 'due_date', 'priority', 'title') - default: 'created_at'
+  - `sort_order`: Sort order ('asc', 'desc') - default: 'desc'
+  - `page`: Page number for pagination - default: 1
+  - `limit`: Items per page - default: 20, max: 100
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "tasks": [
+      {
+        "id": "uuid",
+        "title": "string",
+        "description": "string or null",
+        "status": "active|completed",
+        "priority": "low|medium|high",
+        "tags": [{"id": "uuid", "name": "string", "color": "hex_color"}],
+        "due_date": "datetime or null",
+        "created_at": "datetime",
+        "updated_at": "datetime",
+        "completed_at": "datetime or null",
+        "recurrence_pattern": "cron_string or null"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "pages": 3,
+      "per_page": 20,
+      "total": 45
+    }
+  }
+}
+```
+
+#### GET /tasks/{task_id}
+Get a specific task
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "task": {
+      "id": "uuid",
+      "title": "string",
+      "description": "string or null",
+      "status": "active|completed",
+      "priority": "low|medium|high",
+      "tags": [{"id": "uuid", "name": "string", "color": "hex_color"}],
+      "due_date": "datetime or null",
+      "created_at": "datetime",
+      "updated_at": "datetime",
+      "completed_at": "datetime or null",
+      "recurrence_pattern": "cron_string or null"
+    }
+  }
+}
+```
+
+#### POST /tasks
+Create a new task
+- Request:
+```json
+{
+  "title": "string (1-255 chars)",
+  "description": "string or null",
+  "priority": "low|medium|high",
+  "due_date": "datetime or null",
+  "tags": ["tag_id", ...], // Array of tag IDs
+  "recurrence_pattern": "cron_string or null"
+}
+```
+- Response (201):
+```json
+{
+  "success": true,
+  "data": {
+    "task": { /* task object */ }
+  }
+}
+```
+
+#### PUT /tasks/{task_id}
+Update a task
+- Request:
+```json
+{
+  "title": "string (1-255 chars)",
+  "description": "string or null",
+  "status": "active|completed",
+  "priority": "low|medium|high",
+  "due_date": "datetime or null",
+  "tags": ["tag_id", ...], // Array of tag IDs
+  "recurrence_pattern": "cron_string or null"
+}
+```
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "task": { /* updated task object */ }
+  }
+}
+```
+
+#### DELETE /tasks/{task_id}
+Delete a task
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Task deleted successfully"
+  }
+}
+```
+
+#### PATCH /tasks/{task_id}/toggle-status
+Toggle task status between active and completed
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "task": { /* updated task object */ }
+  }
+}
+```
+
+### Tags
+
+#### GET /tags
+Get all tags for the authenticated user
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "tags": [
+      {
+        "id": "uuid",
+        "name": "string",
+        "color": "hex_color",
+        "usage_count": 0
+      }
+    ]
+  }
+}
+```
+
+#### POST /tags
+Create a new tag
+- Request:
+```json
+{
+  "name": "string (1-50 chars)",
+  "color": "hex_color (optional, defaults to #007bff)"
+}
+```
+- Response (201):
+```json
+{
+  "success": true,
+  "data": {
+    "tag": {
+      "id": "uuid",
+      "name": "string",
+      "color": "hex_color",
+      "usage_count": 0
+    }
+  }
+}
+```
+
+#### PUT /tags/{tag_id}
+Update a tag
+- Request:
+```json
+{
+  "name": "string (1-50 chars)",
+  "color": "hex_color"
+}
+```
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "tag": { /* updated tag object */ }
+  }
+}
+```
+
+#### DELETE /tags/{tag_id}
+Delete a tag
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Tag deleted successfully"
+  }
+}
+```
+
+### User Preferences
+
+#### GET /user/preferences
+Get user preferences
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "theme": "light|dark|auto",
+    "language": "en|ur",
+    "notifications_enabled": true,
+    "timezone": "string"
+  }
+}
+```
+
+#### PUT /user/preferences
+Update user preferences
+- Request:
+```json
+{
+  "theme": "light|dark|auto",
+  "language": "en|ur",
+  "notifications_enabled": true,
+  "timezone": "string"
+}
+```
+- Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "preferences": { /* updated preferences object */ }
+  }
+}
+```
+
+## Error Codes
+
+| Code | HTTP Status | Description |
+|------|-------------|-------------|
+| AUTH_001 | 401 | Invalid credentials |
+| AUTH_002 | 401 | Token expired |
+| AUTH_003 | 401 | Invalid token |
+| AUTH_004 | 403 | Insufficient permissions |
+| VALIDATION_001 | 422 | Validation error |
+| RESOURCE_001 | 404 | Resource not found |
+| SERVER_001 | 500 | Internal server error |
+| SERVER_002 | 503 | Service temporarily unavailable |

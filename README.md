@@ -1,34 +1,42 @@
-# Full-Stack Todo Application
+# Full-Stack Todo Application (Phase II)
 
-This is a full-stack web application that provides task management functionality with a modern UI/UX. The application allows users to manage their tasks with features like priorities, tags, search/filter/sort capabilities, recurring tasks, and due date reminders.
-
-## Tech Stack
-
-- **Backend**: Python 3.12+, FastAPI, SQLAlchemy, SQLite
-- **Frontend**: Next.js, TypeScript, Redux Toolkit, Material UI
-- **Authentication**: JWT-based with refresh tokens
-- **Database**: SQLite with migration path to PostgreSQL
+This is a full-stack web application for managing todo tasks, built with FastAPI (backend) and Next.js (frontend).
 
 ## Features
 
-- Modern UI with light/dark themes
-- Core task management (create, read, update, delete, mark complete)
-- Task organization with priorities and tags
-- Search, filter, and sort functionality
-- Recurring tasks management
+- User authentication and authorization
+- Create, read, update, and delete tasks
+- Assign priorities (high/medium/low) to tasks
+- Add tags to tasks for better organization
+- Search, filter, and sort tasks
+- Recurring tasks with customizable patterns
 - Due dates and reminders
-- Responsive design for desktop and mobile
+- Light/dark theme support
+- Responsive design for all device sizes
 
-## Setup
+## Tech Stack
 
-### Backend
+- **Backend**: Python 3.12+, FastAPI, SQLAlchemy, PostgreSQL
+- **Frontend**: Next.js 14+, TypeScript, Redux Toolkit, Material UI
+- **Authentication**: JWT tokens
+- **Database**: PostgreSQL (with SQLite for development)
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.12+
+- Node.js 18+
+- Docker and Docker Compose (optional, for containerized deployment)
+
+### Backend Setup
 
 1. Navigate to the backend directory:
    ```bash
    cd backend
    ```
 
-2. Create a virtual environment:
+2. Create and activate a virtual environment:
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -36,8 +44,7 @@ This is a full-stack web application that provides task management functionality
 
 3. Install dependencies:
    ```bash
-   pip install poetry
-   poetry install
+   pip install -r requirements.txt
    ```
 
 4. Set up environment variables:
@@ -46,12 +53,19 @@ This is a full-stack web application that provides task management functionality
    # Edit .env with your configuration
    ```
 
-5. Run the application:
+5. Initialize the database:
    ```bash
-   poetry run uvicorn src.main:app --reload
+   python -m src.database.init_db
    ```
 
-### Frontend
+6. Run the development server:
+   ```bash
+   uvicorn src.main:app --reload
+   ```
+
+The backend will be available at `http://localhost:8000`.
+
+### Frontend Setup
 
 1. Navigate to the frontend directory:
    ```bash
@@ -65,8 +79,8 @@ This is a full-stack web application that provides task management functionality
 
 3. Set up environment variables:
    ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
+   cp .env.local.example .env.local
+   # Edit .env.local with your configuration
    ```
 
 4. Run the development server:
@@ -74,41 +88,86 @@ This is a full-stack web application that provides task management functionality
    npm run dev
    ```
 
+The frontend will be available at `http://localhost:3000`.
+
 ## API Documentation
 
-The API is documented using OpenAPI 3.0. You can access the interactive documentation at:
-- http://localhost:8000/docs (Swagger UI)
-- http://localhost:8000/redoc (ReDoc)
+API documentation is available at `http://localhost:8000/docs` when the backend is running.
+
+## Running with Docker
+
+To run the entire application with Docker:
+
+```bash
+docker-compose up --build
+```
+
+The services will be available at:
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000`
+- Database: accessible internally
 
 ## Testing
 
 ### Backend Tests
+
 ```bash
 # Run all backend tests
 cd backend
-poetry run pytest
+source venv/bin/activate
+pytest
 
-# Run with coverage
-poetry run pytest --cov=src
+# Run tests with coverage
+pytest --cov=src --cov-report=html
 ```
 
 ### Frontend Tests
+
 ```bash
 # Run all frontend tests
 cd frontend
 npm test
+# Or for watch mode
+npm run test:watch
+```
+
+## Project Structure
+
+```
+multi-phase-todo/
+├── backend/
+│   ├── src/
+│   │   ├── models/      # Database models
+│   │   ├── schemas/     # Pydantic schemas
+│   │   ├── services/    # Business logic
+│   │   ├── api/         # API routes
+│   │   ├── database/    # Database utilities
+│   │   └── core/        # Configuration and security
+│   ├── tests/           # Backend tests
+│   ├── requirements.txt # Python dependencies
+│   └── .env            # Environment variables
+├── frontend/
+│   ├── src/
+│   │   ├── components/  # React components
+│   │   ├── pages/       # Next.js pages
+│   │   ├── services/    # API clients
+│   │   ├── store/       # Redux store
+│   │   └── types/       # TypeScript types
+│   ├── public/          # Static assets
+│   ├── package.json     # Node.js dependencies
+│   └── .env.local      # Environment variables
+├── specs/               # Feature specifications
+├── docs/                # Documentation
+└── docker-compose.yml   # Docker configuration
 ```
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for new functionality
-5. Run the test suite
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 

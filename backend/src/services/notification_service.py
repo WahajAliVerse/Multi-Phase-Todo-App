@@ -1,85 +1,56 @@
+"""
+Notification service for the todo application.
+"""
+
 import asyncio
 from datetime import datetime, timedelta
-from typing import List, Optional
-from fastapi import BackgroundTasks
-
+from typing import List
+from sqlalchemy.orm import Session
 from ..models.task import Task
-from ..services.task_service import TaskService
+from ..models.user import User
 
 
 class NotificationService:
-    @staticmethod
-    async def send_notification(user_id: str, message: str, task_id: Optional[str] = None):
+    """
+    Service to handle sending notifications for upcoming due dates.
+    """
+    
+    def __init__(self, db: Session):
+        self.db = db
+    
+    async def send_due_date_reminder(self, user: User, task: Task):
         """
-        Send a notification to a user
-        In a real implementation, this would interface with a notification system
-        like Firebase, email, or WebSocket connections
+        Send a reminder notification for a task with an upcoming due date.
         """
-        print(f"Notification for user {user_id}: {message}")
-        if task_id:
-            print(f"Related to task: {task_id}")
-        # In a real implementation, this would send actual notifications
-        # via email, push notifications, or WebSocket connections
-
-    @staticmethod
-    def schedule_due_date_reminders(db, background_tasks: BackgroundTasks):
+        # In a real implementation, this would send an actual notification
+        # (email, push notification, etc.)
+        print(f"Sending reminder to {user.username} for task '{task.title}' due at {task.due_date}")
+        
+        # Here we would integrate with a notification system like:
+        # - Email service (SMTP)
+        # - Push notification service (Firebase, APNs)
+        # - SMS service (Twilio)
+        # - In-app notifications
+        pass
+    
+    async def schedule_notifications(self):
         """
-        Schedule background tasks to send reminders for upcoming due dates
+        Schedule notifications for tasks with upcoming due dates.
+        This would typically run as a background task/cron job.
         """
-        # Find tasks with due dates in the next hour
-        upcoming_tasks = db.query(Task).filter(
-            Task.due_date <= datetime.utcnow() + timedelta(hours=1),
-            Task.due_date >= datetime.utcnow(),
-            Task.status == 'active'
+        # Find tasks with due dates within the next hour
+        threshold_time = datetime.utcnow() + timedelta(hours=1)
+        imminent_tasks = self.db.query(Task).filter(
+            Task.due_date <= threshold_time,
+            Task.status != "completed"
         ).all()
-
-        for task in upcoming_tasks:
-            # Calculate time until due date
-            time_until_due = task.due_date - datetime.utcnow()
-            delay_seconds = max(0, time_until_due.total_seconds())
-
-            # Schedule notification
-            background_tasks.add_task(
-                NotificationService.send_notification,
-                user_id=task.user_id,
-                message=f"Task '{task.title}' is due soon!",
-                task_id=task.id
-            )
-
-    @staticmethod
-    async def send_overdue_notifications(db):
+        
+        for task in imminent_tasks:
+            user = self.db.query(User).filter(User.id == task.user_id).first()
+            await self.send_due_date_reminder(user, task)
+    
+    async def check_and_send_notifications(self):
         """
-        Send notifications for overdue tasks
+        Check for tasks with due dates coming up and send notifications.
         """
-        # Find tasks that are overdue (due date is in the past and status is active)
-        overdue_tasks = db.query(Task).filter(
-            Task.due_date < datetime.utcnow(),
-            Task.status == 'active'
-        ).all()
-
-        for task in overdue_tasks:
-            await NotificationService.send_notification(
-                user_id=task.user_id,
-                message=f"Task '{task.title}' is overdue!",
-                task_id=task.id
-            )
-
-    @staticmethod
-    async def send_task_completion_confirmation(user_id: str, task_title: str):
-        """
-        Send a confirmation notification when a task is completed
-        """
-        await NotificationService.send_notification(
-            user_id=user_id,
-            message=f"Task '{task_title}' has been marked as complete!"
-        )
-
-    @staticmethod
-    async def send_recurring_task_created(user_id: str, task_title: str):
-        """
-        Send a notification when a recurring task instance is created
-        """
-        await NotificationService.send_notification(
-            user_id=user_id,
-            message=f"New instance of recurring task '{task_title}' has been created."
-        )
+        await self.schedule_notifications()

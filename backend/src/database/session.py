@@ -1,16 +1,14 @@
-from .task import Base
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+"""
+Database session management for the todo application.
+"""
 
-# Database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./todo.db"
+from .connection import SessionLocal
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
+    """
+    Dependency to get database session.
+    """
     db = SessionLocal()
     try:
         yield db

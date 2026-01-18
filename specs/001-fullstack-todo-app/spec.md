@@ -138,6 +138,21 @@ Users need to assign due dates to tasks and receive notifications to help manage
 - **FR-018**: System MUST implement minimal design elements with appropriate white space to reduce UI clutter
 - **FR-019**: System MUST maintain all existing functionality while updating the UI layer only
 - **FR-020**: System MUST follow modern UI/UX best practices for 2026
+- **FR-021**: System MUST implement Next.js app router with proper layout.tsx, loading.tsx, and error.tsx files for optimal performance and user experience
+- **FR-022**: System MUST use route handlers (app/api routes) for API endpoints following Next.js best practices
+- **FR-023**: System MUST implement code splitting and dynamic imports for performance optimization
+- **FR-024**: System MUST implement RESTful API endpoints following standard HTTP methods and status codes
+- **FR-025**: System MUST use JWT-based authentication with login endpoint at /api/auth/login and register at /api/auth/register
+- **FR-026**: System MUST protect authenticated routes using middleware and store tokens securely in httpOnly cookies
+- **FR-027**: System MUST implement proper SQLAlchemy models with foreign key relationships between entities
+- **FR-028**: System MUST create database indexes on frequently queried fields (user_id, status, priority, due_date) for performance
+- **FR-029**: System MUST implement proper cascade behaviors for related entities
+- **FR-030**: System MUST use .env.local files for sensitive configuration data
+- **FR-031**: System MUST define required environment variables: DATABASE_URL, JWT_SECRET, PORT, NODE_ENV, NEXT_PUBLIC_API_URL
+- **FR-032**: System MUST provide separate configurations for development and production environments
+- **FR-033**: System MUST implement structured logging with Winston or similar logging library
+- **FR-034**: System MUST use React error boundaries to catch and handle UI errors gracefully
+- **FR-035**: System MUST return consistent error response format with appropriate HTTP status codes
 
 ### Key Entities *(include if feature involves data)*
 
@@ -176,7 +191,7 @@ Users need to assign due dates to tasks and receive notifications to help manage
 - Q: What observability features should be implemented for this application? → A: Full observability stack with logs, metrics, and distributed tracing, plus alerting for critical issues
 - Q: What are the expected data volume and scale assumptions for this application? → A: Up to 10,000 tasks per user, with consideration for performance optimization
 - Q: What level of accessibility compliance should the application meet? → A: WCAG 2.1 AA compliance
-- Q: What UI/UX approach should be taken to address the cluttered interface issue? → A: Modern UI with light/dark themes and de-cluttered design for 2026
+- Q: What UI/UX approach should be taken to address the clutered interface issue? → A: Modern UI with light/dark themes and de-cluttered design for 2026
 - Q: How should the light/dark theme functionality be implemented? → A: Implement light/dark theme toggle with automatic system preference detection
 - Q: What UI design approach should be used to de-clutter the interface? → A: De-clutter UI with minimal design elements and white space
 - Q: Should the UI update change any existing functionality? → A: Keep all existing functionality while updating UI only
@@ -195,3 +210,23 @@ Users need to assign due dates to tasks and receive notifications to help manage
 - Q: What environment variables are required for backend and frontend? → A: Define complete environment variable requirements for both backend and frontend
 - Q: What are the exact dependency installation steps for backend and frontend? → A: Specify exact dependency installation steps for both backend and frontend
 - Q: How should error handling and logging be configured? → A: Define comprehensive error handling and logging setup
+- Q: How should the system handle conflicts during concurrent edits to the same task? → A: Show conflict notification and allow user to merge changes or overwrite
+- Q: What database connection pooling strategy should be used for the backend? → A: Implement moderate connection pooling with 4-10 connections
+- Q: When modifying a recurring task, how should changes apply to existing and future occurrences? → A: Apply changes only to future occurrences, not past ones
+- Q: How should the UI handle notification permissions when denied by the user? → A: Show persistent UI element in settings requesting permission with explanation of benefits
+- Q: Should the system maintain an audit trail of task modifications for accountability? → A: Log significant changes (completions, deletions) with timestamps for accountability purposes
+- Q: What authentication flow should be implemented? → A: Complete authentication flow with login/register endpoints, JWT token refresh mechanism, and secure storage
+- Q: What frontend state management approach should be used with Next.js? → A: Redux Toolkit with RTK Query for API calls, React hooks for local state
+- Q: How should the database schema and relationships be defined? → A: Explicit SQLAlchemy models with proper relationships, indexes for performance, and foreign key constraints
+- Q: What deployment strategy should be used? → A: Docker containerization with environment-specific configs, health checks, and CI/CD pipeline
+- Q: What testing strategy should be implemented? → A: Unit tests for backend services, integration tests for API endpoints, and E2E tests for critical user flows with 80%+ coverage
+- Q: How should the database schema and indexing strategy be defined for performance with expected data volume? → A: Define explicit SQLAlchemy models with proper relationships, indexes for performance, and foreign key constraints
+- Q: How should error handling and retry mechanisms be implemented for API calls? → A: Implement comprehensive error handling with appropriate HTTP status codes, user-friendly messages, and retry mechanisms for transient failures
+- Q: What authentication and authorization flow should be implemented to address security concerns? → A: Implement complete authentication flow with login/register endpoints, JWT token refresh mechanism, and secure storage, with role-based access control
+- Q: What frontend state management approach should be used for the Next.js application? → A: Use Redux Toolkit with RTK Query for API calls, React hooks for local state
+- Q: What deployment strategy should be used to ensure reliable production deployment? → A: Use Docker containerization with environment-specific configurations, health checks, and CI/CD pipeline
+- Q: Clarify the specific NextJS app router structure and best practices for optimal performance → A: Use the app router with layout.tsx for shared UI, loading.tsx for loading states, error.tsx for error boundaries, and route handlers (route.ts) for API endpoints; implement code splitting with React.lazy and dynamic imports for performance optimization
+- Q: Define the API endpoint structure and authentication flow → A: Use RESTful endpoints with JWT authentication; implement login/register endpoints at /api/auth/login and /api/auth/register; protect routes with middleware; store tokens securely in httpOnly cookies
+- Q: Specify database schema relationships and indexing strategy → A: Use SQLAlchemy models with proper foreign key relationships; create indexes on frequently queried fields like user_id, status, priority, and due_date; implement proper cascade behaviors
+- Q: Detail the environment variable configuration for local development → A: Use .env.local files for sensitive data; define DATABASE_URL, JWT_SECRET, PORT, NODE_ENV, NEXT_PUBLIC_API_URL; separate configs for dev/prod environments
+- Q: Clarify the complete error handling and logging setup → A: Implement structured logging with Winston/Bunyan; use error boundaries in React; return consistent error response format; log security events and performance metrics

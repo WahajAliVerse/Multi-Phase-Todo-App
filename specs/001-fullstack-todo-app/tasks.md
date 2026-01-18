@@ -1,268 +1,324 @@
-# Implementation Tasks: Full-Stack Web Application (Phase II)
+# Implementation Tasks: Full-Stack Todo Application
 
 **Feature**: Full-Stack Web Application (Phase II)  
 **Branch**: `001-fullstack-todo-app`  
-**Created**: 2026-01-09  
-**Status**: Planned  
-
-## Summary
-
-This document outlines the implementation tasks for the full-stack web application that builds upon Phase I functionality with a modern UI/UX. The application will provide all core task management features (Add/Delete/Update/View/Mark Complete) via a web interface, enhanced with priorities & tags, search & filter capabilities, sorting options, recurring tasks, and due dates & reminders. The technical approach involves a FastAPI backend with JWT authentication, SQLite database with SQLAlchemy ORM, and a Next.js frontend with Redux Toolkit for state management, featuring light/dark themes and responsive design.
-
-## Dependencies
-
-- User Story 1 (Modern UI) can be implemented independently
-- User Story 2 (Core Task Management) is foundational for other stories
-- User Story 3 (Search, Filter & Sort) depends on User Story 2
-- User Story 4 (Recurring Tasks) depends on User Story 2
-- User Story 5 (Due Dates & Reminders) depends on User Story 2
-
-## Parallel Execution Examples
-
-- Backend API development can happen in parallel with frontend UI development
-- Authentication implementation can happen in parallel with task model implementation
-- Different UI components can be developed in parallel after foundational components are created
+**Input**: Feature specification from `/specs/001-fullstack-todo-app/spec.md`
 
 ## Implementation Strategy
 
-- Start with MVP: User authentication, basic task CRUD operations, and simple UI
-- Incrementally add features: priorities/tags, search/filter/sort, recurring tasks, due dates/notifications
-- Implement comprehensive testing at each phase
-- Focus on responsive design and accessibility from the start
+Build the full-stack web application incrementally, starting with the foundational backend services, followed by the frontend implementation. Prioritize User Story 1 (Modern UI) as the core experience, then implement the other user stories in priority order. Each user story should be independently testable and deliver value to the user. Follow TDD methodology: write tests first, ensure they fail, then implement functionality.
+
+## Dependencies
+
+- User Story 2 (Core Task Management) must be completed before User Stories 3-5 can be fully functional
+- Authentication system (foundational) must be in place before most user stories
+- Database models must be implemented before API endpoints
+- API endpoints must be available before frontend components can be fully tested
+
+## Parallel Execution Opportunities
+
+- Backend API development can run in parallel with frontend component development
+- Database schema implementation can run in parallel with authentication system
+- Individual user stories can be developed in parallel after foundational components are in place
+- Testing can run in parallel with implementation
 
 ---
 
 ## Phase 1: Setup
 
-### Goal
-Initialize project structure and configure development environment with all necessary dependencies and tools.
+### Project Initialization
 
-### Independent Test
-Can run both backend and frontend development servers successfully and access basic endpoints/pages.
-
-### Tasks
-
-- [X] T001 Create project directory structure per implementation plan
-- [X] T002 [P] Initialize backend project with FastAPI dependencies in backend/requirements.txt
-- [X] T003 [P] Initialize frontend project with Next.js dependencies in frontend/package.json
-- [X] T004 [P] Set up database configuration with SQLAlchemy in backend/src/database/
-- [X] T005 [P] Configure environment variables for both backend and frontend
-- [X] T006 [P] Set up basic project configuration files (pyproject.toml, tsconfig.json, etc.)
-- [X] T007 [P] Configure testing frameworks (pytest for backend, Jest for frontend)
-- [X] T008 Set up basic CI/CD pipeline configuration
-- [X] T009 [P] Configure linters and formatters (black, ruff, prettier, eslint)
+- [X] T001 Create backend directory structure: `backend/src/{models,services,api,database,auth,utils}`
+- [X] T002 Create frontend directory structure: `frontend/src/{components,pages,services,store,hooks,styles,utils}`
+- [X] T003 Initialize backend requirements.txt with FastAPI, SQLAlchemy, PyJWT, python-multipart
+- [X] T004 Initialize frontend package.json with Next.js, React, Redux Toolkit, RTK Query, TypeScript
+- [X] T005 Create backend .env file with default configuration values
+- [X] T006 Create frontend .env.local.example file with API base URL
 
 ---
 
 ## Phase 2: Foundational Components
 
-### Goal
-Implement core infrastructure components that are needed by multiple user stories.
+### Database Setup
 
-### Independent Test
-Authentication system works, database models are accessible, and basic API endpoints return data.
+- [X] T010 [P] Create database connection module in `backend/src/database/connection.py`
+- [X] T011 [P] Create base model in `backend/src/database/base.py`
+- [X] T012 [P] Create Alembic configuration for database migrations
+- [X] T013 [P] Create database session management in `backend/src/database/session.py`
 
-### Tasks
+### Authentication System
 
-- [X] T010 [P] Create User model in backend/src/models/user.py
-- [X] T011 [P] Create Task model in backend/src/models/task.py
-- [X] T012 [P] Create Tag model in backend/src/models/tag.py
-- [X] T013 [P] Create RecurrencePattern model in backend/src/models/recurrence_pattern.py
-- [X] T014 [P] Create TaskTag junction model in backend/src/models/task_tag.py
-- [X] T015 [P] Implement database base class and session management in backend/src/database/
-- [X] T016 [P] Implement authentication service in backend/src/services/auth_service.py
-- [X] T017 [P] Implement JWT token utilities in backend/src/core/security.py
-- [ ] T018 [P] Create database migrations setup in backend/src/database/migrations/
-- [X] T019 [P] Set up core configuration in backend/src/core/config.py
-- [X] T020 [P] Define custom exceptions in backend/src/core/exceptions.py
-- [X] T021 [P] Create API dependency handlers in backend/src/api/deps.py
-- [X] T022 [P] Set up Redux store in frontend/src/store/index.ts
-- [X] T023 [P] Create authentication slice in frontend/src/store/slices/authSlice.ts
-- [X] T024 [P] Create API service utility in frontend/src/services/api.ts
-- [X] T025 [P] Create authentication service in frontend/src/services/auth.ts
-- [X] T026 [P] Define TypeScript types for entities in frontend/src/types/
+- [X] T020 [P] Create JWT utility functions in `backend/src/auth/jwt.py`
+- [X] T021 [P] Create password hashing utilities in `backend/src/auth/hashing.py`
+- [X] T022 [P] Create authentication dependencies in `backend/src/auth/dependencies.py`
+- [X] T023 [P] Create user authentication service in `backend/src/services/auth_service.py`
+
+### Testing Infrastructure
+
+- [X] T024 [P] Set up pytest configuration in `backend/pytest.ini`
+- [X] T025 [P] Create test fixtures in `backend/conftest.py`
+- [X] T026 [P] Set up Jest configuration in `frontend/jest.config.js`
+- [X] T027 [P] Set up Cypress configuration in `frontend/cypress.config.js`
 
 ---
 
 ## Phase 3: User Story 1 - Modern UI Experience with Light/Dark Themes (Priority: P1)
 
-### Goal
-Implement a modern, de-cluttered interface with light/dark themes that maintains all existing functionality while providing an improved user experience aligned with 2026 design standards.
+**Goal**: Implement a modern, de-cluttered interface with light/dark themes that maintains all existing functionality while providing an improved user experience aligned with 2026 design standards.
 
-### Independent Test
-Can access the application and verify all existing functionality works as before while the new UI elements (themes, layout, etc.) function properly, delivering both modern aesthetics and unchanged functionality.
+**Independent Test**: Can be fully tested by verifying all existing functionality works as before while the new UI elements (themes, layout, etc.) function properly, delivering both modern aesthetics and unchanged functionality.
 
-### Tasks
+### Frontend Foundation
 
-- [X] T027 [US1] Set up theme provider in frontend/src/components/ThemeProvider/
-- [X] T028 [US1] Create theme configuration with light/dark modes in frontend/src/styles/theme.ts
-- [ ] T029 [US1] Implement theme toggle component in frontend/src/components/Header/
-- [ ] T030 [US1] Create responsive layout components in frontend/src/components/
-- [X] T031 [US1] Implement system preference detection for theme in frontend/src/hooks/useTheme.ts
-- [ ] T032 [US1] Create reusable UI components (buttons, cards, inputs) with theme support
-- [ ] T033 [US1] Implement de-cluttered UI design with appropriate white space
-- [ ] T034 [US1] Add accessibility features (WCAG 2.1 AA compliance)
-- [ ] T035 [US1] Create loading, error, and empty state components
-- [ ] T036 [US1] Implement responsive design for mobile and desktop views
+- [ ] T030 [P] [US1] Set up Next.js project with TypeScript configuration
+- [ ] T031 [P] [US1] Configure Redux Toolkit store in `frontend/src/store/index.ts`
+- [ ] T032 [P] [US1] Set up theme context with light/dark mode in `frontend/src/styles/theme.ts`
+- [ ] T033 [P] [US1] Create theme provider component in `frontend/src/components/ThemeProvider.tsx`
+- [ ] T034 [P] [US1] Create reusable UI components (Button, Input, Card) in `frontend/src/components/ui/`
+
+### Theme Implementation
+
+- [ ] T040 [P] [US1] Implement theme toggle button component in `frontend/src/components/ThemeToggle.tsx`
+- [ ] T041 [P] [US1] Create CSS variables for light/dark themes in `frontend/src/styles/themes.css`
+- [ ] T042 [P] [US1] Implement system preference detection for theme selection
+- [ ] T043 [P] [US1] Create theme-aware layout components in `frontend/src/components/Layout.tsx`
+
+### UI Styling
+
+- [ ] T050 [P] [US1] Implement de-cluttered design with appropriate white space
+- [ ] T051 [P] [US1] Create responsive grid system for task display
+- [ ] T052 [P] [US1] Implement minimal design elements following 2026 UI/UX best practices
+
+### Testing for User Story 1
+
+- [ ] T053 [P] [US1] Write unit tests for theme context in `frontend/src/styles/__tests__/theme.test.ts`
+- [ ] T054 [P] [US1] Write component tests for ThemeProvider in `frontend/src/components/__tests__/ThemeProvider.test.tsx`
+- [ ] T055 [P] [US1] Write accessibility tests for theme switching
 
 ---
 
 ## Phase 4: User Story 2 - Core Task Management via Web Interface (Priority: P2)
 
-### Goal
-Provide access to todo list through a web application that provides all the basic functionality from Phase I (Add/Delete/Update/View/Mark Complete) in a responsive web interface.
+**Goal**: Provide a web interface for all Phase I functionality (Add/Delete/Update/View/Mark Complete tasks) in a responsive web interface.
 
-### Independent Test
-Can create, view, update, delete, and mark tasks complete through the web interface, delivering the basic todo management functionality.
+**Independent Test**: Can be fully tested by creating, viewing, updating, deleting, and marking tasks complete through the web interface, delivering the basic todo management functionality.
 
-### Tasks
+### Backend Models
 
-- [X] T037 [US2] Implement Task service in backend/src/services/task_service.py
-- [X] T038 [US2] Create Task API endpoints in backend/src/api/v1/tasks.py
-- [X] T039 [US2] Implement basic task CRUD operations in backend
-- [ ] T040 [US2] Create Task response models in backend/src/models/
-- [ ] T041 [US2] Implement task validation logic in backend
-- [X] T042 [US2] Create task service in frontend/src/services/tasks.ts
-- [X] T043 [US2] Create task slice in frontend/src/store/slices/tasksSlice.ts
-- [ ] T044 [US2] Implement TaskList component in frontend/src/components/TaskList/
-- [ ] T045 [US2] Implement TaskCard component in frontend/src/components/TaskCard/
-- [ ] T046 [US2] Create task creation form in frontend/src/components/
-- [ ] T047 [US2] Implement task editing functionality in frontend
-- [ ] T048 [US2] Implement task deletion functionality in frontend
-- [ ] T049 [US2] Implement mark task complete/incomplete functionality in frontend
-- [ ] T050 [US2] Create task detail view in frontend/src/pages/tasks/
-- [ ] T051 [US2] Add optimistic UI updates for task operations
-- [ ] T052 [US2] Implement error handling for task operations
+- [X] T060 [P] [US2] Create Task model in `backend/src/models/task.py`
+- [X] T061 [P] [US2] Create User model in `backend/src/models/user.py`
+- [X] T062 [P] [US2] Create Tag model in `backend/src/models/tag.py`
+- [X] T063 [P] [US2] Create TaskTag association model in `backend/src/models/task_tag.py`
+
+### Backend Services
+
+- [X] T070 [P] [US2] Create TaskService in `backend/src/services/task_service.py`
+- [X] T071 [P] [US2] Create UserService in `backend/src/services/user_service.py`
+- [X] T072 [P] [US2] Create TagService in `backend/src/services/tag_service.py`
+
+### Backend API Endpoints
+
+- [X] T080 [P] [US2] Implement GET /tasks endpoint in `backend/src/api/task_routes.py`
+- [X] T081 [P] [US2] Implement GET /tasks/{task_id} endpoint in `backend/src/api/task_routes.py`
+- [X] T082 [P] [US2] Implement POST /tasks endpoint in `backend/src/api/task_routes.py`
+- [X] T083 [P] [US2] Implement PUT /tasks/{task_id} endpoint in `backend/src/api/task_routes.py`
+- [X] T084 [P] [US2] Implement DELETE /tasks/{task_id} endpoint in `backend/src/api/task_routes.py`
+- [X] T085 [P] [US2] Implement PATCH /tasks/{task_id}/toggle-status endpoint in `backend/src/api/task_routes.py`
+
+### Frontend Components
+
+- [ ] T090 [P] [US2] Create TaskList component in `frontend/src/components/TaskList.tsx`
+- [ ] T091 [P] [US2] Create TaskItem component in `frontend/src/components/TaskItem.tsx`
+- [ ] T092 [P] [US2] Create TaskForm component in `frontend/src/components/TaskForm.tsx`
+- [ ] T093 [P] [US2] Create API service for tasks in `frontend/src/services/taskApi.ts`
+- [ ] T094 [P] [US2] Create task slice for Redux in `frontend/src/store/slices/taskSlice.ts`
+
+### Frontend Pages
+
+- [ ] T100 [P] [US2] Create dashboard page in `frontend/pages/index.tsx`
+- [ ] T101 [P] [US2] Create task detail page in `frontend/pages/tasks/[id].tsx`
+
+### Testing for User Story 2
+
+- [ ] T102 [P] [US2] Write unit tests for Task model in `backend/src/models/__tests__/task.test.py`
+- [ ] T103 [P] [US2] Write unit tests for TaskService in `backend/src/services/__tests__/task_service.test.py`
+- [ ] T104 [P] [US2] Write integration tests for task API endpoints in `backend/tests/integration/test_task_routes.py`
+- [ ] T105 [P] [US2] Write component tests for TaskList in `frontend/src/components/__tests__/TaskList.test.tsx`
+- [ ] T106 [P] [US2] Write component tests for TaskItem in `frontend/src/components/__tests__/TaskItem.test.tsx`
+- [ ] T107 [P] [US2] Write E2E tests for core task operations in `frontend/cypress/e2e/core-tasks.cy.js`
 
 ---
 
 ## Phase 5: User Story 2 - Enhanced Task Organization with Priorities & Tags (Priority: P2)
 
-### Goal
-Allow users to organize their tasks by assigning priorities (high/medium/low) and tags (like work/home) to better categorize and prioritize their work.
+**Goal**: Allow users to organize their tasks by assigning priorities (high/medium/low) and tags (like work/home) to better categorize and prioritize their work.
 
-### Independent Test
-Can assign priorities and tags to tasks and verify they are properly stored and displayed, delivering enhanced organization capabilities.
+**Independent Test**: Can be fully tested by assigning priorities and tags to tasks and verifying they are properly stored and displayed, delivering enhanced organization capabilities.
 
-### Tasks
+### Backend Enhancements
 
-- [ ] T053 [US2] Extend Task model to include priority and due date fields
-- [X] T054 [US2] Implement Tag service in backend/src/services/tag_service.py
-- [X] T055 [US2] Create Tag API endpoints in backend/src/api/v1/tags.py
-- [X] T056 [US2] Implement tag CRUD operations in backend
-- [ ] T057 [US2] Add tag assignment to tasks in backend
-- [ ] T058 [US2] Create Tag response models in backend/src/models/
-- [X] T059 [US2] Create tag service in frontend/src/services/
-- [ ] T060 [US2] Create tag slice in frontend/src/store/slices/
-- [ ] T061 [US2] Implement priority selection in task forms
-- [ ] T062 [US2] Implement tag selection in task forms
-- [ ] T063 [US2] Display priority indicators in TaskCard component
-- [ ] T064 [US2] Display tags in TaskCard component
-- [ ] T065 [US2] Create tag management UI in frontend/src/pages/settings/
-- [ ] T066 [US2] Implement tag autocomplete functionality
-- [ ] T067 [US2] Add validation for priority and tag assignments
+- [X] T110 [P] [US2] Update Task model to include priority field
+- [X] T111 [P] [US2] Update Task model to include due_date field
+- [X] T112 [P] [US2] Update Task model to support many-to-many relationship with tags
+- [X] T113 [P] [US2] Update TaskService to handle priority and due_date
+- [X] T114 [P] [US2] Update TaskService to handle tag associations
+
+### Backend API Endpoints
+
+- [X] T120 [P] [US2] Update POST /tasks endpoint to accept priority and tags
+- [X] T121 [P] [US2] Update PUT /tasks/{task_id} endpoint to update priority and tags
+- [X] T122 [P] [US2] Implement GET /tags endpoint in `backend/src/api/tag_routes.py`
+- [X] T123 [P] [US2] Implement POST /tags endpoint in `backend/src/api/tag_routes.py`
+- [X] T124 [P] [US2] Implement PUT /tags/{tag_id} endpoint in `backend/src/api/tag_routes.py`
+- [X] T125 [P] [US2] Implement DELETE /tags/{tag_id} endpoint in `backend/src/api/tag_routes.py`
+
+### Frontend Enhancements
+
+- [ ] T130 [P] [US2] Update TaskForm to include priority selection
+- [ ] T131 [P] [US2] Update TaskForm to include due date picker
+- [ ] T132 [P] [US2] Update TaskForm to include tag selection
+- [ ] T133 [P] [US2] Update TaskItem to display priority and tags
+- [ ] T134 [P] [US2] Create Tag management components in `frontend/src/components/TagManagement.tsx`
+- [ ] T135 [P] [US2] Create API service for tags in `frontend/src/services/tagApi.ts`
+
+### Testing for Enhanced Organization
+
+- [ ] T136 [P] [US2] Write unit tests for priority and due_date functionality in TaskService
+- [ ] T137 [P] [US2] Write integration tests for tag endpoints in `backend/tests/integration/test_tag_routes.py`
+- [ ] T138 [P] [US2] Write component tests for Tag management components
+- [ ] T139 [P] [US2] Write E2E tests for priority and tag functionality
 
 ---
 
 ## Phase 6: User Story 3 - Search, Filter & Sort Functionality (Priority: P3)
 
-### Goal
-Enable users to efficiently find and organize their tasks by searching for keywords, filtering by status/priority/date, and sorting by due date/priority/alphabetical order.
+**Goal**: Enable users to efficiently find and organize their tasks by searching for keywords, filtering by status/priority/date, and sorting by due date/priority/alphabetical order.
 
-### Independent Test
-Can perform searches, apply filters, and sort tasks, delivering improved task discovery and organization.
+**Independent Test**: Can be fully tested by performing searches, applying filters, and sorting tasks, delivering improved task discovery and organization.
 
-### Tasks
+### Backend Implementation
 
-- [X] T068 [US3] Implement search functionality in Task service backend/src/services/task_service.py
-- [X] T069 [US3] Implement filtering functionality in Task service backend/src/services/task_service.py
-- [X] T070 [US3] Implement sorting functionality in Task service backend/src/services/task_service.py
-- [ ] T071 [US3] Update Task API endpoints to support search, filter, and sort parameters
-- [ ] T072 [US3] Add pagination support to task endpoints
-- [ ] T073 [US3] Create search and filter UI components in frontend/src/components/
-- [X] T074 [US3] Implement search functionality in frontend task service
-- [ ] T075 [US3] Implement filter controls in TaskList component
-- [ ] T076 [US3] Implement sort controls in TaskList component
-- [ ] T077 [US3] Add search bar to header component
-- [ ] T078 [US3] Create advanced filter panel in frontend/src/components/
-- [ ] T079 [US3] Optimize search performance with database indexes
-- [ ] T080 [US3] Implement debounced search for better UX
+- [ ] T140 [P] [US3] Update GET /tasks endpoint to support search functionality
+- [ ] T141 [P] [US3] Update GET /tasks endpoint to support filtering by status/priority/date
+- [ ] T142 [P] [US3] Update GET /tasks endpoint to support sorting by due_date/priority/title
+- [ ] T143 [P] [US3] Update TaskService to implement search, filter, and sort logic
+- [ ] T144 [P] [US3] Add database indexes for efficient search and filtering
+
+### Frontend Implementation
+
+- [ ] T150 [P] [US3] Create SearchBar component in `frontend/src/components/SearchBar.tsx`
+- [ ] T151 [P] [US3] Create FilterControls component in `frontend/src/components/FilterControls.tsx`
+- [ ] T152 [P] [US3] Create SortControls component in `frontend/src/components/SortControls.tsx`
+- [ ] T153 [P] [US3] Integrate search, filter, and sort functionality with TaskList
+- [ ] T154 [P] [US3] Update task API service to support search, filter, and sort parameters
+
+### Testing for Search, Filter & Sort
+
+- [ ] T155 [P] [US3] Write unit tests for search, filter, and sort functionality in TaskService
+- [ ] T156 [P] [US3] Write integration tests for search/filter/sort endpoints
+- [ ] T157 [P] [US3] Write component tests for SearchBar, FilterControls, and SortControls
+- [ ] T158 [P] [US3] Write E2E tests for search, filter, and sort functionality
 
 ---
 
 ## Phase 7: User Story 4 - Recurring Tasks Management (Priority: P4)
 
-### Goal
-Allow users to create recurring tasks that automatically reschedule themselves based on patterns (daily/weekly) to avoid manually recreating routine tasks.
+**Goal**: Allow users to create recurring tasks that automatically reschedule themselves based on patterns (daily/weekly) to avoid manually recreating routine tasks.
 
-### Independent Test
-Can create recurring tasks and verify they automatically appear at the specified intervals, delivering automation for routine activities.
+**Independent Test**: Can be fully tested by creating recurring tasks and verifying they automatically appear at the specified intervals, delivering automation for routine activities.
 
-### Tasks
+### Backend Implementation
 
-- [X] T081 [US4] Implement RecurrencePattern service in backend/src/services/recurrence_service.py
-- [ ] T082 [US4] Create RecurrencePattern API endpoints in backend/src/api/v1/
-- [ ] T083 [US4] Implement recurring task creation logic in Task service
-- [ ] T084 [US4] Create background job scheduler for recurring tasks
-- [ ] T085 [US4] Implement recurring task generation logic
-- [ ] T086 [US4] Add recurrence fields to Task model
-- [ ] T087 [US4] Create recurrence pattern selection UI in task forms
-- [ ] T088 [US4] Implement recurring task visualization in TaskCard
-- [ ] T089 [US4] Create recurring task management UI in frontend
-- [ ] T090 [US4] Add validation for recurrence patterns
-- [ ] T091 [US4] Implement recurrence pattern modification logic
-- [ ] T092 [US4] Create recurring task statistics and insights
+- [ ] T160 [P] [US4] Create RecurrencePattern model in `backend/src/models/recurrence_pattern.py`
+- [ ] T161 [P] [US4] Update Task model to support parent-child relationships for recurring tasks
+- [ ] T162 [P] [US4] Create RecurrenceService in `backend/src/services/recurrence_service.py`
+- [ ] T163 [P] [US4] Implement background job scheduler for recurring task creation
+- [ ] T164 [P] [US4] Update TaskService to handle recurring task creation and management
+
+### Backend API Endpoints
+
+- [ ] T170 [P] [US4] Update POST /tasks endpoint to accept recurrence patterns
+- [ ] T171 [P] [US4] Update PUT /tasks/{task_id} endpoint to modify recurrence patterns
+- [ ] T172 [P] [US4] Implement endpoint to manage recurrence patterns
+
+### Frontend Implementation
+
+- [ ] T180 [P] [US4] Create RecurrencePatternForm component in `frontend/src/components/RecurrencePatternForm.tsx`
+- [ ] T181 [P] [US4] Update TaskForm to include recurrence pattern options
+- [ ] T182 [P] [US4] Update TaskItem to indicate recurring tasks
+- [ ] T183 [P] [US4] Create API service for recurrence patterns in `frontend/src/services/recurrenceApi.ts`
+
+### Testing for Recurring Tasks
+
+- [ ] T184 [P] [US4] Write unit tests for RecurrencePattern model and RecurrenceService
+- [ ] T185 [P] [US4] Write integration tests for recurring task endpoints
+- [ ] T186 [P] [US4] Write component tests for RecurrencePatternForm
+- [ ] T187 [P] [US4] Write E2E tests for recurring task functionality
 
 ---
 
 ## Phase 8: User Story 5 - Due Dates & Reminders (Priority: P5)
 
-### Goal
-Allow users to assign due dates to tasks and receive notifications to help manage deadlines and stay on track.
+**Goal**: Allow users to assign due dates to tasks and receive notifications to help manage deadlines and stay on track.
 
-### Independent Test
-Can set due dates and receive notifications, delivering time management and reminder functionality.
+**Independent Test**: Can be fully tested by setting due dates and receiving notifications, delivering time management and reminder functionality.
 
-### Tasks
+### Backend Implementation
 
-- [ ] T093 [US5] Enhance Task model with due date and notification fields
-- [ ] T094 [US5] Implement due date validation in backend
-- [X] T095 [US5] Create notification service in backend/src/services/notification_service.py
-- [ ] T096 [US5] Implement due date reminder scheduler
-- [ ] T097 [US5] Add due date display in TaskCard component
-- [ ] T098 [US5] Create due date picker in task forms
-- [ ] T099 [US5] Implement overdue task highlighting
-- [ ] T100 [US5] Create upcoming due date notifications in frontend
-- [ ] T101 [US5] Implement browser notification service using Service Workers
-- [ ] T102 [US5] Add due date filtering and sorting options
-- [ ] T103 [US5] Create calendar view for due dates
-- [ ] T104 [US5] Implement notification preferences in user settings
+- [X] T190 [P] [US5] Update Task model to include notification settings
+- [X] T191 [P] [US5] Create NotificationService in `backend/src/services/notification_service.py`
+- [X] T192 [P] [US5] Implement background job scheduler for sending notifications
+- [X] T193 [P] [US5] Create notification models and database tables
+
+### Backend API Endpoints
+
+- [X] T200 [P] [US5] Implement GET /user/preferences endpoint in `backend/src/api/user_routes.py`
+- [X] T201 [P] [US5] Implement PUT /user/preferences endpoint in `backend/src/api/user_routes.py`
+
+### Frontend Implementation
+
+- [ ] T210 [P] [US5] Update TaskForm to include notification settings
+- [ ] T211 [P] [US5] Create NotificationSettings component in `frontend/src/components/NotificationSettings.tsx`
+- [ ] T212 [P] [US5] Implement browser notification functionality using Service Workers
+- [ ] T213 [P] [US5] Create DueDateDisplay component in `frontend/src/components/DueDateDisplay.tsx`
+- [ ] T214 [P] [US5] Create user preferences page in `frontend/pages/settings/preferences.tsx`
+
+### Testing for Due Dates & Reminders
+
+- [ ] T215 [P] [US5] Write unit tests for NotificationService
+- [ ] T216 [P] [US5] Write integration tests for user preferences endpoints
+- [ ] T217 [P] [US5] Write component tests for NotificationSettings and DueDateDisplay
+- [ ] T218 [P] [US5] Write E2E tests for due date and notification functionality
 
 ---
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-### Goal
-Address cross-cutting concerns and polish the application for release.
+### Error Handling & Validation
 
-### Independent Test
-Application meets all performance, accessibility, and security requirements with a polished user experience.
+- [ ] T220 [P] Implement comprehensive error handling in backend API
+- [ ] T221 [P] Implement validation for all API endpoints
+- [ ] T222 [P] Create error boundary components in frontend
+- [ ] T223 [P] Implement user-friendly error messages in frontend
 
-### Tasks
+### Accessibility & Performance
 
-- [ ] T105 Implement comprehensive error handling and logging
-- [ ] T106 Add comprehensive unit and integration tests for backend
-- [ ] T107 Add comprehensive unit and integration tests for frontend
-- [ ] T108 Implement end-to-end tests with Cypress
-- [ ] T109 Add performance monitoring and optimization
-- [ ] T110 Implement comprehensive input validation and sanitization
-- [ ] T111 Add audit logging for user actions
-- [ ] T112 Implement proper error boundaries in React components
-- [ ] T113 Add loading states and skeleton screens for better UX
-- [ ] T114 Implement proper internationalization support
-- [ ] T115 Conduct accessibility audit and fix issues
-- [ ] T116 Optimize bundle sizes and implement code splitting
-- [ ] T117 Create comprehensive API documentation
-- [ ] T118 Set up monitoring and alerting for production
-- [ ] T119 Conduct security review and penetration testing
-- [ ] T120 Prepare production deployment configuration
+- [ ] T230 [P] Implement WCAG 2.1 AA compliance for all UI components
+- [ ] T231 [P] Optimize frontend performance with lazy loading
+- [ ] T232 [P] Implement proper loading and empty states
+- [ ] T233 [P] Add keyboard navigation support
+
+### Testing
+
+- [ ] T240 [P] Write unit tests for backend services
+- [ ] T241 [P] Write integration tests for API endpoints
+- [ ] T242 [P] Write unit tests for frontend components
+- [ ] T243 [P] Write end-to-end tests for critical user flows
+- [ ] T244 [P] Set up test coverage reporting with 95%+ target
+
+### Documentation & Deployment
+
+- [ ] T250 [P] Create API documentation using FastAPI's built-in documentation
+- [ ] T251 [P] Create Docker configuration files for backend and frontend
+- [ ] T252 [P] Set up CI/CD pipeline configuration
+- [ ] T253 [P] Update README with deployment instructions

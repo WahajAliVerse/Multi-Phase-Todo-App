@@ -1,159 +1,225 @@
-# Quickstart Guide for Full-Stack Todo Application
+# Quickstart Guide: Full-Stack Web Application (Phase II)
 
 ## Prerequisites
 
 - Python 3.12+
 - Node.js 18+ and npm/yarn
+- Docker and Docker Compose (for containerized deployment)
 - Git
-- SQLite (usually pre-installed on most systems)
 
-## Setting Up the Backend
+## Setup Instructions
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd multi-phase-todo/backend
-   ```
+### 1. Clone the Repository
 
-2. **Set up Python virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+```bash
+git clone https://github.com/your-org/multi-phase-todo.git
+cd multi-phase-todo
+git checkout 001-fullstack-todo-app
+```
 
-3. **Install backend dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 2. Backend Setup
 
-4. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
+#### 2.1 Navigate to Backend Directory
+```bash
+cd backend
+```
 
-5. **Run database migrations:**
-   ```bash
-   python -m src.database.migrate
-   ```
+#### 2.2 Create Virtual Environment
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-6. **Start the backend server:**
-   ```bash
-   uvicorn src.main:app --reload --port 8000
-   ```
+#### 2.3 Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-## Setting Up the Frontend
+#### 2.4 Environment Configuration
+Create a `.env` file in the backend directory:
 
-1. **Navigate to the frontend directory:**
-   ```bash
-   cd frontend  # From repository root
-   ```
+```env
+DATABASE_URL=sqlite:///./todo_app.db
+# For PostgreSQL in production:
+# DATABASE_URL=postgresql://user:password@localhost/todo_db
 
-2. **Install frontend dependencies:**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
 
-3. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration (API URL, etc.)
-   ```
+# Server configuration
+SERVER_HOST=localhost
+SERVER_PORT=8000
+DEBUG=True
 
-4. **Start the development server:**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+# CORS settings
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+```
+
+#### 2.5 Initialize Database
+```bash
+# Run database migrations
+python -m src.database.migrations.init_db
+```
+
+#### 2.6 Run Backend Server
+```bash
+# For development
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+
+# Or using the run script if available
+python -m src.main
+```
+
+Backend will be available at `http://localhost:8000`
+
+### 3. Frontend Setup
+
+#### 3.1 Navigate to Frontend Directory
+```bash
+cd ../frontend  # From backend directory
+```
+
+#### 3.2 Install Dependencies
+```bash
+npm install
+# Or if using yarn
+yarn install
+```
+
+#### 3.3 Environment Configuration
+Create a `.env.local` file in the frontend directory:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/v1
+NEXT_PUBLIC_APP_NAME=Multi-Phase Todo App
+NEXT_PUBLIC_DEFAULT_THEME=system  # Options: light, dark, system
+
+# For production deployment
+# NEXT_PUBLIC_API_BASE_URL=https://api.yourdomain.com/v1
+```
+
+#### 3.4 Run Frontend Development Server
+```bash
+npm run dev
+# Or if using yarn
+yarn dev
+```
+
+Frontend will be available at `http://localhost:3000`
+
+### 4. Running Both Services Together
+
+#### 4.1 Using Docker Compose (Recommended)
+From the project root directory:
+
+```bash
+docker-compose up --build
+```
+
+Services will be available at:
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000`
+- Database: Internal to container (not exposed)
+
+#### 4.2 Manual Start
+Open separate terminals:
+
+Terminal 1 (Backend):
+```bash
+cd backend
+source venv/bin/activate
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Terminal 2 (Frontend):
+```bash
+cd frontend
+npm run dev
+```
+
+## API Endpoints
+
+### Authentication
+- Register: `POST /api/auth/register`
+- Login: `POST /api/auth/login`
+- Logout: `POST /api/auth/logout`
+
+### Tasks
+- Get all tasks: `GET /api/tasks`
+- Get specific task: `GET /api/tasks/{taskId}`
+- Create task: `POST /api/tasks`
+- Update task: `PUT /api/tasks/{taskId}`
+- Delete task: `DELETE /api/tasks/{taskId}`
+- Update task status: `PATCH /api/tasks/{taskId}/status`
+
+### Tags
+- Get all tags: `GET /api/tags`
+- Create tag: `POST /api/tags`
+- Update tag: `PUT /api/tags/{tagId}`
+- Delete tag: `DELETE /api/tags/{tagId}`
 
 ## Running Tests
 
 ### Backend Tests
 ```bash
-# Run all backend tests
-cd backend
-python -m pytest
-
-# Run with coverage
-python -m pytest --cov=src
+# From backend directory
+python -m pytest tests/ -v
 ```
 
 ### Frontend Tests
 ```bash
-# Run all frontend tests
-cd frontend
-npm test
-# or
-yarn test
+# From frontend directory
+npm run test
+# Or for watch mode
+npm run test:watch
 ```
 
-## API Documentation
+## Production Build
 
-The API is documented using OpenAPI 3.0. You can access the interactive documentation at:
-- http://localhost:8000/docs (Swagger UI)
-- http://localhost:8000/redoc (ReDoc)
+### Backend
+```bash
+# From backend directory
+pip install -r requirements-prod.txt
+# Deploy with a WSGI server like Gunicorn
+gunicorn src.main:app -w 4 -k uvicorn.workers.UvicornWorker
+```
 
-## Environment Variables
+### Frontend
+```bash
+# From frontend directory
+npm run build
+npm run start  # Runs the built application
+```
 
-### Backend (.env)
-- `DATABASE_URL`: Database connection string (default: sqlite:///./todo.db)
-- `SECRET_KEY`: Secret key for JWT tokens
-- `ALGORITHM`: Hashing algorithm for JWT (default: HS256)
-- `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time (default: 30)
-- `REFRESH_TOKEN_EXPIRE_DAYS`: Refresh token expiration time (default: 7)
+## Troubleshooting
 
-### Frontend (.env)
-- `NEXT_PUBLIC_API_URL`: Backend API URL (default: http://localhost:8000)
-- `NEXT_PUBLIC_APP_NAME`: Application name (default: Todo App)
+### Common Issues
 
-## Key Endpoints
+1. **Port already in use**
+   - Change ports in `.env` files or terminate conflicting processes
 
-### Authentication
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login and get JWT tokens
-- `POST /auth/refresh` - Refresh access token
+2. **Database connection errors**
+   - Ensure database service is running
+   - Check database URL in `.env` file
 
-### Tasks
-- `GET /tasks` - Get all tasks with filtering/sorting options
-- `POST /tasks` - Create a new task
-- `GET /tasks/{id}` - Get a specific task
-- `PUT /tasks/{id}` - Update a task (includes optimistic locking via version field)
-- `DELETE /tasks/{id}` - Delete a task
-- `POST /tasks/{id}/complete` - Mark task as complete
-- `POST /tasks/{id}/reopen` - Reopen completed task
+3. **Environment variables not loaded**
+   - Verify `.env` files are in the correct directories
+   - Restart development servers after changing environment variables
 
-### Tags
-- `GET /tags` - Get all tags
-- `POST /tags` - Create a new tag
-- `PUT /tags/{id}` - Update a tag
-- `DELETE /tags/{id}` - Delete a tag
+4. **Dependency conflicts**
+   - Clean install: delete `node_modules` and `venv`, then reinstall dependencies
 
-## Development Workflow
+### Useful Commands
 
-1. Create a new branch for your feature:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+```bash
+# Check backend API health
+curl http://localhost:8000/health
 
-2. Make your changes to both backend and frontend as needed
+# Format backend code
+black src/
 
-3. Write tests for your new functionality
-
-4. Run the test suites to ensure everything works:
-   ```bash
-   # Backend
-   cd backend && python -m pytest
-   # Frontend
-   cd frontend && npm test
-   ```
-
-5. Commit your changes with a descriptive message:
-   ```bash
-   git add .
-   git commit -m "feat: add priority filtering to task list"
-   ```
-
-6. Push your branch and create a pull request
+# Format frontend code
+npm run format
+```

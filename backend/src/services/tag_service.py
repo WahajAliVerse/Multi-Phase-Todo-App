@@ -1,71 +1,79 @@
+"""
+Tag service for the todo application.
+"""
+
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from ..models.tag import Tag
+from ..models.user import User
 
-from ..models.task import Tag, User
-from ..core.exceptions import TagNotFoundException
+
+def create_tag(
+    db: Session,
+    name: str,
+    user_id: int,
+    color: Optional[str] = "#007bff"
+) -> Tag:
+    """
+    Create a new tag.
+    """
+    db_tag = Tag(
+        name=name,
+        user_id=user_id,
+        color=color
+    )
+    
+    db.add(db_tag)
+    db.commit()
+    db.refresh(db_tag)
+    return db_tag
 
 
-class TagService:
-    @staticmethod
-    def get_tags(db: Session, user_id: str) -> List[Tag]:
-        """
-        Retrieve all tags for a specific user
-        """
-        return db.query(Tag).filter(Tag.user_id == user_id).all()
+def get_tag(db: Session, tag_id: int) -> Optional[Tag]:
+    """
+    Get a tag by ID.
+    """
+    return db.query(Tag).filter(Tag.id == tag_id).first()
 
-    @staticmethod
-    def get_tag_by_id(db: Session, tag_id: str, user_id: str) -> Tag:
-        """
-        Retrieve a specific tag by ID for a user
-        """
-        tag = db.query(Tag).filter(Tag.id == tag_id, Tag.user_id == user_id).first()
-        if not tag:
-            raise TagNotFoundException(tag_id)
-        return tag
 
-    @staticmethod
-    def create_tag(db: Session, name: str, color: str, user_id: str) -> Tag:
-        """
-        Create a new tag for a user
-        """
-        # Check if tag with this name already exists for the user
-        existing_tag = db.query(Tag).filter(Tag.name == name, Tag.user_id == user_id).first()
-        if existing_tag:
-            raise ValueError(f"Tag with name '{name}' already exists for this user")
-        
-        db_tag = Tag(name=name, color=color, user_id=user_id)
-        db.add(db_tag)
-        db.commit()
-        db.refresh(db_tag)
-        return db_tag
+def get_tags_for_user(db: Session, user_id: int) -> List[Tag]:
+    """
+    Get all tags for a user.
+    """
+    return db.query(Tag).filter(Tag.user_id == user_id).all()
 
-    @staticmethod
-    def update_tag(db: Session, tag_id: str, user_id: str, name: str = None, color: str = None) -> Tag:
-        """
-        Update a tag for a user
-        """
-        tag = db.query(Tag).filter(Tag.id == tag_id, Tag.user_id == user_id).first()
-        if not tag:
-            raise TagNotFoundException(tag_id)
-        
-        if name is not None:
-            tag.name = name
-        if color is not None:
-            tag.color = color
-        
-        db.commit()
-        db.refresh(tag)
-        return tag
 
-    @staticmethod
-    def delete_tag(db: Session, tag_id: str, user_id: str) -> bool:
-        """
-        Delete a tag for a user
-        """
-        tag = db.query(Tag).filter(Tag.id == tag_id, Tag.user_id == user_id).first()
-        if not tag:
-            raise TagNotFoundException(tag_id)
-        
-        db.delete(tag)
-        db.commit()
-        return True
+def update_tag(
+    db: Session,
+    tag_id: int,
+    name: Optional[str] = None,
+    color: Optional[str] = None
+) -> Optional[Tag]:
+    """
+    Update a tag.
+    """
+    db_tag = get_tag(db, tag_id)
+    if not db_tag:
+        return None
+    
+    if name:
+        db_tag.name = name
+    if color:
+        db_tag.color = color
+    
+    db.commit()
+    db.refresh(db_tag)
+    return db_tag
+
+
+def delete_tag(db: Session, tag_id: int) -> bool:
+    """
+    Delete a tag.
+    """
+    db_tag = get_tag(db, tag_id)
+    if not db_tag:
+        return False
+    
+    db.delete(db_tag)
+    db.commit()
+    return True

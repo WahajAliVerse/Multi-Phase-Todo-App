@@ -1,107 +1,150 @@
-# Data Model for Full-Stack Todo Application
+# Data Model: Full-Stack Web Application (Phase II)
 
-## Task Entity
+## Entities
+
+### Task
+Represents a user's task with all associated properties.
 
 **Fields:**
-- `id`: UUID (Primary Key)
-- `title`: String (1-255 characters, required)
-- `description`: Text (optional)
-- `status`: Enum (active/completed, default: active)
-- `priority`: Enum (high/medium/low, default: medium)
-- `due_date`: DateTime (optional)
-- `created_at`: DateTime (auto-generated)
-- `updated_at`: DateTime (auto-generated)
-- `completed_at`: DateTime (optional)
-- `recurrence_pattern`: String (optional, e.g., "daily", "weekly", "monthly")
-- `recurrence_end_date`: DateTime (optional)
-- `version`: Integer (for optimistic locking, default: 1)
+- `id` (UUID/Integer): Unique identifier for the task
+- `title` (String, 1-255 chars): Title of the task
+- `description` (Text, optional): Detailed description of the task
+- `status` (Enum: 'active', 'completed'): Current status of the task
+- `priority` (Enum: 'high', 'medium', 'low'): Priority level of the task
+- `due_date` (DateTime, optional): Date and time when the task is due
+- `created_at` (DateTime): Timestamp when the task was created
+- `updated_at` (DateTime): Timestamp when the task was last updated
+- `completed_at` (DateTime, optional): Timestamp when the task was completed
+- `user_id` (UUID/Integer): Foreign key linking to the user who owns the task
+- `recurrence_pattern_id` (UUID/Integer, optional): Foreign key linking to recurrence pattern if recurring
 
 **Relationships:**
-- One-to-Many: Task → Tag (via task_tags junction table)
-- One-to-One: Task → User (owner)
+- Belongs to one User (many-to-one)
+- Has many Tags through task_tags junction table (many-to-many)
+- Has one RecurrencePattern (optional, many-to-one)
 
 **Validation Rules:**
 - Title must be 1-255 characters
+- Status must be one of 'active' or 'completed'
+- Priority must be one of 'high', 'medium', or 'low'
 - Due date must be in the future if provided
-- Priority must be one of the allowed values
-- Status must be one of the allowed values
+- Cannot be completed before creation date
 
-## User Entity
+**State Transitions:**
+- `active` → `completed` (when user marks task as complete)
+- `completed` → `active` (when user reopens task)
 
-**Fields:**
-- `id`: UUID (Primary Key)
-- `username`: String (unique, 3-50 characters)
-- `email`: String (unique, valid email format)
-- `hashed_password`: String (required)
-- `is_active`: Boolean (default: true)
-- `created_at`: DateTime (auto-generated)
-- `updated_at`: DateTime (auto-generated)
-- `theme_preference`: Enum (light/dark/auto, default: auto)
-
-**Validation Rules:**
-- Username must be 3-50 characters and unique
-- Email must be valid format and unique
-- Password must be properly hashed
-
-## Tag Entity
+### User
+Represents an authenticated user of the system.
 
 **Fields:**
-- `id`: UUID (Primary Key)
-- `name`: String (1-50 characters, required)
-- `color`: String (hex color code, optional)
-- `created_at`: DateTime (auto-generated)
-- `user_id`: UUID (Foreign Key to User)
+- `id` (UUID/Integer): Unique identifier for the user
+- `username` (String, unique): Username for login
+- `email` (String, unique): Email address of the user
+- `password_hash` (String): Hashed password for authentication
+- `created_at` (DateTime): Timestamp when the user account was created
+- `updated_at` (DateTime): Timestamp when the user account was last updated
+- `is_active` (Boolean): Whether the user account is active
+- `preferences` (JSON, optional): User preferences including theme settings
 
 **Relationships:**
-- Many-to-Many: Tag → Task (via task_tags junction table)
-- One-to-Many: User → Tag
+- Has many Tasks (one-to-many)
+- Has many Tags (one-to-many)
+
+**Validation Rules:**
+- Username must be unique and 3-50 characters
+- Email must be valid and unique
+- Password must meet complexity requirements
+- Preferences must be valid JSON
+
+### Tag
+Represents a label that can be applied to tasks for organization.
+
+**Fields:**
+- `id` (UUID/Integer): Unique identifier for the tag
+- `name` (String, 1-50 chars): Name of the tag
+- `color` (String, optional): Color code for visual identification
+- `user_id` (UUID/Integer): Foreign key linking to the user who owns the tag
+- `created_at` (DateTime): Timestamp when the tag was created
+
+**Relationships:**
+- Belongs to one User (many-to-one)
+- Connected to many Tasks through task_tags junction table (many-to-many)
 
 **Validation Rules:**
 - Name must be 1-50 characters
 - Name must be unique per user
-- Color must be valid hex format if provided
+- Color must be a valid hex color code if provided
 
-## RecurrencePattern Entity
+### RecurrencePattern
+Defines how a task repeats over time.
 
 **Fields:**
-- `id`: UUID (Primary Key)
-- `pattern_type`: Enum (daily/weekly/monthly/yearly)
-- `interval`: Integer (default: 1)
-- `days_of_week`: String (for weekly patterns, e.g., "mon,tue,fri")
-- `day_of_month`: Integer (for monthly patterns, 1-31)
-- `end_condition`: Enum (never/after_date/after_occurrences)
-- `end_date`: DateTime (optional)
-- `max_occurrences`: Integer (optional)
+- `id` (UUID/Integer): Unique identifier for the pattern
+- `pattern_type` (Enum: 'daily', 'weekly', 'monthly', 'yearly'): Type of recurrence
+- `interval` (Integer): Interval multiplier (e.g., every 2 weeks)
+- `end_condition` (Enum: 'never', 'after', 'on_date'): When recurrence ends
+- `occurrences_count` (Integer, optional): Number of occurrences if end_condition is 'after'
+- `end_date` (Date, optional): End date if end_condition is 'on_date'
+- `created_at` (DateTime): Timestamp when the pattern was created
+- `updated_at` (DateTime): Timestamp when the pattern was last updated
+
+**Relationships:**
+- Connected to many Tasks (one-to-many)
 
 **Validation Rules:**
-- Interval must be positive
-- Day of month must be valid
-- End conditions must be consistent with values
+- Pattern type must be one of the allowed values
+- Interval must be a positive integer
+- If end_condition is 'after', occurrences_count must be provided and positive
+- If end_condition is 'on_date', end_date must be provided and in the future
 
-## TaskTag Junction Table
+## Relationships
 
-**Fields:**
-- `task_id`: UUID (Foreign Key to Task)
-- `tag_id`: UUID (Foreign Key to Tag)
+### Task ↔ Tag (Many-to-Many)
+Tasks can have multiple tags, and tags can be applied to multiple tasks.
+- Implemented through a junction table `task_tags`
+- Fields in junction table: task_id, tag_id, created_at
 
-**Constraints:**
-- Composite primary key (task_id, tag_id)
-- Prevents duplicate tag assignments to same task
+### Task ↔ User (Many-to-One)
+Each task belongs to one user.
+- Foreign key: user_id in the tasks table
 
-## State Transitions
+### Tag ↔ User (Many-to-One)
+Each tag belongs to one user.
+- Foreign key: user_id in the tags table
 
-### Task Status Transitions
-- `active` → `completed` (when user marks task complete)
-- `completed` → `active` (when user reopens task)
-
-### Task Recurrence Behavior
-- When a recurring task is completed, the system creates a new instance based on the recurrence pattern
-- If recurrence_end_date is reached or max_occurrences is met, no new instances are created
-- When a recurring task is deleted, all future occurrences are also deleted
+### Task ↔ RecurrencePattern (Many-to-One)
+A task can have one recurrence pattern (optional).
+- Foreign key: recurrence_pattern_id in the tasks table
 
 ## Indexes
 
-- Task: indexes on `user_id`, `status`, `priority`, `due_date`, `created_at`, `version`
-- Tag: indexes on `user_id`, `name`
-- TaskTag: indexes on `task_id`, `tag_id`
-- User: indexes on `username`, `email`
+### Tasks Table
+- Index on `user_id` (for user-specific queries)
+- Index on `status` (for filtering by status)
+- Index on `priority` (for sorting by priority)
+- Index on `due_date` (for due date queries)
+- Composite index on (`user_id`, `status`) (for user-specific status queries)
+- Index on `created_at` (for chronological ordering)
+
+### Tags Table
+- Index on `user_id` (for user-specific queries)
+- Index on `name` (for tag name searches)
+- Composite index on (`user_id`, `name`) (for user-specific tag queries)
+
+### Task_Tags Junction Table
+- Index on `task_id` (for task-specific tag queries)
+- Index on `tag_id` (for tag-specific task queries)
+
+## Constraints
+
+### Referential Integrity
+- Foreign key constraints ensure referential integrity between related tables
+- Cascade delete for user deletion (deletes user's tasks and tags)
+- Restrict deletion of tags that are still assigned to tasks
+
+### Business Logic
+- A task cannot be completed before its creation date
+- Due dates must be in the future when set
+- Recurring tasks generate new instances based on their recurrence pattern
+- Users cannot have duplicate tag names

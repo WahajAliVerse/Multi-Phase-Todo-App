@@ -7,40 +7,52 @@
 
 ## Summary
 
-This plan outlines the implementation of a full-stack web application that builds upon Phase I functionality with a modern UI/UX. The application will provide all core task management features (Add/Delete/Update/View/Mark Complete) via a web interface, enhanced with priorities & tags, search & filter capabilities, sorting options, recurring tasks, and due dates & reminders. The technical approach involves a FastAPI backend with JWT authentication, SQLite database with SQLAlchemy ORM, and a Next.js frontend with Redux Toolkit for state management, featuring light/dark themes and responsive design. The implementation will follow the constitution principles with a focus on modularity, security, performance, and accessibility.
+This plan implements a full-stack web application (Phase II) that builds upon the Phase I console application. The solution includes a Next.js frontend with modern UI featuring light/dark themes, and a FastAPI backend with JWT authentication. The application supports all Phase I functionality (CRUD operations) plus enhanced features: task priorities (high/medium/low), tags, search/filter/sort capabilities, recurring tasks, and due date reminders. The architecture follows modern best practices with proper separation of concerns, scalable data models, and robust error handling.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
-
 **Language/Version**: Python 3.12+ for backend, TypeScript 5.x for frontend
-**Primary Dependencies**: FastAPI, SQLAlchemy, Next.js 14+, Redux Toolkit, MUI
-**Storage**: SQLite via SQLAlchemy ORM with potential migration path to PostgreSQL
-**Testing**: pytest for backend, Jest/React Testing Library for frontend, Cypress for E2E
+**Primary Dependencies**: FastAPI (backend), Next.js 14+ (frontend), SQLAlchemy (ORM), Redux Toolkit (state management)
+**Storage**: SQLite (initial development) with migration path to PostgreSQL (production)
+**Testing**: pytest (backend), Jest/React Testing Library (frontend), Cypress (E2E)
 **Target Platform**: Web application (responsive design for desktop/mobile)
-**Project Type**: Web application (separate backend/frontend)
-**Performance Goals**: P95 response time under 200ms for API endpoints, sub-2 second page load times
-**Constraints**: <200ms p95 API response time, <3s page load time, WCAG 2.1 AA compliance
-**Scale/Scope**: Up to 10,000 tasks per user, responsive across device sizes
+**Project Type**: Web (frontend + backend)
+**Performance Goals**: <200ms API response time (p95), <3s page load time, sub-2s search/filter operations
+**Constraints**: WCAG 2.1 AA compliance, JWT authentication with httpOnly cookies, 95% test coverage
+**Scale/Scope**: Up to 10,000 tasks per user, responsive design for mobile/desktop
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-**Modularity for Phased Evolution**: PASS - Web application structure supports modular design with clear interfaces between frontend and backend
-**User-Centric Design**: PASS - UI/UX requirements specified with light/dark themes and responsive design
-**Security-First Approach**: PASS - JWT authentication with refresh tokens and RBAC specified
-**Performance Optimization**: PASS - Performance goals defined (p95 <200ms, load time <3s)
-**Accessibility Compliance**: PASS - WCAG 2.1 AA compliance specified
-**Sustainability and Resource Efficiency**: PASS - Efficient resource usage with SQLite and auto-scaling considerations
-**Technology Stack Compliance**: PASS - Using Python 3.12+, FastAPI, Next.js as required by constitution
-**Development Practices**: PASS - TDD approach mandated, type hints and docstrings required
-**Quality Assurance**: PASS - Test coverage and testing strategies defined
-**Cross-Phase Feature Preservation**: PASS - Building on Phase I functionality maintained
+**Modularity for Phased Evolution**: ✅ PASSED - Architecture maintains clear interfaces between frontend and backend, enabling independent development and deployment of features while preserving backward compatibility with Phase I.
+
+**User-Centric Design**: ✅ PASSED - Implementation includes responsive design, accessibility compliance (WCAG 2.1 AA), and intuitive UI with light/dark themes as specified.
+
+**Security-First Approach**: ✅ PASSED - JWT authentication with httpOnly cookies, input validation, and secure data handling implemented as required.
+
+**Performance Optimization**: ✅ PASSED - Target response times under 200ms (p95) and page load times under 3 seconds are achievable with selected technologies.
+
+**Accessibility Compliance**: ✅ PASSED - WCAG 2.1 AA compliance is planned as a requirement.
+
+**Sustainability and Resource Efficiency**: ✅ PASSED - Efficient resource management with proper database indexing and optimized API calls.
+
+**Technology Stack Requirements**: ✅ PASSED - Using Python 3.12+, FastAPI, Next.js, RESTful APIs, and pytest as required.
+
+**Development Practices**: ✅ PASSED - TDD approach, type hints, docstrings, and proper error handling are planned.
+
+**Quality Assurance**: ✅ PASSED - 95% test coverage requirement is included in constraints.
+
+**Cross-Phase Feature Preservation**: ✅ PASSED - All Phase I functionality is maintained and extended in this implementation.
+
+**Phase II Requirements**: ✅ PASSED - All specified Phase II features (priorities, tags, search/filter, sort, recurring tasks, due dates/reminders) are included in the plan.
+
+**Post-Design Verification**:
+- Data model supports all required entities and relationships ✅
+- API contracts follow RESTful principles ✅
+- Frontend structure supports Next.js best practices ✅
+- Backend structure follows FastAPI conventions ✅
+- Security and authentication properly planned ✅
 
 ## Project Structure
 
@@ -58,7 +70,6 @@ specs/[###-feature]/
 
 ### Source Code (repository root)
 
-```text
 backend/
 ├── src/
 │   ├── models/
@@ -70,88 +81,82 @@ backend/
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── task_service.py
-│   │   ├── user_service.py
-│   │   ├── tag_service.py
-│   │   ├── recurrence_service.py
-│   │   └── auth_service.py
+│   │   ├── auth_service.py
+│   │   └── recurrence_service.py
 │   ├── api/
 │   │   ├── __init__.py
-│   │   ├── v1/
-│   │   │   ├── __init__.py
-│   │   │   ├── auth.py
-│   │   │   ├── tasks.py
-│   │   │   ├── tags.py
-│   │   │   └── users.py
-│   │   └── deps.py
+│   │   ├── auth.py
+│   │   ├── tasks.py
+│   │   └── tags.py
 │   ├── database/
 │   │   ├── __init__.py
-│   │   ├── base.py
-│   │   └── session.py
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── config.py
-│   │   ├── security.py
-│   │   └── exceptions.py
-│   └── main.py
+│   │   ├── database.py
+│   │   └── migrations/
+│   └── utils/
+│       ├── __init__.py
+│       ├── auth.py
+│       └── validators.py
 └── tests/
     ├── unit/
-    │   ├── models/
-    │   └── services/
+    │   ├── test_models/
+    │   └── test_services/
     ├── integration/
-    │   └── api/
+    │   └── test_api/
     └── conftest.py
 
 frontend/
 ├── src/
+│   ├── app/
+│   │   ├── layout.tsx
+│   │   ├── loading.tsx
+│   │   ├── error.tsx
+│   │   ├── page.tsx
+│   │   ├── login/
+│   │   │   └── page.tsx
+│   │   ├── register/
+│   │   │   └── page.tsx
+│   │   └── dashboard/
+│   │       └── page.tsx
 │   ├── components/
 │   │   ├── TaskCard/
-│   │   ├── TaskList/
-│   │   ├── Header/
-│   │   ├── Sidebar/
-│   │   ├── ThemeProvider/
-│   │   └── TaskForm/
-│   ├── pages/
-│   │   ├── index.tsx
-│   │   ├── dashboard/
-│   │   ├── tasks/
-│   │   └── settings/
+│   │   │   ├── TaskCard.tsx
+│   │   │   └── TaskCard.module.css
+│   │   ├── TaskForm/
+│   │   │   ├── TaskForm.tsx
+│   │   │   └── TaskForm.module.css
+│   │   ├── ThemeToggle/
+│   │   │   ├── ThemeToggle.tsx
+│   │   │   └── ThemeToggle.module.css
+│   │   └── TaskFilters/
+│   │       ├── TaskFilters.tsx
+│   │       └── TaskFilters.module.css
 │   ├── services/
 │   │   ├── api.ts
-│   │   ├── auth.ts
-│   │   └── tasks.ts
+│   │   └── auth.ts
 │   ├── store/
 │   │   ├── index.ts
 │   │   └── slices/
-│   │       ├── tasksSlice.ts
-│   │       ├── authSlice.ts
-│   │       └── uiSlice.ts
-│   ├── types/
-│   │   ├── index.ts
-│   │   └── task.ts
-│   ├── hooks/
-│   │   ├── useTheme.ts
-│   │   └── useAuth.ts
-│   ├── utils/
-│   │   ├── helpers.ts
-│   │   └── validators.ts
-│   └── styles/
-│       ├── globals.css
-│       └── theme.ts
-├── public/
-├── pages/
-├── middleware.ts
-├── next.config.js
-├── package.json
-└── tsconfig.json
+│   │       └── taskSlice.ts
+│   ├── styles/
+│   │   ├── globals.css
+│   │   └── themes/
+│   │       ├── light-theme.css
+│   │       └── dark-theme.css
+│   └── utils/
+│       ├── constants.ts
+│       └── helpers.ts
+└── tests/
+    ├── unit/
+    │   ├── components/
+    │   └── services/
+    ├── integration/
+    │   └── pages/
+    └── __mocks__/
+        └── fileMock.js
 
-tests/
-├── unit/
-├── integration/
-├── e2e/
-└── fixtures/
 ```
 
-**Structure Decision**: Selected the web application structure with separate backend and frontend directories to maintain clear separation of concerns between the API layer and the user interface. This structure enables independent development, testing, and deployment of each component while maintaining modularity as required by the constitution.
+**Structure Decision**: Selected the web application structure with separate backend and frontend directories to maintain clear separation of concerns. The backend uses FastAPI with SQLAlchemy ORM for data management, while the frontend uses Next.js 14+ with the app router for optimal performance and SEO. Redux Toolkit manages global state with RTK Query for API calls. This structure enables independent scaling and development of frontend and backend components.
 
 ## Complexity Tracking
 
@@ -161,9 +166,3 @@ tests/
 |-----------|------------|-------------------------------------|
 | [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
 | [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
-
-**Post-Design Verification**:
-**Data Model Alignment**: PASS - Data model supports all required functionality from spec
-**API Contract Compliance**: PASS - API design follows RESTful principles and security requirements
-**Performance Requirements**: PASS - Architecture supports defined performance goals
-**Scalability Considerations**: PASS - Design allows for future migration from SQLite to PostgreSQL
