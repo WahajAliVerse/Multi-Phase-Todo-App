@@ -212,6 +212,15 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.12+ + Standard libraries only (no external dependencies) (001-console-todo-app)
 - In-memory using lists/dicts (no persistence to disk) (001-console-todo-app)
+- Python 3.12+ for backend, TypeScript 5.x for frontend + FastAPI, SQLAlchemy, Next.js 14+, Redux Toolkit, MUI (001-fullstack-todo-app)
+- SQLite via SQLAlchemy ORM with potential migration path to PostgreSQL (001-fullstack-todo-app)
+- Python 3.12+ (backend), TypeScript 5.x (frontend) + FastAPI (backend), Next.js 14+ (frontend), SQLAlchemy (ORM), Redux Toolkit (state management) (001-fullstack-todo-app)
+- SQLite (initial development), with migration path to PostgreSQL (production) (001-fullstack-todo-app)
+- Python 3.12+ for backend, TypeScript 5.x for frontend + FastAPI (backend), Next.js 14+ (frontend), SQLAlchemy (ORM), Redux Toolkit (state management) (001-fullstack-todo-app)
+- SQLite (initial development) with migration path to PostgreSQL (production) (001-fullstack-todo-app)
+- TypeScript 5.x (with JavaScript compatibility) + Next.js 14+ (with App Router), React 18+, Material UI (MUI) v5, Redux Toolkit, @reduxjs/toolkit (001-nextjs-frontend)
+- Browser localStorage/sessionStorage for client-side state, backend APIs for persistent data (001-nextjs-frontend)
+- Backend APIs for persistent data, client-side storage (localStorage/sessionStorage) for temporary state and caching (001-nextjs-frontend)
 
 ## Recent Changes
 - 001-console-todo-app: Added Python 3.12+ + Standard libraries only (no external dependencies)

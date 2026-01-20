@@ -1,0 +1,459 @@
+# API Contract: Full-Stack Web Application (Phase II)
+
+## Base URL
+`https://api.yourdomain.com/v1` or `http://localhost:8000/v1` for development
+
+## Authentication
+All endpoints except `/auth/login` and `/auth/register` require JWT authentication.
+Include header: `Authorization: Bearer {jwt_token}`
+
+## Common Response Format
+```json
+{
+  "success": true,
+  "data": {},
+  "message": "Operation successful",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+## Error Response Format
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Detailed error message",
+    "details": {}
+  },
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+## Endpoints
+
+### Authentication
+
+#### POST /auth/register
+Register a new user
+- Request Body:
+```json
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "securePassword123"
+}
+```
+- Response (201 Created):
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "uuid-string",
+      "username": "johndoe",
+      "email": "john@example.com"
+    },
+    "access_token": "jwt-token-string",
+    "refresh_token": "jwt-refresh-token-string"
+  },
+  "message": "User registered successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### POST /auth/login
+Authenticate user and return JWT tokens
+- Request Body:
+```json
+{
+  "username": "johndoe",
+  "password": "securePassword123"
+}
+```
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "uuid-string",
+      "username": "johndoe",
+      "email": "john@example.com"
+    },
+    "access_token": "jwt-token-string",
+    "refresh_token": "jwt-refresh-token-string"
+  },
+  "message": "Login successful",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### POST /auth/logout
+Logout user (invalidate tokens)
+- Headers: Authorization: Bearer {token}
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "message": "Logged out successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### POST /auth/refresh
+Refresh access token using refresh token
+- Request Body:
+```json
+{
+  "refresh_token": "jwt-refresh-token-string"
+}
+```
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "access_token": "new-jwt-token-string"
+  },
+  "message": "Token refreshed successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+### Tasks
+
+#### GET /tasks
+Get all tasks for the authenticated user
+- Query Parameters:
+  - `status`: Filter by status ('active', 'completed')
+  - `priority`: Filter by priority ('high', 'medium', 'low')
+  - `due_date_from`: Filter tasks with due date >= this date (ISO 8601)
+  - `due_date_to`: Filter tasks with due date <= this date (ISO 8601)
+  - `search`: Search tasks by title or description
+  - `sort_by`: Sort by ('due_date', 'priority', 'title', 'created_at') - default: 'created_at'
+  - `sort_order`: Sort order ('asc', 'desc') - default: 'desc'
+  - `page`: Page number for pagination - default: 1
+  - `limit`: Items per page - default: 10, max: 100
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "tasks": [
+      {
+        "id": "uuid-string",
+        "title": "Complete project",
+        "description": "Finish the project documentation",
+        "status": "active",
+        "priority": "high",
+        "tags": [
+          {
+            "id": "uuid-string",
+            "name": "work",
+            "color": "#FF5733"
+          }
+        ],
+        "due_date": "2026-01-20T10:00:00Z",
+        "created_at": "2026-01-15T08:00:00Z",
+        "updated_at": "2026-01-15T08:00:00Z",
+        "completed_at": null,
+        "recurrence_pattern": {
+          "id": "uuid-string",
+          "pattern_type": "weekly",
+          "interval": 1,
+          "end_condition": "never"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 25,
+      "pages": 3
+    }
+  },
+  "message": "Tasks retrieved successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### GET /tasks/{task_id}
+Get a specific task by ID
+- Path Parameter: `task_id` (UUID string)
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "task": {
+      "id": "uuid-string",
+      "title": "Complete project",
+      "description": "Finish the project documentation",
+      "status": "active",
+      "priority": "high",
+      "tags": [
+        {
+          "id": "uuid-string",
+          "name": "work",
+          "color": "#FF5733"
+        }
+      ],
+      "due_date": "2026-01-20T10:00:00Z",
+      "created_at": "2026-01-15T08:00:00Z",
+      "updated_at": "2026-01-15T08:00:00Z",
+      "completed_at": null,
+      "recurrence_pattern": {
+        "id": "uuid-string",
+        "pattern_type": "weekly",
+        "interval": 1,
+        "end_condition": "never"
+      }
+    }
+  },
+  "message": "Task retrieved successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### POST /tasks
+Create a new task
+- Request Body:
+```json
+{
+  "title": "New task",
+  "description": "Task description",
+  "priority": "medium",
+  "due_date": "2026-01-20T10:00:00Z",
+  "tags": ["work", "important"],
+  "recurrence_pattern": {
+    "pattern_type": "weekly",
+    "interval": 1,
+    "end_condition": "never"
+  }
+}
+```
+- Response (201 Created):
+```json
+{
+  "success": true,
+  "data": {
+    "task": {
+      "id": "uuid-string",
+      "title": "New task",
+      "description": "Task description",
+      "status": "active",
+      "priority": "medium",
+      "tags": [
+        {
+          "id": "uuid-string",
+          "name": "work",
+          "color": "#FF5733"
+        },
+        {
+          "id": "uuid-string",
+          "name": "important",
+          "color": "#33FF57"
+        }
+      ],
+      "due_date": "2026-01-20T10:00:00Z",
+      "created_at": "2026-01-15T10:30:00Z",
+      "updated_at": "2026-01-15T10:30:00Z",
+      "completed_at": null,
+      "recurrence_pattern": {
+        "id": "uuid-string",
+        "pattern_type": "weekly",
+        "interval": 1,
+        "end_condition": "never"
+      }
+    }
+  },
+  "message": "Task created successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### PUT /tasks/{task_id}
+Update an existing task
+- Path Parameter: `task_id` (UUID string)
+- Request Body: Same as POST /tasks but all fields are optional
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "task": {
+      "id": "uuid-string",
+      "title": "Updated task",
+      "description": "Updated description",
+      "status": "active",
+      "priority": "high",
+      "tags": [
+        {
+          "id": "uuid-string",
+          "name": "work",
+          "color": "#FF5733"
+        }
+      ],
+      "due_date": "2026-01-20T10:00:00Z",
+      "created_at": "2026-01-15T08:00:00Z",
+      "updated_at": "2026-01-15T10:30:00Z",
+      "completed_at": null,
+      "recurrence_pattern": {
+        "id": "uuid-string",
+        "pattern_type": "weekly",
+        "interval": 1,
+        "end_condition": "never"
+      }
+    }
+  },
+  "message": "Task updated successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### DELETE /tasks/{task_id}
+Delete a task
+- Path Parameter: `task_id` (UUID string)
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "message": "Task deleted successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### PATCH /tasks/{task_id}/status
+Update task status (complete/incomplete)
+- Path Parameter: `task_id` (UUID string)
+- Request Body:
+```json
+{
+  "status": "completed" // or "active"
+}
+```
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "task": {
+      "id": "uuid-string",
+      "title": "Complete project",
+      "status": "completed",
+      "completed_at": "2026-01-15T10:30:00Z"
+    }
+  },
+  "message": "Task status updated successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+### Tags
+
+#### GET /tags
+Get all tags for the authenticated user
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "tags": [
+      {
+        "id": "uuid-string",
+        "name": "work",
+        "color": "#FF5733",
+        "created_at": "2026-01-15T08:00:00Z"
+      },
+      {
+        "id": "uuid-string",
+        "name": "personal",
+        "color": "#33FF57",
+        "created_at": "2026-01-15T08:00:00Z"
+      }
+    ]
+  },
+  "message": "Tags retrieved successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### POST /tags
+Create a new tag
+- Request Body:
+```json
+{
+  "name": "new-tag",
+  "color": "#123456"
+}
+```
+- Response (201 Created):
+```json
+{
+  "success": true,
+  "data": {
+    "tag": {
+      "id": "uuid-string",
+      "name": "new-tag",
+      "color": "#123456",
+      "created_at": "2026-01-15T10:30:00Z"
+    }
+  },
+  "message": "Tag created successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### PUT /tags/{tag_id}
+Update an existing tag
+- Path Parameter: `tag_id` (UUID string)
+- Request Body:
+```json
+{
+  "name": "updated-tag",
+  "color": "#654321"
+}
+```
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "data": {
+    "tag": {
+      "id": "uuid-string",
+      "name": "updated-tag",
+      "color": "#654321",
+      "created_at": "2026-01-15T08:00:00Z",
+      "updated_at": "2026-01-15T10:30:00Z"
+    }
+  },
+  "message": "Tag updated successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+#### DELETE /tags/{tag_id}
+Delete a tag (will remove from all tasks)
+- Path Parameter: `tag_id` (UUID string)
+- Response (200 OK):
+```json
+{
+  "success": true,
+  "message": "Tag deleted successfully",
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+### Health Check
+
+#### GET /health
+Health check endpoint
+- Response (200 OK):
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-01-15T10:30:00Z",
+  "version": "1.0.0"
+}
+```

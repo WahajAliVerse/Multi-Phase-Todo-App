@@ -1,0 +1,2 @@
+// Environment variables are configured via .env.local file
+// NEXT_PUBLIC_API_URL=http://localhost:8000/api
