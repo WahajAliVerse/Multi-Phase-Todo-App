@@ -9,6 +9,7 @@ class AuthService {
   // Login method
   async login(credentials: { email: string; password: string }) {
     try {
+      // The login action expects email and password
       const result = await store.dispatch(login(credentials)).unwrap();
 
       return { success: true, user: result.user, token: result.token };

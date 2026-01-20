@@ -1,18 +1,16 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { Task } from '@/types';
+import apiClient, { taskApi } from '@/services/api';
 
 // Define the async thunks for API calls
 export const fetchTasks = createAsyncThunk(
   'tasks/fetchTasks',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch tasks');
-      }
-      return await response.json();
+      const response = await taskApi.getAll();
+      return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Unknown error');
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to fetch tasks');
     }
   }
 );
@@ -21,19 +19,10 @@ export const createTask = createAsyncThunk(
   'tasks/createTask',
   async (taskData: Omit<Task, 'id'>, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(taskData),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to create task');
-      }
-      return await response.json();
+      const response = await taskApi.create(taskData);
+      return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Unknown error');
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to create task');
     }
   }
 );
@@ -42,19 +31,10 @@ export const updateTask = createAsyncThunk(
   'tasks/updateTask',
   async ({ id, ...updateData }: { id: string } & Partial<Task>, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update task');
-      }
-      return await response.json();
+      const response = await taskApi.update(id, updateData);
+      return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Unknown error');
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to update task');
     }
   }
 );
@@ -63,15 +43,22 @@ export const deleteTask = createAsyncThunk(
   'tasks/deleteTask',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tasks/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete task');
-      }
+      await taskApi.delete(id);
       return id;
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Unknown error');
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to delete task');
+    }
+  }
+);
+
+export const toggleTaskComplete = createAsyncThunk(
+  'tasks/toggleTaskComplete',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const response = await taskApi.toggleComplete(id);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message || 'Failed to toggle task completion');
     }
   }
 );
@@ -152,6 +139,16 @@ const taskSlice = createSlice({
         state.tasks = state.tasks.filter(task => task.id !== action.payload);
       })
       .addCase(deleteTask.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+      // Toggle task completion
+      .addCase(toggleTaskComplete.fulfilled, (state, action) => {
+        const index = state.tasks.findIndex(task => task.id === action.payload.id);
+        if (index !== -1) {
+          state.tasks[index] = action.payload;
+        }
+      })
+      .addCase(toggleTaskComplete.rejected, (state, action) => {
         state.error = action.payload as string;
       });
   },

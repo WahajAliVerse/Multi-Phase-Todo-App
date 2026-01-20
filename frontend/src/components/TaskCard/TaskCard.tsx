@@ -1,7 +1,7 @@
 import { Task } from '@/types';
 import { useState } from 'react';
 import { useAppDispatch } from '@/hooks/redux';
-import { updateTask, deleteTask } from '@/store/slices/taskSlice';
+import { updateTask, deleteTask, toggleTaskComplete } from '@/store/slices/taskSlice';
 
 interface TaskCardProps {
   task: Task;
@@ -33,13 +33,13 @@ const TaskCard = ({ task }: TaskCardProps) => {
     dispatch(deleteTask(task.id));
   };
 
-  const handleToggleComplete = () => {
-    dispatch(updateTask({ 
-      id: task.id, 
-      status: task.status === 'active' ? 'completed' : 'active',
-      completedAt: task.status === 'active' ? new Date().toISOString() : undefined,
-      updatedAt: new Date().toISOString()
-    }));
+  const handleToggleComplete = async () => {
+    try {
+      await dispatch(toggleTaskComplete(task.id)).unwrap();
+    } catch (error) {
+      console.error('Failed to toggle task completion:', error);
+      // In a real app, you might want to show an error message to the user
+    }
   };
 
   // Determine priority color

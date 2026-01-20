@@ -14,7 +14,7 @@ const TaskForm = () => {
   const [tags, setTags] = useState('');
   const [recurrencePattern, setRecurrencePattern] = useState<any>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // If there's a recurrence pattern, we need to create it first
@@ -42,16 +42,21 @@ const TaskForm = () => {
       userId: 'current-user-id', // This would come from auth state in a real app
     };
 
-    // Dispatch create task action
-    dispatch(createTask(newTask));
+    try {
+      // Dispatch create task action and await the result
+      await dispatch(createTask(newTask)).unwrap();
 
-    // Reset form
-    setTitle('');
-    setDescription('');
-    setPriority('medium');
-    setDueDate('');
-    setTags('');
-    setRecurrencePattern(null);
+      // Reset form
+      setTitle('');
+      setDescription('');
+      setPriority('medium');
+      setDueDate('');
+      setTags('');
+      setRecurrencePattern(null);
+    } catch (error) {
+      console.error('Failed to create task:', error);
+      // In a real app, you might want to show an error message to the user
+    }
   };
 
   return (
