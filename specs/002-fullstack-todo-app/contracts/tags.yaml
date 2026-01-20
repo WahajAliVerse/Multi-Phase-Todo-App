@@ -1,0 +1,104 @@
+# API Contract: Tags
+
+## Base URL
+`/api/v1/tags`
+
+## Endpoints
+
+### GET /api/v1/tags
+**Description**: Retrieve all tags for the authenticated user
+**Authentication**: Required (JWT Token)
+**Parameters**:
+- `search` (optional): Search by tag name
+- `page` (optional): Page number for pagination
+- `limit` (optional): Items per page for pagination
+
+**Response**:
+```
+Status: 200 OK
+Content-Type: application/json
+Body:
+{
+  "tags": [
+    {
+      "id": "uuid-string",
+      "name": "Tag name",
+      "color": "#FF0000",
+      "usage_count": 5,
+      "created_at": "2023-12-31T10:00:00Z",
+      "updated_at": "2023-12-31T10:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 100,
+    "pages": 10
+  }
+}
+```
+
+### POST /api/v1/tags
+**Description**: Create a new tag
+**Authentication**: Required (JWT Token)
+**Request Body**:
+```
+{
+  "name": "Tag name (required)",
+  "color": "#FF0000 (optional, default: random color)"
+}
+```
+
+**Response**:
+```
+Status: 201 Created
+Content-Type: application/json
+Body:
+{
+  "id": "uuid-string",
+  "name": "Tag name",
+  "color": "#FF0000",
+  "usage_count": 0,
+  "created_at": "2023-12-31T10:00:00Z",
+  "updated_at": "2023-12-31T10:00:00Z"
+}
+```
+
+### PUT /api/v1/tags/{id}
+**Description**: Update a specific tag by ID
+**Authentication**: Required (JWT Token)
+**Parameters**:
+- `id`: Tag ID (path parameter)
+**Request Body**:
+```
+{
+  "name": "Updated tag name (optional)",
+  "color": "#00FF00 (optional)"
+}
+```
+
+**Response**:
+```
+Status: 200 OK
+Content-Type: application/json
+Body:
+{
+  "id": "uuid-string",
+  "name": "Updated tag name",
+  "color": "#00FF00",
+  "usage_count": 5,
+  "created_at": "2023-12-31T10:00:00Z",
+  "updated_at": "2023-12-31T10:00:00Z"
+}
+```
+
+### DELETE /api/v1/tags/{id}
+**Description**: Delete a specific tag by ID
+**Authentication**: Required (JWT Token)
+**Parameters**:
+- `id`: Tag ID (path parameter)
+
+**Response**:
+```
+Status: 204 No Content
+```

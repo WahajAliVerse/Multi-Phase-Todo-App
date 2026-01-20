@@ -42,7 +42,7 @@ Users need to access their todo list through a web application that provides all
 
 ---
 
-### User Story 2 - Enhanced Task Organization with Priorities & Tags (Priority: P2)
+### User Story 2B - Enhanced Task Organization with Priorities & Tags (Priority: P2)
 
 Users need to organize their tasks by assigning priorities (high/medium/low) and tags (like work/home) to better categorize and prioritize their work.
 
@@ -113,6 +113,10 @@ Users need to assign due dates to tasks and receive notifications to help manage
 - What happens when a user denies notification permissions?
 - How does the system handle recurring tasks when the original task is deleted?
 - What happens when the storage system is full or unavailable?
+- How does the system handle API errors and network failures?
+- What happens when theme preferences fail to load?
+- How does the system handle authentication token expiration?
+- What happens when animations fail to load on slower devices?
 
 ## Requirements *(mandatory)*
 
@@ -138,6 +142,11 @@ Users need to assign due dates to tasks and receive notifications to help manage
 - **FR-018**: System MUST implement minimal design elements with appropriate white space to reduce UI clutter
 - **FR-019**: System MUST maintain all existing functionality while updating the UI layer only
 - **FR-020**: System MUST follow modern UI/UX best practices for 2026
+- **FR-020A**: System MUST implement micro-interactions and subtle animations for all user actions (button clicks, form submissions, state changes)
+- **FR-020B**: System MUST implement theme toggle functionality with automatic system preference detection and manual override
+- **FR-020C**: System MUST use Next.js App Router with proper error boundaries and not-found pages to prevent 404 errors
+- **FR-020D**: System MUST implement comprehensive error handling with user-friendly messages and graceful fallbacks
+- **FR-020E**: System MUST implement authentication flow with JWT refresh tokens and secure storage
 - **FR-021**: System MUST implement Next.js app router with proper layout.tsx, loading.tsx, and error.tsx files for optimal performance and user experience
 - **FR-022**: System MUST use route handlers (app/api routes) for API endpoints following Next.js best practices
 - **FR-023**: System MUST implement code splitting and dynamic imports for performance optimization
@@ -174,6 +183,7 @@ Users need to assign due dates to tasks and receive notifications to help manage
 - **User**: Represents an authenticated user with attributes like user ID, credentials, and preferences
 - **Tag**: Represents a label that can be applied to tasks (e.g., work, home, personal)
 - **RecurrencePattern**: Defines how a task repeats (daily, weekly, etc.) and when the next occurrence should appear
+- **UIComponent**: Represents UI elements with animation states, theme preferences, and responsive behavior for different screen sizes
 
 ## Success Criteria *(mandatory)*
 
@@ -260,3 +270,13 @@ Users need to assign due dates to tasks and receive notifications to help manage
 - Q: Should more granular performance-related tasks be added in tasks.md to ensure specific implementation of performance requirements? → A: Add more granular performance-related tasks in tasks.md
 - Q: Should detailed tasks be added for recurring task scheduler implementation to address the underspecified requirement? → A: Add detailed tasks for recurring task scheduler implementation
 - Q: Should specific WCAG 2.1 AA compliance implementation tasks be added to address the underspecified accessibility requirements? → A: Add specific WCAG 2.1 AA compliance implementation tasks
+- Q: How should performance requirements be measured and validated during development? → A: Define specific measurable performance criteria for API response times, page load times, and search/filter operations as outlined in FR-042
+- Q: What technology and architecture should be used for the recurring task scheduler? → A: Specify the recurring task scheduler implementation approach with specific technology and architecture details
+- Q: What specific UI guidelines should be followed for the modern interface? → A: Define specific UI guidelines and component library to ensure a modern interface
+- Q: How should the 95% test coverage requirement be implemented across all components? → A: Add explicit tasks to ensure 95% test coverage across all components as required by the constitution
+- Q: How should TDD compliance be ensured during implementation? → A: Set up automated checks to ensure tests are written before implementation code
+- Q: What specific UI animations and enhancements should be implemented for the modern interface? → A: Implement micro-interactions and subtle animations for all user actions (button clicks, form submissions, state changes)
+- Q: How should the theme toggle functionality be implemented to ensure it works correctly? → A: Automatic system preference detection with manual override
+- Q: How should the navigation and routing be structured to prevent 404 errors? → A: Use Next.js App Router with proper error boundaries and not-found pages
+- Q: How should API error handling and fallbacks be implemented to address 404 errors? → A: Comprehensive error handling with user-friendly messages and graceful fallbacks
+- Q: How should authentication flow and session management be implemented? → A: JWT with refresh tokens and secure storage

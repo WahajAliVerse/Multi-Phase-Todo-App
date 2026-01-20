@@ -1,122 +1,66 @@
-# Research Findings
+# Research: Full-Stack Web Application (Phase II)
 
-## Next.js App Router Implementation
+## Decision: Technology Stack Selection
+**Rationale**: Selected based on project constitution requirements and industry best practices for modern web applications.
+- Backend: Python 3.12+ with FastAPI framework (as required by constitution)
+- Frontend: Next.js 14+ with TypeScript (as required by constitution)
+- Database: SQLite for development (as required by constitution), with migration path to PostgreSQL
+- State Management: Redux Toolkit with RTK Query (as specified in functional requirements)
+- Styling: Tailwind CSS with custom theme support (as required for light/dark themes)
 
-### Decision: Use Next.js 14+ App Router with layout.tsx, loading.tsx, error.tsx, and route handlers
-- **Rationale**: This follows current Next.js best practices and provides optimal performance and user experience
-- **Alternatives considered**: 
-  - Pages Router: Less performant and doesn't support newer Next.js features
-  - Hybrid approach: Would add unnecessary complexity
+## Decision: Architecture Pattern
+**Rationale**: MVC pattern selected to ensure clear separation of concerns as required by constitution.
+- Model: SQLAlchemy ORM with proper entity relationships
+- View: Next.js components with responsive design
+- Controller: FastAPI route handlers with service layer abstraction
 
-## Authentication Implementation
+## Decision: Authentication Approach
+**Rationale**: JWT-based authentication with refresh tokens selected to meet security requirements.
+- JWT tokens with configurable expiration
+- Refresh token rotation for enhanced security
+- Secure storage using httpOnly cookies
+- Role-based access control (RBAC) implementation
 
-### Decision: JWT-based authentication with login/register endpoints and secure token storage
-- **Rationale**: Industry standard for web applications, works well with Next.js, and provides stateless authentication
-- **Alternatives considered**:
-  - Session-based authentication: Requires server-side session storage
-  - OAuth only: Doesn't allow for local account creation
+## Decision: Data Modeling
+**Rationale**: Based on functional requirements and entity relationships identified in spec.
+- Task entity with status, priority, due dates, and recurrence patterns
+- User entity with preferences and authentication data
+- Tag entity for task organization
+- RecurrencePattern entity for recurring tasks
+- Proper foreign key relationships and indexing
 
-## State Management Solution
+## Decision: API Design
+**Rationale**: RESTful API design selected to meet functional requirements and industry standards.
+- Standard HTTP methods and status codes
+- Consistent endpoint patterns
+- Proper error response format
+- Versioning strategy with /api/v1/ prefix
 
-### Decision: Redux Toolkit with RTK Query for state management and API calls
-- **Rationale**: Provides a robust solution for complex state management and API handling in large applications
-- **Alternatives considered**:
-  - React Context API: May not scale well for complex state
-  - Zustand: Good for smaller applications but Redux Toolkit is more established for enterprise apps
-  - React Hooks only: Insufficient for complex global state management
+## Decision: Testing Strategy
+**Rationale**: TDD approach with 95% coverage requirement as mandated by constitution.
+- Unit tests for all backend services
+- Integration tests for API endpoints
+- E2E tests for critical user flows
+- Frontend component tests with React Testing Library
 
-## Responsive Design Approach
+## Decision: Performance Optimization
+**Rationale**: Based on performance requirements in spec (sub-200ms responses).
+- Database indexing on frequently queried fields
+- API response caching strategies
+- Frontend code splitting and lazy loading
+- Optimized database queries with proper joins
 
-### Decision: Implement responsive design with mobile-first approach using Tailwind CSS
-- **Rationale**: Tailwind CSS provides utility-first approach that speeds up development and ensures consistency
-- **Alternatives considered**:
-  - Material UI: More opinionated and heavier
-  - Custom CSS: More time-consuming and harder to maintain consistency
-  - Bootstrap: Less flexible than Tailwind
+## Decision: Accessibility Implementation
+**Rationale**: WCAG 2.1 AA compliance required by constitution.
+- Semantic HTML structure
+- Keyboard navigation support
+- Screen reader compatibility
+- Proper color contrast ratios
+- ARIA attributes where needed
 
-## Error Handling Implementation
-
-### Decision: Implement comprehensive error handling with React Error Boundaries and user-friendly error messages
-- **Rationale**: Ensures graceful degradation when errors occur and provides good user experience
-- **Alternatives considered**:
-  - Basic try-catch blocks: Doesn't handle React rendering errors
-  - Technical error messages: Poor user experience
-  - No error handling: Would result in broken UI for users
-
-## Database Connection Pooling
-
-### Decision: Implement moderate connection pooling with 4-10 connections
-- **Rationale**: Balances performance with resource usage for expected load
-- **Alternatives considered**:
-  - No pooling: Would create new connections for each request, impacting performance
-  - Excessive pooling: Would consume unnecessary resources
-
-## API Versioning Strategy
-
-### Decision: Use semantic versioning with version in URL path (e.g., /api/v1/)
-- **Rationale**: Clear and widely understood approach that allows for backward compatibility
-- **Alternatives considered**:
-  - Header-based versioning: Less visible and harder to cache
-  - Query parameter versioning: Can complicate caching and routing
-
-## Frontend Build Optimization
-
-### Decision: Implement code splitting with React.lazy and dynamic imports
-- **Rationale**: Reduces initial bundle size and improves performance
-- **Alternatives considered**:
-  - No code splitting: Larger initial bundle, slower load times
-  - Manual chunking: More complex to manage than dynamic imports
-
-## Navigation Patterns
-
-### Decision: Implement clear navigation patterns with breadcrumbs and logical routing structure
-- **Rationale**: Enhances user experience by providing clear orientation and easy navigation
-- **Alternatives considered**:
-  - Simple sidebar navigation: Less contextual information
-  - Bottom tab navigation: Better for mobile apps with few main sections
-  - Top navigation with dropdowns: Can become cluttered with many options
-
-## TDD Implementation Strategy
-
-### Decision: Implement TDD with tests written before implementation for all features
-- **Rationale**: Ensures code quality and aligns with the constitution's TDD requirement
-- **Alternatives considered**:
-  - Test-after development: Higher risk of missing edge cases
-  - TDD only for critical components: Inconsistent approach
-  - Skip formal TDD: Against constitution requirements
-
-## Test Coverage Strategy
-
-### Decision: Maintain 95% test coverage across all components (backend, frontend, API, E2E)
-- **Rationale**: Ensures high code quality and reliability as mandated by the constitution
-- **Alternatives considered**:
-  - Lower coverage threshold: Reduced quality assurance
-  - Coverage only for critical paths: Incomplete testing
-  - No formal coverage requirement: Against constitution requirements
-
-## Performance Optimization Strategy
-
-### Decision: Meet specific performance criteria: API response times <200ms (p95), page load times <3s, search/filter operations <2s
-- **Rationale**: Provides clear targets for development and ensures good user experience
-- **Alternatives considered**:
-  - General performance goals: Less measurable
-  - Different performance targets: May not meet user expectations
-  - No specific targets: Difficult to measure success
-
-## Accessibility Implementation
-
-### Decision: Implement comprehensive WCAG 2.1 AA compliance with specific accessibility features
-- **Rationale**: Ensures the application meets accessibility standards as required by the constitution
-- **Alternatives considered**:
-  - Basic accessibility features: May not meet compliance requirements
-  - Focus on critical flows only: Incomplete compliance
-  - Address later: Against constitution requirements
-
-## Recurring Task Scheduler Implementation
-
-### Decision: Implement recurring task scheduler with specific technology and architecture
-- **Rationale**: Addresses the underspecified recurring task scheduler requirement
-- **Alternatives considered**:
-  - Simple client-side timer: Limited functionality
-  - Basic cron-like job scheduler: May not scale well
-  - Third-party service: Adds external dependency
+## Decision: Error Handling Strategy
+**Rationale**: Comprehensive error handling required by functional requirements.
+- Global error boundaries in React
+- Consistent error response format from API
+- User-friendly error messages
+- Graceful degradation for service failures

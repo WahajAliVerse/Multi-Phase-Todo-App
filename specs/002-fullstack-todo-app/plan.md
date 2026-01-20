@@ -1,85 +1,42 @@
 # Implementation Plan: Full-Stack Web Application (Phase II)
 
-**Branch**: `001-fullstack-todo-app` | **Date**: 2026-01-18 | **Spec**: [link]
+**Branch**: `002-fullstack-todo-app` | **Date**: 2026-01-19 | **Spec**: /specs/002-fullstack-todo-app/spec.md
 **Input**: Feature specification from `/specs/002-fullstack-todo-app/spec.md`
-
-**Note**: This template is filled in by the `/sp.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-This plan implements a full-stack web application (Phase II) that builds upon the Phase I console application. The solution includes a Next.js frontend with modern UI featuring light/dark themes, and a FastAPI backend with JWT authentication. The application supports all Phase I functionality (CRUD operations) plus enhanced features: task priorities (high/medium/low), tags, search/filter/sort capabilities, recurring tasks, and due date reminders. The architecture follows modern best practices with proper separation of concerns, scalable data models, and robust error handling.
+Implement a full-stack web application with Next.js frontend and FastAPI backend, supporting all Phase I functionality via web interface plus enhanced features: priorities & tags, search & filter, sort, recurring tasks, and due dates & reminders. The application will follow modern UI/UX practices with light/dark themes, responsive design, and comprehensive error handling.
 
 ## Technical Context
 
-**Language/Version**: Python 3.12+ for backend, TypeScript 5.x for frontend
-**Primary Dependencies**: FastAPI (backend), Next.js 14+ with App Router (frontend), SQLAlchemy (ORM), Redux Toolkit with RTK Query (state management), Tailwind CSS (styling)
+**Language/Version**: Python 3.12+ (backend), TypeScript 5.x (frontend)
+**Primary Dependencies**: FastAPI (backend), Next.js 14+ (frontend), SQLAlchemy (ORM), Redux Toolkit (state management), Tailwind CSS (styling)
 **Storage**: SQLite (initial development) with migration path to PostgreSQL (production)
 **Testing**: pytest (backend), Jest/React Testing Library (frontend), Cypress (E2E)
-**Target Platform**: Web application (responsive design for desktop/mobile)
-**Project Type**: Web (frontend + backend)
-**Performance Goals**: <200ms API response time (p95), <3s page load time, sub-2s search/filter operations
-**Constraints**: WCAG 2.1 AA compliance, JWT authentication with httpOnly cookies, 95% test coverage, mobile-first responsive design
-**Scale/Scope**: Up to 10,000 tasks per user, responsive design for mobile/desktop
-**Authentication**: JWT-based authentication with login/register endpoints and secure token storage
-**Frontend Structure**: Next.js App Router with layout.tsx, loading.tsx, error.tsx, and route handlers
-**Error Handling**: React Error Boundaries with user-friendly error messages
-**Navigation**: Clear navigation patterns with breadcrumbs and logical routing structure
-**Development Approach**: TDD approach with tests written before implementation for all features
-**Test Coverage**: Maintain 95% test coverage across all components (backend, frontend, API, E2E)
-**Performance**: Meet specific performance criteria: API response times <200ms (p95), page load times <3s, search/filter operations <2s
-**Accessibility**: Implement comprehensive WCAG 2.1 AA compliance with specific accessibility features
-**Scheduler**: Clarify the recurring task scheduler implementation approach with specific technology and architecture
+**Target Platform**: Web application (responsive design for desktop and mobile)
+**Project Type**: Web application (frontend + backend)
+**Performance Goals**: API response times <200ms (p95), page load times <3s, search/filter operations <2s
+**Constraints**: WCAG 2.1 AA compliance, 95% test coverage, TDD approach, JWT-based authentication
+**Scale/Scope**: Up to 10,000 tasks per user, single-user initially with multi-user design considerations
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-**Modularity for Phased Evolution**: ✅ PASSED - Architecture maintains clear interfaces between frontend and backend, enabling independent development and deployment of features while preserving backward compatibility with Phase I.
-
-**User-Centric Design**: ✅ PASSED - Implementation includes responsive design, accessibility compliance (WCAG 2.1 AA), and intuitive UI with light/dark themes as specified.
-
-**Security-First Approach**: ✅ PASSED - JWT authentication with httpOnly cookies, input validation, and secure data handling implemented as required.
-
-**Performance Optimization**: ✅ PASSED - Target response times under 200ms (p95) and page load times under 3 seconds are achievable with selected technologies.
-
-**Accessibility Compliance**: ✅ PASSED - WCAG 2.1 AA compliance is planned as a requirement.
-
-**Sustainability and Resource Efficiency**: ✅ PASSED - Efficient resource management with proper database indexing and optimized API calls.
-
-**Technology Stack Requirements**: ✅ PASSED - Using Python 3.12+, FastAPI, Next.js, RESTful APIs, and pytest as required.
-
-**Development Practices**: ✅ PASSED - TDD approach, type hints, docstrings, and proper error handling are planned.
-
-**Quality Assurance**: ✅ PASSED - 95% test coverage requirement is included in constraints.
-
-**Cross-Phase Feature Preservation**: ✅ PASSED - All Phase I functionality is maintained and extended in this implementation.
-
-**Phase II Requirements**: ✅ PASSED - All specified Phase II features (priorities, tags, search/filter, sort, recurring tasks, due dates/reminders) are included in the plan.
-
-**Post-Design Verification**:
-- Data model supports all required entities and relationships ✅
-- API contracts follow RESTful principles ✅
-- Frontend structure supports Next.js best practices ✅
-- Backend structure follows FastAPI conventions ✅
-- Security and authentication properly planned ✅
-- Next.js App Router with layout.tsx, loading.tsx, error.tsx properly planned ✅
-- JWT-based authentication with secure token storage implemented ✅
-- Redux Toolkit with RTK Query for state management planned ✅
-- Mobile-first responsive design with Tailwind CSS implemented ✅
-- React Error Boundaries for error handling included ✅
-- Clear navigation patterns with breadcrumbs and logical routing structure implemented ✅
-- TDD approach with tests written before implementation included ✅
-- 95% test coverage across all components planned ✅
-- Specific performance criteria implementation included ✅
-- WCAG 2.1 AA compliance with specific accessibility features implemented ✅
-- Recurring task scheduler implementation approach with specific technology and architecture defined ✅
+**Passed**: All constitution principles verified:
+- Modularity for Phased Evolution: Clear separation of frontend/backend with API layer
+- User-Centric Design: Responsive UI with accessibility features
+- Security-First Approach: JWT authentication with refresh tokens, secure storage
+- Performance Optimization: Caching, indexing, and optimized queries
+- Accessibility Compliance: WCAG 2.1 AA standards implemented
+- Sustainability: Efficient resource usage and clean architecture
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
+specs/002-fullstack-todo-app/
 ├── plan.md              # This file (/sp.plan command output)
 ├── research.md          # Phase 0 output (/sp.plan command)
 ├── data-model.md        # Phase 1 output (/sp.plan command)
@@ -90,96 +47,44 @@ specs/[###-feature]/
 
 ### Source Code (repository root)
 
+```text
 backend/
 ├── src/
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── task.py
-│   │   ├── user.py
-│   │   ├── tag.py
-│   │   └── recurrence_pattern.py
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── task_service.py
-│   │   ├── auth_service.py
-│   │   └── recurrence_service.py
-│   ├── api/
-│   │   ├── __init__.py
-│   │   ├── auth.py
-│   │   ├── tasks.py
-│   │   └── tags.py
-│   ├── database/
-│   │   ├── __init__.py
-│   │   ├── database.py
-│   │   └── migrations/
-│   └── utils/
-│       ├── __init__.py
-│       ├── auth.py
-│       └── validators.py
+│   ├── models/              # SQLAlchemy models
+│   ├── services/            # Business logic
+│   ├── api/                 # API route handlers
+│   ├── database/            # Connection and base setup
+│   └── utils/               # Helper functions
 └── tests/
     ├── unit/
-    │   ├── test_models/
-    │   └── test_services/
     ├── integration/
-    │   └── test_api/
-    └── conftest.py
+    └── e2e/
 
 frontend/
 ├── src/
-│   ├── app/
-│   │   ├── layout.tsx
-│   │   ├── loading.tsx
-│   │   ├── error.tsx
-│   │   ├── page.tsx
-│   │   ├── login/
-│   │   │   └── page.tsx
-│   │   ├── register/
-│   │   │   └── page.tsx
-│   │   └── dashboard/
-│   │       └── page.tsx
-│   ├── components/
-│   │   ├── TaskCard/
-│   │   │   ├── TaskCard.tsx
-│   │   │   └── TaskCard.module.css
-│   │   ├── TaskForm/
-│   │   │   ├── TaskForm.tsx
-│   │   │   └── TaskForm.module.css
-│   │   ├── ThemeToggle/
-│   │   │   ├── ThemeToggle.tsx
-│   │   │   └── ThemeToggle.module.css
-│   │   ├── TaskFilters/
-│   │   │   ├── TaskFilters.tsx
-│   │   │   └── TaskFilters.module.css
-│   │   └── Navigation/
-│   │       ├── Navigation.tsx
-│   │       └── Navigation.module.css
-│   ├── services/
-│   │   ├── api.ts
-│   │   └── auth.ts
-│   ├── store/
-│   │   ├── index.ts
-│   │   └── slices/
-│   │       └── taskSlice.ts
-│   ├── styles/
-│   │   ├── globals.css
-│   │   └── themes/
-│   │       ├── light-theme.css
-│   │       └── dark-theme.css
-│   └── utils/
-│       ├── constants.ts
-│       └── helpers.ts
+│   ├── components/          # React components
+│   ├── store/               # Redux store and slices
+│   ├── services/            # API clients and services
+│   ├── styles/              # Global and theme styles
+│   ├── utils/               # Helper functions
+│   ├── contexts/            # React contexts
+│   ├── types/               # TypeScript type definitions
+│   ├── hooks/               # Custom React hooks
+│   └── app/                 # Next.js app router pages
+│       ├── api/             # Route handlers
+│       ├── dashboard/       # Dashboard page
+│       ├── tags/            # Tags page
+│       ├── layout.tsx       # Root layout
+│       ├── loading.tsx      # Loading component
+│       ├── error.tsx        # Error boundary
+│       └── page.tsx         # Home page
 └── tests/
     ├── unit/
-    │   ├── components/
-    │   └── services/
     ├── integration/
-    │   └── pages/
-    └── __mocks__/
-        └── fileMock.js
-
+    └── e2e/
 ```
 
-**Structure Decision**: Selected the web application structure with separate backend and frontend directories to maintain clear separation of concerns. The backend uses FastAPI with SQLAlchemy ORM for data management, while the frontend uses Next.js 14+ with the app router for optimal performance and SEO. Redux Toolkit manages global state with RTK Query for API calls. This structure enables independent scaling and development of frontend and backend components.
+**Structure Decision**: Web application with separate frontend and backend repositories to enable independent scaling and development. Frontend uses Next.js App Router for optimal performance and user experience as required by FR-021.
 
 ## Complexity Tracking
 
@@ -187,5 +92,4 @@ frontend/
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| (None) | | |

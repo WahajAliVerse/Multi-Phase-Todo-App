@@ -1,23 +1,20 @@
-# Quickstart Guide
+# Quickstart Guide: Full-Stack Web Application (Phase II)
 
 ## Prerequisites
-
-- Node.js 18+ (for Next.js frontend)
-- Python 3.12+ (for FastAPI backend)
-- SQLite (or PostgreSQL for production)
-- npm or yarn package manager
+- Node.js 18+ and npm/yarn
+- Python 3.12+
+- pip package manager
+- Git
 
 ## Setup Instructions
 
 ### 1. Clone the repository
-
 ```bash
 git clone <repository-url>
-cd multi-phase-todo
+cd <repository-directory>
 ```
 
 ### 2. Backend Setup
-
 ```bash
 # Navigate to backend directory
 cd backend
@@ -26,18 +23,20 @@ cd backend
 python -m venv venv
 
 # Activate virtual environment
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env with your configuration values
+# Edit .env file with your configuration
 ```
 
 ### 3. Frontend Setup
-
 ```bash
 # Navigate to frontend directory
 cd frontend
@@ -48,111 +47,76 @@ npm install
 yarn install
 
 # Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your configuration values
+cp .env.local.example .env.local
+# Edit .env.local file with your configuration
 ```
 
-## Environment Variables
-
-### Backend (.env)
-
-```env
-DATABASE_URL=sqlite:///./todo_app.db
-JWT_SECRET=your-super-secret-jwt-key
-PORT=8000
-NODE_ENV=development
-```
-
-### Frontend (.env.local)
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-NEXT_PUBLIC_APP_NAME=Todo App
-NODE_ENV=development
-```
-
-## Running the Application
-
-### 1. Start the Backend
-
+### 4. Database Setup
 ```bash
-cd backend
-source venv/bin/activate  # Activate virtual environment
-uvicorn src.main:app --reload --port 8000
+# From backend directory
+# Initialize the database
+python -c "from src.database.connection import engine; from src.database.base import Base; Base.metadata.create_all(bind=engine)"
+
+# Or run the main application which will create tables
+python main.py
 ```
 
-### 2. Start the Frontend
+### 5. Running the Applications
 
+#### Backend
 ```bash
-cd frontend
+# From backend directory
+python -m uvicorn main:app --reload
+```
+
+#### Frontend
+```bash
+# From frontend directory
 npm run dev
 # or
 yarn dev
 ```
 
-The application will be available at `http://localhost:3000`
+## Environment Variables
 
-## Running Tests
-
-### Backend Tests
-
-```bash
-cd backend
-source venv/bin/activate
-pytest
+### Backend (.env)
+```
+DATABASE_URL=sqlite:///./todo_app.db
+JWT_SECRET=your-super-secret-jwt-secret
+PORT=8000
 ```
 
-### Frontend Tests
+### Frontend (.env.local)
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+```
 
+## API Endpoints
+- Backend API: `http://localhost:8000/api/v1/`
+- Frontend: `http://localhost:3000`
+
+## Testing
 ```bash
+# Backend tests
+cd backend
+python -m pytest
+
+# Frontend tests
 cd frontend
-npm test
+npm run test
 # or
 yarn test
 ```
 
-## Running in Production
-
-### Backend
-
+## Building for Production
 ```bash
-cd backend
-source venv/bin/activate
-# Deploy with gunicorn or similar WSGI server
-gunicorn src.main:app -w 4 -k uvicorn.workers.UvicornWorker
-```
-
-### Frontend
-
-```bash
+# Frontend
 cd frontend
 npm run build
-npm start
 # or
 yarn build
-yarn start
+
+# Backend (using Docker)
+docker build -t todo-backend .
+docker run -p 8000:8000 todo-backend
 ```
-
-## Database Migrations
-
-```bash
-cd backend
-source venv/bin/activate
-# Run database migrations
-python -m src.database.migrate
-```
-
-## API Documentation
-
-The API documentation is available at:
-- Development: `http://localhost:8000/docs`
-- Production: `<your-domain>/docs`
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Port already in use**: Change the PORT environment variable in .env files
-2. **Database connection errors**: Verify DATABASE_URL in backend .env file
-3. **Frontend can't connect to backend**: Ensure NEXT_PUBLIC_API_URL is correctly set in frontend .env.local
-4. **Dependency installation fails**: Try clearing cache (`npm cache clean --force` or `yarn cache clean`)

@@ -1,15 +1,65 @@
 openapi: 3.0.3
 info:
   title: Todo Application API
-  description: API for the Next.js Todo Application with all CRUD operations and advanced features
+  description: API for managing tasks in the Todo Application
   version: 1.0.0
+  contact:
+    name: API Support
+    email: support@todoapp.com
 servers:
-  - url: http://localhost:8000/api/v1
+  - url: http://localhost:8000/api
     description: Development server
   - url: https://api.todoapp.com/v1
     description: Production server
 
 paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 50
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  username:
+                    type: string
+                  email:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+        '400':
+          description: Invalid input
+        '409':
+          description: Username or email already exists
+
   /auth/login:
     post:
       summary: Login user
@@ -19,19 +69,17 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - username
+                - password
               properties:
-                email:
+                username:
                   type: string
-                  format: email
                 password:
                   type: string
-                  format: password
-              required:
-                - email
-                - password
       responses:
         '200':
-          description: Successful login
+          description: Login successful
           content:
             application/json:
               schema:
@@ -39,44 +87,12 @@ paths:
                 properties:
                   access_token:
                     type: string
-                  refresh_token:
+                  token_type:
                     type: string
                   user:
                     $ref: '#/components/schemas/User'
         '401':
           description: Invalid credentials
-
-  /auth/register:
-    post:
-      summary: Register new user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-                  format: password
-              required:
-                - username
-                - email
-                - password
-      responses:
-        '201':
-          description: User registered successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid input data
 
   /tasks:
     get:
@@ -86,47 +102,40 @@ paths:
           in: query
           schema:
             type: string
-            enum: [active, completed]
+            enum: [active, completed, all]
+          description: Filter tasks by status
         - name: priority
           in: query
           schema:
             type: string
             enum: [high, medium, low]
-        - name: due_date_from
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: due_date_to
-          in: query
-          schema:
-            type: string
-            format: date
+          description: Filter tasks by priority
         - name: search
           in: query
           schema:
             type: string
-        - name: sort_by
+          description: Search tasks by keyword
+        - name: sort
           in: query
           schema:
             type: string
-            enum: [due_date, priority, title, created_at]
-        - name: order
-          in: query
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
+            enum: [due_date_asc, due_date_desc, priority, alphabetical]
+          description: Sort tasks
         - name: limit
           in: query
           schema:
             type: integer
-            default: 10
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of tasks to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of tasks to skip
       responses:
         '200':
           description: List of tasks
@@ -139,11 +148,10 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Task'
-                  pagination:
-                    $ref: '#/components/schemas/Pagination'
-      security:
-        - BearerAuth: []
-
+                  total:
+                    type: integer
+        '401':
+          description: Unauthorized
     post:
       summary: Create a new task
       requestBody:
@@ -151,7 +159,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TaskCreateRequest'
+              $ref: '#/components/schemas/CreateTaskRequest'
       responses:
         '201':
           description: Task created successfully
@@ -160,15 +168,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Task'
         '400':
-          description: Invalid input data
-      security:
-        - BearerAuth: []
+          description: Invalid input
+        '401':
+          description: Unauthorized
 
-  /tasks/{taskId}:
+  /tasks/{id}:
     get:
-      summary: Get a specific task
+      summary: Get a task by ID
       parameters:
-        - name: taskId
+        - name: id
           in: path
           required: true
           schema:
@@ -181,15 +189,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized
         '404':
           description: Task not found
-      security:
-        - BearerAuth: []
-
     put:
       summary: Update a task
       parameters:
-        - name: taskId
+        - name: id
           in: path
           required: true
           schema:
@@ -200,7 +207,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TaskUpdateRequest'
+              $ref: '#/components/schemas/UpdateTaskRequest'
       responses:
         '200':
           description: Task updated successfully
@@ -209,16 +216,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/Task'
         '400':
-          description: Invalid input data
+          description: Invalid input
+        '401':
+          description: Unauthorized
         '404':
           description: Task not found
-      security:
-        - BearerAuth: []
-
     delete:
       summary: Delete a task
       parameters:
-        - name: taskId
+        - name: id
           in: path
           required: true
           schema:
@@ -227,45 +233,10 @@ paths:
       responses:
         '204':
           description: Task deleted successfully
+        '401':
+          description: Unauthorized
         '404':
           description: Task not found
-      security:
-        - BearerAuth: []
-
-  /tasks/{taskId}/complete:
-    patch:
-      summary: Mark a task as complete/incomplete
-      parameters:
-        - name: taskId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                completed:
-                  type: boolean
-              required:
-                - completed
-      responses:
-        '200':
-          description: Task status updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Task'
-        '400':
-          description: Invalid input data
-        '404':
-          description: Task not found
-      security:
-        - BearerAuth: []
 
   /tags:
     get:
@@ -279,9 +250,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Tag'
-      security:
-        - BearerAuth: []
-
+        '401':
+          description: Unauthorized
     post:
       summary: Create a new tag
       requestBody:
@@ -289,7 +259,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TagCreateRequest'
+              $ref: '#/components/schemas/CreateTagRequest'
       responses:
         '201':
           description: Tag created successfully
@@ -298,30 +268,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Tag'
         '400':
-          description: Invalid input data
-      security:
-        - BearerAuth: []
-
-  /recurring-tasks:
-    post:
-      summary: Create a recurring task
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RecurringTaskCreateRequest'
-      responses:
-        '201':
-          description: Recurring task created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Task'
-        '400':
-          description: Invalid input data
-      security:
-        - BearerAuth: []
+          description: Invalid input
+        '401':
+          description: Unauthorized
 
 components:
   schemas:
@@ -342,14 +291,6 @@ components:
         updated_at:
           type: string
           format: date-time
-        preferences:
-          type: object
-          properties:
-            theme:
-              type: string
-              enum: [light, dark, auto]
-            notifications_enabled:
-              type: boolean
 
     Task:
       type: object
@@ -389,11 +330,14 @@ components:
         recurrence_pattern:
           $ref: '#/components/schemas/RecurrencePattern'
 
-    TaskCreateRequest:
+    CreateTaskRequest:
       type: object
+      required:
+        - title
       properties:
         title:
           type: string
+          maxLength: 255
         description:
           type: string
         priority:
@@ -408,17 +352,19 @@ components:
           items:
             type: string
         recurrence_pattern:
-          $ref: '#/components/schemas/RecurrencePatternInput'
-      required:
-        - title
+          $ref: '#/components/schemas/CreateRecurrencePatternRequest'
 
-    TaskUpdateRequest:
+    UpdateTaskRequest:
       type: object
       properties:
         title:
           type: string
+          maxLength: 255
         description:
           type: string
+        status:
+          type: string
+          enum: [active, completed]
         priority:
           type: string
           enum: [high, medium, low]
@@ -430,7 +376,7 @@ components:
           items:
             type: string
         recurrence_pattern:
-          $ref: '#/components/schemas/RecurrencePatternInput'
+          $ref: '#/components/schemas/CreateRecurrencePatternRequest'
 
     Tag:
       type: object
@@ -442,21 +388,27 @@ components:
           type: string
         color:
           type: string
-          format: hex-color
+          pattern: '^#[0-9A-Fa-f]{6}$'
         user_id:
           type: string
           format: uuid
+        created_at:
+          type: string
+          format: date-time
 
-    TagCreateRequest:
+    CreateTagRequest:
       type: object
+      required:
+        - name
       properties:
         name:
           type: string
+          minLength: 1
+          maxLength: 50
         color:
           type: string
-          format: hex-color
-      required:
-        - name
+          pattern: '^#[0-9A-Fa-f]{6}$'
+          default: '#007bff'
 
     RecurrencePattern:
       type: object
@@ -469,17 +421,25 @@ components:
           enum: [daily, weekly, monthly, yearly]
         interval:
           type: integer
+          minimum: 1
         end_condition:
           type: string
-          enum: [never, after, on_date]
-        end_count:
+          enum: [never, after_occurrences, on_date]
+        occurrence_count:
           type: integer
+          minimum: 1
         end_date:
           type: string
           format: date
+        days_of_week:
+          type: string
+        days_of_month:
+          type: string
 
-    RecurrencePatternInput:
+    CreateRecurrencePatternRequest:
       type: object
+      required:
+        - pattern_type
       properties:
         pattern_type:
           type: string
@@ -487,53 +447,18 @@ components:
         interval:
           type: integer
           minimum: 1
+          default: 1
         end_condition:
           type: string
-          enum: [never, after, on_date]
-        end_count:
+          enum: [never, after_occurrences, on_date]
+          default: never
+        occurrence_count:
           type: integer
           minimum: 1
         end_date:
           type: string
           format: date
-
-    RecurringTaskCreateRequest:
-      allOf:
-        - $ref: '#/components/schemas/TaskCreateRequest'
-        - type: object
-          properties:
-            recurrence_pattern:
-              $ref: '#/components/schemas/RecurrencePatternInput'
-          required:
-            - recurrence_pattern
-
-    Pagination:
-      type: object
-      properties:
-        page:
-          type: integer
-        limit:
-          type: integer
-        total:
-          type: integer
-        total_pages:
-          type: integer
-
-    Error:
-      type: object
-      properties:
-        error:
+        days_of_week:
           type: string
-        message:
+        days_of_month:
           type: string
-        details:
-          type: object
-
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-security:
-  - BearerAuth: []
