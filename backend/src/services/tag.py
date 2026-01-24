@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from models.tag import Tag
-from schemas.tag import TagCreate, TagUpdate
+from schemas.tag import TagCreateSchema as TagCreate, TagUpdateSchema as TagUpdate
 
 
 def get_tag(db: Session, tag_id: int):

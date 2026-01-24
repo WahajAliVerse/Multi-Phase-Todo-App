@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
 from models.user import User as UserModel
-from schemas.user import UserUpdate, User as UserSchema
+from schemas.user import UserUpdateSchema as UserUpdate, UserSchema
 from database.session import get_db
 from api.deps import get_current_user
 from services import auth as auth_service

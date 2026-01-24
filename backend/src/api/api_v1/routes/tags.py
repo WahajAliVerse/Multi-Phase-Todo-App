@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 
 from models.tag import Tag as TagModel
 from models.user import User as UserModel
-from schemas.tag import Tag as TagSchema, TagCreate, TagUpdate
+from schemas.tag import TagSchema, TagCreateSchema as TagCreate, TagUpdateSchema as TagUpdate
 from database.session import get_db
 from api.deps import get_current_user
 from services import tag as tag_service

@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 
 from models.task import Task as TaskModel
 from models.user import User as UserModel
-from schemas.task import Task as TaskSchema, TaskCreate, TaskUpdate, PaginatedTasks
+from schemas.task import TaskSchema, TaskCreateSchema as TaskCreate, TaskUpdateSchema as TaskUpdate, PaginatedTasks
 from database.session import get_db
 from api.deps import get_current_user
 from services import task as task_service

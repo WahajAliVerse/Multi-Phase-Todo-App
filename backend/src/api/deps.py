@@ -7,8 +7,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ..database.session import get_db
-from ..models.user import User
+from database.session import get_db
+from models.user import User
 from core.config import settings
 from core.security import ALGORITHM
 
@@ -26,13 +26,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[ALGORITHM]
         )
-        username: str = payload.get("sub")
-        if username is None:
+        user_id: str = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
-        token_data = {"username": username}
     except JWTError:
         raise credentials_exception
-    user = db.query(User).filter(User.username == token_data["username"]).first()
+    user = db.query(User).filter(User.id == int(user_id)).first()
     if user is None:
         raise credentials_exception
     return user

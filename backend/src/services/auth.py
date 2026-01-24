@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from models.user import User
-from schemas.user import UserCreate, UserInDB
+from schemas.user import UserCreateSchema as UserCreate
 from core.security import get_password_hash, verify_password, create_access_token, create_refresh_token
 from core.config import settings
 

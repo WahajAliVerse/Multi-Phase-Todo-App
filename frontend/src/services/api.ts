@@ -77,3 +77,8 @@ export const tagApi = {
   update: (id: string, tag: any) => apiClient.put(`/tags/${id}`, tag),
   delete: (id: string) => apiClient.delete(`/tags/${id}`),
 };
+
+export const themeApi = {
+  getPreferences: () => apiClient.get('/user/preferences/theme'),
+  updatePreferences: (preferences: any) => apiClient.put('/user/preferences/theme', preferences),
+};

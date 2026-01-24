@@ -221,6 +221,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - TypeScript 5.x (with JavaScript compatibility) + Next.js 14+ (with App Router), React 18+, Material UI (MUI) v5, Redux Toolkit, @reduxjs/toolkit (001-nextjs-frontend)
 - Browser localStorage/sessionStorage for client-side state, backend APIs for persistent data (001-nextjs-frontend)
 - Backend APIs for persistent data, client-side storage (localStorage/sessionStorage) for temporary state and caching (001-nextjs-frontend)
+- TypeScript 5.x (with JavaScript compatibility), React 18+ + Next.js 14+ (with App Router), Framer Motion, React Hook Form, Zod, Material UI (MUI) v5 (001-modern-ui-upgrade)
 
 ## Recent Changes
 - 001-console-todo-app: Added Python 3.12+ + Standard libraries only (no external dependencies)

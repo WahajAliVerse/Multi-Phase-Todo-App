@@ -9,7 +9,8 @@ from database.session import get_db
 from core.security import create_access_token, create_refresh_token, get_password_hash
 from core.config import settings
 from models.user import User
-from schemas.user import User as UserSchema, UserCreate, UserLogin
+from schemas.user import UserSchema, UserCreateSchema as UserCreate
+from schemas.task import UserLoginSchema as UserLogin
 from services import auth as auth_service
 
 router = APIRouter()

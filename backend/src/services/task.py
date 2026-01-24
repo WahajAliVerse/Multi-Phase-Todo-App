@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.task import Task
 from models.tag import Tag
 from models.recurrence_pattern import RecurrencePattern
-from schemas.task import TaskCreate, TaskUpdate
+from schemas.task import TaskCreateSchema as TaskCreate, TaskUpdateSchema as TaskUpdate
 from schemas.recurrence_pattern import RecurrencePatternCreate
 
 
@@ -80,46 +80,31 @@ def get_tasks(
 
 
 def create_task(db: Session, task: TaskCreate, user_id: int):
-    # Create the task
+    # Create the task with default status as "active"
     db_task = Task(
         title=task.title,
         description=task.description,
         priority=task.priority,
         due_date=task.due_date,
-        status=task.status,
+        status="active",  # Default status for new tasks
         user_id=user_id
     )
     
     # Add tags if provided
-    if task.tags:
-        for tag_name in task.tags:
-            # Check if tag already exists for this user
-            existing_tag = db.query(Tag).filter(
-                and_(Tag.name == tag_name, Tag.user_id == user_id)
+    if task.tag_ids:
+        for tag_id in task.tag_ids:
+            # Get the tag by ID
+            tag = db.query(Tag).filter(
+                and_(Tag.id == tag_id, Tag.user_id == user_id)
             ).first()
-            
-            if not existing_tag:
-                # Create new tag
-                tag = Tag(name=tag_name, user_id=user_id)
-                db.add(tag)
-                db.flush()  # Get the ID for the new tag
+
+            if tag:
+                # Add the tag to the task
                 db_task.tags.append(tag)
-            else:
-                # Use existing tag
-                db_task.tags.append(existing_tag)
-    
+
     # Add recurrence pattern if provided
-    if task.recurrence_pattern:
-        recurrence = RecurrencePattern(
-            pattern_type=task.recurrence_pattern.pattern_type,
-            interval=task.recurrence_pattern.interval,
-            end_date=task.recurrence_pattern.end_date,
-            occurrences_count=task.recurrence_pattern.occurrences_count,
-            user_id=user_id
-        )
-        db.add(recurrence)
-        db.flush()  # Get the ID for the new recurrence pattern
-        db_task.recurrence_pattern = recurrence
+    # Note: TaskCreateSchema doesn't include recurrence_pattern, so this won't be handled during creation
+    # Recurrence patterns would need to be added separately after task creation if needed
     
     db.add(db_task)
     db.commit()

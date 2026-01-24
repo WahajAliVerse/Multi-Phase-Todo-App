@@ -1,34 +1,22 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { User } from '@/types';
+import { authApi } from '@/services/api';
 
 // Define the async thunks for auth operations
 export const login = createAsyncThunk(
   'auth/login',
   async ({ username, password }: { username: string; password: string }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        return rejectWithValue(errorData.detail || 'Login failed');
-      }
-
-      const data = await response.json();
+      const response = await authApi.login({ email: username, password }); // Note: In the UI, the login field might be labeled as username but actually expects email
 
       // Store the token in localStorage
-      if (data.access_token) {
-        localStorage.setItem('access_token', data.access_token);
+      if (response.data.access_token) {
+        localStorage.setItem('access_token', response.data.access_token);
       }
 
-      return data;
+      return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Network error occurred');
+      return rejectWithValue(error.response?.data?.detail || error.message || 'Login failed');
     }
   }
 );
@@ -40,29 +28,16 @@ export const register = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        return rejectWithValue(errorData.detail || 'Registration failed');
-      }
-
-      const data = await response.json();
+      const response = await authApi.register({ username, email, password });
 
       // Store the token in localStorage
-      if (data.access_token) {
-        localStorage.setItem('access_token', data.access_token);
+      if (response.data.access_token) {
+        localStorage.setItem('access_token', response.data.access_token);
       }
 
-      return data;
+      return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Network error occurred');
+      return rejectWithValue(error.response?.data?.detail || error.message || 'Registration failed');
     }
   }
 );
@@ -79,23 +54,20 @@ export const checkAuthStatus = createAsyncThunk('auth/checkStatus', async (_, { 
   if (token) {
     try {
       // Verify token by making a request to a protected endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await authApi.getCurrentUser();
 
-      if (response.ok) {
-        const userData = await response.json();
-        return { isAuthenticated: true, user: userData };
+      if (response.status === 200) {
+        return { isAuthenticated: true, user: response.data };
       } else {
         // Token is invalid/expired, logout the user
         dispatch(logout());
         return { isAuthenticated: false, user: null };
       }
-    } catch (error) {
+    } catch (error: any) {
       // Network error or other issues, logout the user
-      dispatch(logout());
+      if (error.response?.status === 401) {
+        dispatch(logout());
+      }
       return { isAuthenticated: false, user: null };
     }
   } else {

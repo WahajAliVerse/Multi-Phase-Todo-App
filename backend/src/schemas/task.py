@@ -89,3 +89,10 @@ class TokenSchema(BaseModel):
 
 class TokenDataSchema(BaseModel):
     username: Optional[str] = None
+
+
+class PaginatedTasks(BaseModel):
+    tasks: List[TaskSchema]
+    total: int
+    skip: int
+    limit: int
