@@ -5,8 +5,8 @@ Test fixtures for the todo application.
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from ..src.database.base import Base
-from ..src.database.connection import DATABASE_URL
+from src.database.base import Base
+from src.database.connection import DATABASE_URL
 
 
 @pytest.fixture(scope="session")

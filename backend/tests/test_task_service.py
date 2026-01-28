@@ -14,14 +14,20 @@ class TestTaskService:
         self.task_data = {
             "title": "Test Task",
             "description": "Test Description",
-            "priority": TaskPriority.MEDIUM,
+            "priority": TaskPriority.medium,
             "due_date": datetime(2023, 12, 31)
         }
 
     def test_create_task(self):
         """Test creating a new task."""
         # Arrange
-        task = Task(**self.task_data)
+        task = Task(
+            title=self.task_data["title"],
+            description=self.task_data["description"],
+            priority=self.task_data["priority"],
+            due_date=self.task_data["due_date"],
+            status=TaskStatus.active
+        )
         self.db.add.return_value = None
         self.db.commit.return_value = None
         self.db.refresh.return_value = None
@@ -61,15 +67,16 @@ class TestTaskService:
     def test_get_tasks(self):
         """Test retrieving a list of tasks."""
         # Arrange
+        user_id = 1
         tasks = [Task(id=1, **self.task_data), Task(id=2, **self.task_data)]
-        self.db.query().offset().limit().all.return_value = tasks
+        self.db.query().filter().offset().limit().all.return_value = tasks
 
         # Act
-        result = TaskService.get_tasks(self.db)
+        result = TaskService.get_tasks(self.db, user_id)
 
         # Assert
         assert result == tasks
-        self.db.query().offset().limit().all.assert_called_once()
+        self.db.query().filter().offset().limit().all.assert_called_once()
 
     def test_update_task(self):
         """Test updating an existing task."""
@@ -126,7 +133,7 @@ class TestTaskService:
 
         # Assert
         assert result == task
-        assert result.status == TaskStatus.COMPLETED
+        assert result.status == TaskStatus.completed
         self.db.commit.assert_called_once()
 
     def test_mark_task_active(self):
@@ -134,7 +141,7 @@ class TestTaskService:
         # Arrange
         task_id = 1
         task = Task(id=task_id, **self.task_data)
-        task.status = TaskStatus.COMPLETED  # Start as completed
+        task.status = TaskStatus.completed  # Start as completed
         self.db.query().filter().first.return_value = task
 
         # Act
@@ -142,5 +149,5 @@ class TestTaskService:
 
         # Assert
         assert result == task
-        assert result.status == TaskStatus.ACTIVE
+        assert result.status == TaskStatus.active
         self.db.commit.assert_called_once()

@@ -114,21 +114,17 @@ type NetworkAwareValidationProps = {
   validationStatus: 'idle' | 'validating' | 'slow' | 'complete';
 };
 
-export const NetworkAwareValidation: React.FC<NetworkAwareValidationProps> = ({ 
-  children, 
-  isSlowConnection, 
-  validationStatus 
-}) => {
-  if (validationStatus === 'slow' || isSlowConnection) {
-    return (
-      <div className="network-warning">
-        <p>Network connection appears to be slow. Validation may take longer than usual.</p>
-        {children}
-      </div>
+export const NetworkAwareValidation: React.FC<NetworkAwareValidationProps> = (props) => {
+  if (props.validationStatus === 'slow' || props.isSlowConnection) {
+    return React.createElement(
+      'div',
+      { className: 'network-warning' },
+      React.createElement('p', {}, 'Network connection appears to be slow. Validation may take longer than usual.'),
+      props.children
     );
   }
-  
-  return <>{children}</>;
+
+  return React.createElement(React.Fragment, {}, props.children);
 };
 
 // Hook to debounce validation based on network conditions
@@ -221,19 +217,19 @@ export const NetworkAwareFormValidator: React.FC<NetworkAwareFormValidatorProps>
     }
   }, [debouncedValue, validationFunction, onValidationComplete]);
   
-  return (
-    <div className="network-aware-validator">
-      {isValidating && (
-        <div className="validation-indicator">
-          {isSlowConnection ? 'Validating (slow connection)...' : 'Validating...'}
-        </div>
-      )}
-      {lastValidationResult && !isValidating && (
-        <div className={`validation-result ${lastValidationResult.isValid ? 'valid' : 'invalid'}`}>
-          {lastValidationResult.isValid ? '✓ Valid' : `✗ ${lastValidationResult.error}`}
-        </div>
-      )}
-    </div>
+  return React.createElement(
+    'div',
+    { className: 'network-aware-validator' },
+    isValidating && React.createElement(
+      'div',
+      { className: 'validation-indicator' },
+      isSlowConnection ? 'Validating (slow connection)...' : 'Validating...'
+    ),
+    lastValidationResult && !isValidating && React.createElement(
+      'div',
+      { className: `validation-result ${lastValidationResult.isValid ? 'valid' : 'invalid'}` },
+      lastValidationResult.isValid ? '✓ Valid' : `✗ ${lastValidationResult.error}`
+    )
   );
 };
 
@@ -241,12 +237,12 @@ export const NetworkAwareFormValidator: React.FC<NetworkAwareFormValidatorProps>
 export const FormWithNetworkHandling = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const { validateFormWithNetworkHandling, isSlowConnection, validationStatus } = useFormValidationWithNetworkHandling();
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const validateEmail = async (email: string) => {
     // Simulate API call for email validation
     return new Promise<{ isValid: boolean; error?: string }>((resolve) => {
@@ -260,7 +256,7 @@ export const FormWithNetworkHandling = () => {
       }, isSlowConnection ? 2000 : 500); // Longer delay for slow connections
     });
   };
-  
+
   const handleEmailValidation = async () => {
     return validateFormWithNetworkHandling(
       formData.email,
@@ -269,50 +265,56 @@ export const FormWithNetworkHandling = () => {
       (result) => console.log('Email validation result:', result)
     );
   };
-  
-  return (
-    <NetworkAwareValidation 
-      isSlowConnection={isSlowConnection} 
-      validationStatus={validationStatus}
-    >
-      <form>
-        <div>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-          />
-          <NetworkAwareFormValidator
-            value={formData.email}
-            validationFunction={validateEmail}
-            onValidationComplete={(isValid, error) => {
+
+  return React.createElement(
+    NetworkAwareValidation,
+    {
+      isSlowConnection,
+      validationStatus,
+      children: React.createElement(
+        'form',
+        {},
+        React.createElement(
+          'div',
+          {},
+          React.createElement('label', { htmlFor: 'email' }, 'Email:'),
+          React.createElement('input', {
+            type: 'email',
+            id: 'email',
+            name: 'email',
+            value: formData.email,
+            onChange: handleInputChange
+          }),
+          React.createElement(NetworkAwareFormValidator, {
+            value: formData.email,
+            validationFunction: validateEmail,
+            onValidationComplete: (isValid, error) => {
               console.log('Email validation:', { isValid, error });
-            }}
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleInputChange}
-          />
-        </div>
-        
-        <button 
-          type="button" 
-          onClick={handleEmailValidation}
-          disabled={validationStatus === 'validating'}
-        >
-          {validationStatus === 'validating' ? 'Validating...' : 'Validate Email'}
-        </button>
-      </form>
-    </NetworkAwareValidation>
+            }
+          })
+        ),
+        React.createElement(
+          'div',
+          {},
+          React.createElement('label', { htmlFor: 'password' }, 'Password:'),
+          React.createElement('input', {
+            type: 'password',
+            id: 'password',
+            name: 'password',
+            value: formData.password,
+            onChange: handleInputChange
+          })
+        ),
+        React.createElement(
+          'button',
+          {
+            type: 'button',
+            onClick: handleEmailValidation,
+            disabled: validationStatus === 'validating'
+          },
+          validationStatus === 'validating' ? 'Validating...' : 'Validate Email'
+        )
+      )
+    }
   );
 };

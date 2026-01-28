@@ -1,16 +1,19 @@
 'use client';
 
 import { Provider } from 'react-redux';
-import { store } from '@/store';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from '@/store';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ReactNode } from 'react';
 
 export default function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <Provider store={store}>
-      <ThemeProvider>
-        {children}
-      </ThemeProvider>
+      <PersistGate loading={null} persistor={persistor}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </PersistGate>
     </Provider>
   );
 }

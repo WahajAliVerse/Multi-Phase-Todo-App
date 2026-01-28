@@ -31,8 +31,8 @@ export const useSystemTheme = () => {
     };
 
     // For older browsers
-    const legacyChangeHandler = (e: MediaQueryList) => {
-      handleChange(e as unknown as MediaQueryListEvent);
+    const legacyChangeHandler = () => {
+      handleChange(mediaQuery as unknown as MediaQueryListEvent);
     };
 
     if (mediaQuery.addEventListener) {

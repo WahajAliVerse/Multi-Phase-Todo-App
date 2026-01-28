@@ -1,26 +1,28 @@
-"""
-Pydantic schemas for Tag model in the todo application.
-"""
-
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
+from datetime import datetime
 
 
-class TagSchema(BaseModel):
-    id: int
-    name: str
-    color: str
-    user_id: int
-
-    class Config:
-        from_attributes = True
-
-
-class TagCreateSchema(BaseModel):
+class TagBase(BaseModel):
     name: str
     color: str = "#007bff"
 
 
-class TagUpdateSchema(BaseModel):
+class TagCreate(TagBase):
+    pass
+
+
+class TagUpdate(BaseModel):
     name: Optional[str] = None
     color: Optional[str] = None
+
+
+class Tag(TagBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    version: int = 1
+
+    class Config:
+        from_attributes = True

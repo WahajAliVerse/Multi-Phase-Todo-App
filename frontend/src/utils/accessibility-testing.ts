@@ -1,16 +1,18 @@
 // Implementation of automated accessibility testing using axe-core
-import { axe, AxeResults } from 'axe-core';
+import axeCore from 'axe-core';
+import type { AxeResults } from 'axe-core';
+import React from 'react';
 
 // Function to run automated accessibility tests
 export const runAxeAccessibilityTests = async (htmlElement: HTMLElement): Promise<AxeResults> => {
   console.log('Running automated accessibility tests using axe-core...');
-  
+
   // In a real implementation, this would run actual axe-core tests
   // For this mock implementation, we'll simulate the test run
-  
+
   // Simulate test execution
   await new Promise(resolve => setTimeout(resolve, 1000));
-  
+
   // Mock results
   const mockResults: AxeResults = {
     url: window.location.href,
@@ -19,11 +21,19 @@ export const runAxeAccessibilityTests = async (htmlElement: HTMLElement): Promis
       {
         id: 'aria-allowed-attr',
         impact: 'minor',
+        tags: ['wcag2a', 'wcag412'],
+        description: 'Ensures ARIA attributes are allowed for an element\'s role',
+        help: 'Elements must only use allowed ARIA attributes',
+        helpUrl: 'https://dequeuniversity.com/rules/axe/4.4/aria-allowed-attr?application=axeAPI',
         nodes: []
       },
       {
         id: 'aria-hidden-body',
         impact: 'moderate',
+        tags: ['wcag2a', 'wcag412'],
+        description: 'Ensures aria-hidden="body" is not present on the document body element',
+        help: 'aria-hidden="body" must not be present on the document body element',
+        helpUrl: 'https://dequeuniversity.com/rules/axe/4.4/aria-hidden-body?application=axeAPI',
         nodes: []
       }
     ],
@@ -51,10 +61,11 @@ export const runAxeAccessibilityTests = async (htmlElement: HTMLElement): Promis
                   contrastRatio: 1.5,
                   fontSize: '12.0pt',
                   fontWeight: 'normal',
-                  message: 'Element has insufficient color contrast of 1.5 (foreground color: #ffffff, background color: #f0f0f0, font size: 12.0pt, font weight: normal). Expected contrast ratio of 4.5:1'
+                  expectedContrastRatio: '4.5:1'
                 },
                 relatedNodes: [],
-                impact: 'serious'
+                impact: 'serious',
+                message: 'Element has insufficient color contrast of 1.5 (foreground color: #ffffff, background color: #f0f0f0, font size: 12.0pt, font weight: normal). Expected contrast ratio of 4.5:1'
               }
             ]
           }
@@ -62,9 +73,24 @@ export const runAxeAccessibilityTests = async (htmlElement: HTMLElement): Promis
       }
     ],
     incomplete: [],
-    inapplicable: []
+    inapplicable: [],
+    toolOptions: {},
+    testEngine: {
+      name: 'axe-core',
+      version: '4.4.0'
+    },
+    testRunner: {
+      name: 'axe'
+    },
+    testEnvironment: {
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Server-side rendering',
+      windowWidth: typeof window !== 'undefined' ? window.innerWidth : 1024,
+      windowHeight: typeof window !== 'undefined' ? window.innerHeight : 768,
+      orientationAngle: 0,
+      orientationType: 'landscape-primary'
+    }
   };
-  
+
   console.log('Accessibility test completed');
   return mockResults;
 };
@@ -143,10 +169,10 @@ export const runFullAccessibilityAudit = async () => {
 export const useAxeAccessibilityTest = (componentName: string, elementRef: React.RefObject<HTMLElement>) => {
   const [accessibilityResults, setAccessibilityResults] = React.useState<AxeResults | null>(null);
   const [isTesting, setIsTesting] = React.useState(false);
-  
+
   React.useEffect(() => {
     if (!elementRef.current) return;
-    
+
     const runTest = async () => {
       setIsTesting(true);
       try {
@@ -158,11 +184,11 @@ export const useAxeAccessibilityTest = (componentName: string, elementRef: React
         setIsTesting(false);
       }
     };
-    
+
     // Run test when component mounts and when dependencies change
     runTest();
   }, [elementRef]);
-  
+
   return { accessibilityResults, isTesting };
 };
 

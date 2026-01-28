@@ -3,15 +3,12 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, and_
 from datetime import datetime
 from typing import List, Optional
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from models.task import Task
-from models.tag import Tag
-from models.recurrence_pattern import RecurrencePattern
-from schemas.task import TaskCreateSchema as TaskCreate, TaskUpdateSchema as TaskUpdate
-from schemas.recurrence_pattern import RecurrencePatternCreate
+from src.models.task import Task
+from src.models.tag import Tag
+from src.models.recurrence_pattern import RecurrencePattern
+from src.schemas.task import TaskCreateSchema as TaskCreate, TaskUpdateSchema as TaskUpdate
+from src.schemas.recurrence_pattern import RecurrencePatternCreate
 
 
 def get_task(db: Session, task_id: int):
@@ -137,26 +134,20 @@ def update_task(db: Session, task_id: int, task_update: TaskUpdate):
             db_task.completed_at = None
     
     # Update tags if provided
-    if task_update.tags is not None:
+    if task_update.tag_ids is not None:
         # Clear existing tags
         db_task.tags.clear()
-        
-        # Add new tags
-        for tag_name in task_update.tags:
-            # Check if tag already exists for this user
-            existing_tag = db.query(Tag).filter(
-                and_(Tag.name == tag_name, Tag.user_id == db_task.user_id)
+
+        # Add new tags by IDs
+        for tag_id in task_update.tag_ids:
+            # Get the tag by ID
+            tag = db.query(Tag).filter(
+                and_(Tag.id == tag_id, Tag.user_id == db_task.user_id)
             ).first()
-            
-            if not existing_tag:
-                # Create new tag
-                tag = Tag(name=tag_name, user_id=db_task.user_id)
-                db.add(tag)
-                db.flush()  # Get the ID for the new tag
+
+            if tag:
+                # Add the tag to the task
                 db_task.tags.append(tag)
-            else:
-                # Use existing tag
-                db_task.tags.append(existing_tag)
     
     db.commit()
     db.refresh(db_task)

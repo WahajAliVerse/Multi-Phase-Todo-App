@@ -1,23 +1,22 @@
+"""
+Database initialization script for the Todo Application.
+"""
+
+import sys
 import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-# Import all models to register them with Base metadata
-from ..models.user import User
-from ..models.task import Task
-from ..models.tag import Tag
-from ..models.recurrence_pattern import RecurrencePattern
-from ..models.task_tag import TaskTag
-
-from ..database.base import Base
-from ..core.config import settings
+from .database.base import Base
+from .core.config import settings
 
 
 def init_db():
-    """Initialize the database with tables"""
+    """
+    Initialize the database with all required tables.
+    """
     engine = create_engine(settings.DATABASE_URL)
-
-    # Create all tables
     Base.metadata.create_all(bind=engine)
     print("Database tables created successfully!")
 

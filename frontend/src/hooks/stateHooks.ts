@@ -63,7 +63,7 @@ export const useDebounce = <T>(value: T, delay: number) => {
 // Custom hook for throttling function calls
 export const useThrottle = <T extends (...args: any[]) => any>(func: T, delay: number) => {
   const lastCall = useRef<number>(0);
-  const throttledFunc = useRef<T>();
+  const throttledFunc = useRef<T | null>(null);
 
   useEffect(() => {
     throttledFunc.current = func;

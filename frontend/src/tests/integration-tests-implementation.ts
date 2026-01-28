@@ -79,7 +79,7 @@ export const implementIntegrationTests = () => {
   testResults.successRate = 100;
   
   console.log(`Tested ${testResults.testedInteractions}/${testResults.totalInteractions} component interactions`);
-  console.log(`Passed: ${testResults.passedTests}, Failed: ${testResults.failed}`);
+  console.log(`Passed: ${testResults.passedTests}, Failed: ${testResults.failedTests}`);
   console.log(`Success Rate: ${testResults.successRate}%`);
   
   if (testResults.successRate === 100) {
@@ -205,7 +205,7 @@ export const testApiIntegration = () => {
   
   console.log('API Integration Test Results:');
   apiTests.forEach(test => {
-    console.log(\`  \${test.name}: \${test.status}\`);
+    console.log(`  ${test.name}: ${test.status}`);
   });
   
   const allPassed = apiTests.every(test => test.status === 'PASSED');

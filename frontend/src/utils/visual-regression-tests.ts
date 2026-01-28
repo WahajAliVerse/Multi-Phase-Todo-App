@@ -114,19 +114,15 @@ type VisualTestWrapperProps = {
   children: React.ReactNode;
 };
 
-export const VisualTestWrapper: React.FC<VisualTestWrapperProps> = ({ 
-  componentName, 
-  testState = 'default', 
-  children 
-}) => {
+export const VisualTestWrapper: React.FC<VisualTestWrapperProps> = (props) => {
   // In a real implementation, this would add metadata for visual testing tools
-  return (
-    <div 
-      data-component={componentName}
-      data-test-state={testState}
-      className="visual-test-wrapper"
-    >
-      {children}
-    </div>
+  return React.createElement(
+    'div',
+    {
+      'data-component': props.componentName,
+      'data-test-state': props.testState || 'default',
+      className: 'visual-test-wrapper'
+    },
+    props.children
   );
 };

@@ -31,9 +31,9 @@ export const runSecurityAudit = async () => {
       console.log('✅ No security vulnerabilities detected!');
       return { success: true, results: stdout, hasVulnerabilities: false };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Security audit failed:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error.message || 'Unknown error occurred' };
   }
 };
 
@@ -62,7 +62,7 @@ export const runSnykScan = async () => {
       console.log('✅ No security vulnerabilities detected by Snyk!');
       return { success: true, results: stdout, hasVulnerabilities: false };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Snyk scan failed:', error);
     // Snyk might not be installed, so this is not necessarily an error
     return { success: true, message: 'Snyk not available, skipping scan' };

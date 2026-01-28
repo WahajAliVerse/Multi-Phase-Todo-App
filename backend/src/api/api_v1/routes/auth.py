@@ -1,28 +1,57 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
 from sqlalchemy.orm import Session
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
+from typing import Optional
+from ....database.session import get_db
+from ....api.deps import get_current_user
+from ....schemas.user import UserCreate, UserLogin, User as UserSchema, LoginResponse
+from ....models.user import User as UserModel
+from ....services.auth import create_user as service_create_user, login_user as service_login_user
 
-from database.session import get_db
-from core.security import create_access_token, create_refresh_token, get_password_hash
-from core.config import settings
-from models.user import User
-from schemas.user import UserSchema, UserCreateSchema as UserCreate
-from schemas.task import UserLoginSchema as UserLogin
-from services import auth as auth_service
 
 router = APIRouter()
 
+
 @router.post("/register", response_model=UserSchema)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = auth_service.create_user(db=db, user=user)
-    return db_user
+    """
+    Register a new user.
+    """
+    try:
+        db_user = service_create_user(db, user)
+        return db_user
+    except HTTPException:
+        # Re-raise HTTP exceptions from the service
+        raise
+    except Exception as e:
+        # Handle any other exceptions
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred during registration"
+        )
 
-@router.post("/login")
+
+@router.post("/login", response_model=LoginResponse)
 def login_user(user_credentials: UserLogin, db: Session = Depends(get_db)):
-    result = auth_service.login_user(
-        db, user_credentials.username, user_credentials.password
-    )
-    return result
+    """
+    Authenticate user and return access and refresh tokens.
+    """
+    try:
+        result = service_login_user(db, user_credentials.username, user_credentials.password)
+        return result
+    except HTTPException:
+        # Re-raise HTTP exceptions from the service
+        raise
+    except Exception as e:
+        # Handle any other exceptions
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred during login"
+        )
+
+
+@router.get("/profile", response_model=UserSchema)
+def get_profile(current_user: UserModel = Depends(get_current_user)):
+    """
+    Get current user's profile.
+    """
+    return current_user

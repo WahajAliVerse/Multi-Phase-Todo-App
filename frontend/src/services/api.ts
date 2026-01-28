@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Create an axios instance
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/v1',
   timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',
@@ -46,7 +46,11 @@ export default apiClient;
 
 // Export individual API functions
 export const taskApi = {
-  getAll: () => apiClient.get('/tasks'),
+  getAll: (params?: Record<string, string | number>) => {
+    const queryParams = params ? new URLSearchParams(params as Record<string, string>).toString() : '';
+    const url = queryParams ? `/tasks?${queryParams}` : '/tasks';
+    return apiClient.get(url);
+  },
   getById: (id: string) => apiClient.get(`/tasks/${id}`),
   create: (task: any) => apiClient.post('/tasks', task),
   update: (id: string, task: any) => apiClient.put(`/tasks/${id}`, task),
@@ -55,24 +59,33 @@ export const taskApi = {
 };
 
 export const authApi = {
-  login: (credentials: { email: string; password: string }) => 
+  login: (credentials: { username: string; password: string }) =>
     apiClient.post('/auth/login', credentials),
-  register: (userData: { username: string; email: string; password: string }) => 
+  register: (userData: { username: string; email: string; password: string }) =>
     apiClient.post('/auth/register', userData),
   logout: () => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     return Promise.resolve({ data: { message: 'Logged out successfully' } });
   },
-  getCurrentUser: () => apiClient.get('/auth/me'),
+  getCurrentUser: () => apiClient.get('/users/me'),
+  refreshToken: (refreshToken: string) =>
+    apiClient.post('/auth/refresh', {}, {
+      headers: {
+        'Authorization': `Bearer ${refreshToken}`
+      }
+    }),
 };
 
 export const userApi = {
   getProfile: () => apiClient.get('/users/profile'),
   updateProfile: (profileData: any) => apiClient.put('/users/profile', profileData),
+  getCurrentUser: () => apiClient.get('/users/me'),
 };
 
 export const tagApi = {
   getAll: () => apiClient.get('/tags'),
+  getById: (id: string) => apiClient.get(`/tags/${id}`),
   create: (tag: any) => apiClient.post('/tags', tag),
   update: (id: string, tag: any) => apiClient.put(`/tags/${id}`, tag),
   delete: (id: string) => apiClient.delete(`/tags/${id}`),

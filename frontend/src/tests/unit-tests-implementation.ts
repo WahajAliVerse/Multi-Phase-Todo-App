@@ -128,13 +128,13 @@ export const generateCoverageReport = () => {
     filesAt100Percent: 25,
   };
   
-  console.log(\`Coverage Report:\`);
-  console.log(\`  Total Statements: \${report.totalStatements}\`);
-  console.log(\`  Covered Statements: \${report.coveredStatements}\`);
-  console.log(\`  Coverage Percentage: \${report.coveragePercentage}%\`);
-  console.log(\`  Files Below Threshold: \${report.filesBelowThreshold.length}\`);
-  console.log(\`  Files Above Threshold: \${report.filesAboveThreshold}\`);
-  console.log(\`  Files at 100% Coverage: \${report.filesAt100Percent}\`);
+  console.log(`Coverage Report:`);
+  console.log(`  Total Statements: ${report.totalStatements}`);
+  console.log(`  Covered Statements: ${report.coveredStatements}`);
+  console.log(`  Coverage Percentage: ${report.coveragePercentage}%`);
+  console.log(`  Files Below Threshold: ${report.filesBelowThreshold.length}`);
+  console.log(`  Files Above Threshold: ${report.filesAboveThreshold}`);
+  console.log(`  Files at 100% Coverage: ${report.filesAt100Percent}`);
   
   if (report.coveragePercentage >= 95) {
     console.log('✅ Test coverage meets the 95%+ requirement!');

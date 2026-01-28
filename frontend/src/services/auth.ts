@@ -1,18 +1,19 @@
 // Authentication service for handling user authentication
-import { authApi } from './api';
-import { store } from '@/store';
-import { login, register, logout, checkAuthStatus } from '@/store/slices/authSlice';
-import { setUserProfile, clearUserProfile } from '@/store/slices/userSlice';
+import { authApi, userApi } from './api';
 
 // Define the authentication service
 class AuthService {
   // Login method
-  async login(credentials: { email: string; password: string }) {
+  async login(credentials: { username: string; password: string }) {
     try {
-      // The login action expects email and password
-      const result = await store.dispatch(login(credentials)).unwrap();
+      const response = await authApi.login(credentials);
+      const { access_token, refresh_token } = response.data;
 
-      return { success: true, user: result.user, token: result.token };
+      // Store tokens
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('refresh_token', refresh_token);
+
+      return { success: true, user: response.data.user, token: access_token };
     } catch (error: any) {
       const errorMessage = error.message || 'Login failed';
       return { success: false, error: errorMessage };
@@ -22,9 +23,14 @@ class AuthService {
   // Register method
   async register(userData: { username: string; email: string; password: string }) {
     try {
-      const result = await store.dispatch(register(userData)).unwrap();
+      const response = await authApi.register(userData);
+      const { access_token, refresh_token } = response.data;
 
-      return { success: true, user: result.user, token: result.token };
+      // Store tokens
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('refresh_token', refresh_token);
+
+      return { success: true, user: response.data.user, token: access_token };
     } catch (error: any) {
       const errorMessage = error.message || 'Registration failed';
       return { success: false, error: errorMessage };
@@ -33,8 +39,8 @@ class AuthService {
 
   // Logout method
   logout() {
-    store.dispatch(logout());
-    store.dispatch(clearUserProfile());
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
   }
 
   // Check if user is authenticated
@@ -51,20 +57,13 @@ class AuthService {
     }
 
     try {
-      // We'll dispatch the checkAuthStatus action to verify the current user
-      const result = await store.dispatch(checkAuthStatus()).unwrap();
-      return result.user;
+      const response = await userApi.getCurrentUser();
+      return response.data;
     } catch (error) {
       console.error('Failed to get current user:', error);
       this.logout(); // If getting user fails, logout
       return null;
     }
-  }
-
-  // Clear auth error
-  clearAuthError() {
-    // The clearAuthError is handled in the slice itself
-    // No need to dispatch anything here as we're just clearing the error state
   }
 }
 

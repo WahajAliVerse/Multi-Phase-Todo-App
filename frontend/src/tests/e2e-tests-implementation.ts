@@ -90,7 +90,7 @@ export const implementE2ETests = () => {
   testResults.successRate = 100;
   
   console.log(`Tested ${testResults.testedWorkflows}/${testResults.totalWorkflows} user workflows`);
-  console.log(`Passed: ${testResults.passedTests}, Failed: ${testResults.failed}`);
+  console.log(`Passed: ${testResults.passedTests}, Failed: ${testResults.failedTests}`);
   console.log(`Success Rate: ${testResults.successRate}%`);
   
   if (testResults.successRate === 100) {
@@ -186,7 +186,7 @@ export const runE2ETests = async () => {
 // Cypress configuration
 export const cypressConfig = {
   e2e: {
-    setupNodeEvents(on, config) {
+    setupNodeEvents(on: any, config: any) {
       // implement node event listeners here
     },
     baseUrl: 'http://localhost:3000',
@@ -218,14 +218,14 @@ export const generateE2EReport = () => {
     environments: ['Development', 'Staging'],
   };
   
-  console.log(\`E2E Test Report:\`);
-  console.log(\`  Total Tests: \${report.totalTests}\`);
-  console.log(\`  Passed: \${report.passedTests}\`);
-  console.log(\`  Failed: \${report.failedTests}\`);
-  console.log(\`  Skipped: \${report.skippedTests}\`);
-  console.log(\`  Success Rate: \${report.successRate}%\`);
-  console.log(\`  Execution Time: \${report.executionTime}\`);
-  console.log(\`  Browsers Tested: \${report.browsersTested.join(', ')}\`);
+  console.log(`E2E Test Report:`);
+  console.log(`  Total Tests: ${report.totalTests}`);
+  console.log(`  Passed: ${report.passedTests}`);
+  console.log(`  Failed: ${report.failedTests}`);
+  console.log(`  Skipped: ${report.skippedTests}`);
+  console.log(`  Success Rate: ${report.successRate}%`);
+  console.log(`  Execution Time: ${report.executionTime}`);
+  console.log(`  Browsers Tested: ${report.browsersTested.join(', ')}`);
   
   if (report.successRate === 100) {
     console.log('✅ All E2E tests passed!');

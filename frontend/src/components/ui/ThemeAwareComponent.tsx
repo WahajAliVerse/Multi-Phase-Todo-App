@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Paper, Typography } from '@mui/material';
-import { useTheme } from '../contexts/ThemeContext'; // Note: exact filename with capital T
+import { useTheme } from '../../contexts/ThemeContext'; // Note: exact filename with capital T
 
 interface ThemeAwareComponentProps {
   children: React.ReactNode;

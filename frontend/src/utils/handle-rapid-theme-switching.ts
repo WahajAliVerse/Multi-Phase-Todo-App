@@ -57,18 +57,15 @@ type ThemeAnimationGuardProps = {
   fallback?: React.ReactNode; // Fallback content during rapid switching
 };
 
-export const ThemeAnimationGuard: React.FC<ThemeAnimationGuardProps> = ({ 
-  children, 
-  fallback = <div>Loading...</div> 
-}) => {
+export const ThemeAnimationGuard: React.FC<ThemeAnimationGuardProps> = (props) => {
   const { isThemeSwitching } = useRapidThemeSwitchingProtection();
-  
+
   // If a rapid theme switch is in progress, show fallback or suspend animations
   if (isThemeSwitching) {
-    return <>{fallback}</>;
+    return React.createElement(React.Fragment, {}, props.fallback || React.createElement('div', {}, 'Loading...'));
   }
-  
-  return <>{children}</>;
+
+  return React.createElement(React.Fragment, {}, props.children);
 };
 
 // Alternative approach: Animation interrupt handler
@@ -137,25 +134,29 @@ export const ThemeToggleWithProtection = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isAnimating, setIsAnimating] = useState(false);
   const { startThemeSwitch, completeThemeSwitch } = useRapidThemeSwitchingProtection();
-  
+
   const handleThemeToggle = () => {
     startThemeSwitch();
-    
+
     // Use the safe toggle function
     safeThemeToggle(theme, (newTheme) => {
       setTheme(newTheme);
       completeThemeSwitch();
     }, setIsAnimating);
   };
-  
-  return (
-    <ThemeAnimationGuard fallback={<div>Switching theme...</div>}>
-      <button 
-        onClick={handleThemeToggle}
-        disabled={isAnimating}
-      >
-        Switch to {theme === 'light' ? 'dark' : 'light'} theme
-      </button>
-    </ThemeAnimationGuard>
+
+  return React.createElement(
+    ThemeAnimationGuard,
+    {
+      fallback: React.createElement('div', {}, 'Switching theme...'),
+      children: React.createElement(
+        'button',
+        {
+          onClick: handleThemeToggle,
+          disabled: isAnimating
+        },
+        `Switch to ${theme === 'light' ? 'dark' : 'light'} theme`
+      )
+    }
   );
 };

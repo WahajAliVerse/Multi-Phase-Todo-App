@@ -118,7 +118,7 @@ const globalReducer = (state: GlobalState, action: GlobalAction): GlobalState =>
         ...state,
         ui: {
           ...state.ui,
-          notifications: state.ui.notifications.filter(notification => notification.id !== action.payload),
+          notifications: state.ui.notifications?.filter(notification => notification.id !== action.payload) || [],
         },
       };
     default:

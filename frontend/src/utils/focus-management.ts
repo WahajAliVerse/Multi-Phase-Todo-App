@@ -1,5 +1,6 @@
 // Implementation of focus management for modal dialogs and dropdowns
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 
 // Hook to manage focus within modal dialogs
 export const useModalFocus = (isOpen: boolean, modalRef: React.RefObject<HTMLElement>) => {
@@ -195,10 +196,8 @@ export const trapFocusWithin = (container: HTMLElement) => {
 };
 
 // Component wrapper to automatically manage focus
-import React from 'react';
-
 type FocusTrapProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   active?: boolean;
 };
 
@@ -211,5 +210,5 @@ export const FocusTrap: React.FC<FocusTrapProps> = ({ children, active = true })
     return trapFocusWithin(containerRef.current);
   }, [active]);
 
-  return <div ref={containerRef}>{children}</div>;
+  return React.createElement('div', { ref: containerRef }, children);
 };

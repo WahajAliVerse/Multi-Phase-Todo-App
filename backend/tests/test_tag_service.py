@@ -56,15 +56,16 @@ class TestTagService:
     def test_get_all_tags(self):
         """Test retrieving all tags."""
         # Arrange
+        user_id = 1
         tags = [Tag(id=1, **self.tag_data), Tag(id=2, name="Another Tag")]
-        self.db.query().all.return_value = tags
+        self.db.query().filter().all.return_value = tags
 
         # Act
-        result = TagService.get_all_tags(self.db)
+        result = TagService.get_all_tags(self.db, user_id)
 
         # Assert
         assert result == tags
-        self.db.query().all.assert_called_once()
+        self.db.query().filter().all.assert_called_once()
 
     def test_update_tag(self):
         """Test updating an existing tag."""

@@ -1,5 +1,6 @@
 // Implementation of reduced motion preferences for accessibility
 import { useState, useEffect } from 'react';
+import React from 'react';
 
 // Hook to detect user's reduced motion preference
 export const useReducedMotion = () => {
@@ -32,8 +33,8 @@ export const useReducedMotion = () => {
     };
 
     // For older browsers
-    const legacyChangeHandler = (e: MediaQueryList) => {
-      handleChange(e as unknown as MediaQueryListEvent);
+    const legacyChangeHandler = () => {
+      handleChange(mediaQuery as unknown as MediaQueryListEvent);
     };
 
     if (mediaQuery.addEventListener) {
@@ -83,24 +84,22 @@ export const getAnimationProps = (defaultProps: any) => {
 };
 
 // Component to wrap content that should respect reduced motion preferences
-import React from 'react';
-
 type ReducedMotionWrapperProps = {
   children: React.ReactNode;
   fallback?: React.ReactNode; // Content to show when reduced motion is enabled
 };
 
-export const ReducedMotionWrapper: React.FC<ReducedMotionWrapperProps> = ({ 
-  children, 
-  fallback = null 
+export const ReducedMotionWrapper: React.FC<ReducedMotionWrapperProps> = ({
+  children,
+  fallback = null
 }) => {
   const prefersReducedMotion = useReducedMotion();
-  
+
   if (prefersReducedMotion) {
-    return fallback || <>{children}</>;
+    return fallback ? fallback : React.createElement(React.Fragment, {}, children);
   }
-  
-  return <>{children}</>;
+
+  return React.createElement(React.Fragment, {}, children);
 };
 
 // CSS utility class for reduced motion

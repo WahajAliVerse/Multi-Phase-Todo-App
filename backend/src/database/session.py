@@ -1,13 +1,10 @@
-"""
-Database session management for the todo application.
-"""
-
-from .connection import SessionLocal
+from sqlalchemy.orm import Session
+from .base import SessionLocal
 
 
-def get_db():
+def get_db() -> Session:
     """
-    Dependency to get database session.
+    Get database session.
     """
     db = SessionLocal()
     try:

@@ -42,10 +42,12 @@ export const useSimultaneousStateChanges = <T>(initialState: T) => {
   
   // Function to safely update state, batching simultaneous changes
   const updateState = useCallback((update: T | ((currentState: T) => T)) => {
-    const updateFn = typeof update === 'function' ? update : () => update;
-    
+    const updateFn: (currentState: T) => T = typeof update === 'function'
+      ? update as (currentState: T) => T
+      : () => update as T;
+
     pendingUpdatesRef.current.push(updateFn);
-    
+
     // Schedule processing of updates
     setTimeout(processPendingUpdates, 0);
   }, [processPendingUpdates]);
@@ -74,12 +76,9 @@ type SimultaneousStateGuardProps = {
   fallback?: React.ReactNode;
 };
 
-export const SimultaneousStateGuard: React.FC<SimultaneousStateGuardProps> = ({ 
-  children, 
-  fallback = <div>Processing updates...</div> 
-}) => {
+export const SimultaneousStateGuard: React.FC<SimultaneousStateGuardProps> = (props) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   // This would be connected to the actual state management system
   // For this example, we'll just simulate the processing state
   useEffect(() => {
@@ -87,26 +86,26 @@ export const SimultaneousStateGuard: React.FC<SimultaneousStateGuardProps> = ({
     // and set isProcessing to true when multiple changes are occurring
     const handleStateChange = () => {
       setIsProcessing(true);
-      
+
       // Simulate processing time
       setTimeout(() => {
         setIsProcessing(false);
       }, 100);
     };
-    
+
     // Event listener would be attached here
     // document.addEventListener('stateChangeStart', handleStateChange);
-    
+
     return () => {
       // document.removeEventListener('stateChangeStart', handleStateChange);
     };
   }, []);
-  
+
   if (isProcessing) {
-    return <>{fallback}</>;
+    return React.createElement(React.Fragment, {}, props.fallback || React.createElement('div', {}, 'Processing updates...'));
   }
-  
-  return <>{children}</>;
+
+  return React.createElement(React.Fragment, {}, props.children);
 };
 
 // Hook to detect and handle race conditions in state updates
@@ -180,13 +179,13 @@ type StateUpdateContextType = {
 
 const StateUpdateContext = React.createContext<StateUpdateContextType | undefined>(undefined);
 
-export const StateUpdateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const StateUpdateProvider: React.FC<{ children: React.ReactNode }> = (props) => {
   const [activeUpdates, setActiveUpdates] = useState<Set<string>>(new Set());
-  
+
   const registerStateUpdate = useCallback((updateId: string) => {
     setActiveUpdates(prev => new Set(prev).add(updateId));
   }, []);
-  
+
   const unregisterStateUpdate = useCallback((updateId: string) => {
     setActiveUpdates(prev => {
       const newSet = new Set(prev);
@@ -194,21 +193,21 @@ export const StateUpdateProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return newSet;
     });
   }, []);
-  
+
   const isUpdateInProgress = useCallback((updateId: string) => {
     return activeUpdates.has(updateId);
   }, [activeUpdates]);
-  
+
   const value = {
     registerStateUpdate,
     unregisterStateUpdate,
     isUpdateInProgress,
   };
-  
-  return (
-    <StateUpdateContext.Provider value={value}>
-      {children}
-    </StateUpdateContext.Provider>
+
+  return React.createElement(
+    StateUpdateContext.Provider,
+    { value },
+    props.children
   );
 };
 
@@ -227,38 +226,43 @@ export const ExampleSimultaneousStateComponent = () => {
     name: '',
     isActive: false,
   });
-  
+
   const { registerStateUpdate, unregisterStateUpdate } = useStateUpdateManager();
-  
+
   const handleMultipleUpdates = () => {
     const updateId = 'multi-update-' + Date.now();
     registerStateUpdate(updateId);
-    
+
     // Batch multiple updates together to prevent conflicts
     batchUpdates([
       (prev) => ({ ...prev, count: prev.count + 1 }),
       (prev) => ({ ...prev, name: prev.name + 'A' }),
       (prev) => ({ ...prev, isActive: !prev.isActive }),
     ]);
-    
+
     // Simulate async operations that might cause simultaneous changes
     setTimeout(() => {
       updateState(prev => ({ ...prev, count: prev.count + 10 }));
       unregisterStateUpdate(updateId);
     }, 100);
   };
-  
-  return (
-    <SimultaneousStateGuard>
-      <div>
-        <p>Count: {state.count}</p>
-        <p>Name: {state.name}</p>
-        <p>Active: {String(state.isActive)}</p>
-        <button onClick={handleMultipleUpdates}>
-          Trigger Multiple Updates
-        </button>
-      </div>
-    </SimultaneousStateGuard>
+
+  return React.createElement(
+    SimultaneousStateGuard,
+    {
+      children: React.createElement(
+        'div',
+        {},
+        React.createElement('p', {}, `Count: ${state.count}`),
+        React.createElement('p', {}, `Name: ${state.name}`),
+        React.createElement('p', {}, `Active: ${String(state.isActive)}`),
+        React.createElement(
+          'button',
+          { onClick: handleMultipleUpdates },
+          'Trigger Multiple Updates'
+        )
+      )
+    }
   );
 };
 

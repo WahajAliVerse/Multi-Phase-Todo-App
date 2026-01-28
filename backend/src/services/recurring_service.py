@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta
 from src.models.task import Task
-from src.models.recurrence_pattern import RecurrencePattern, RecurrenceType
+from src.models.recurrence_pattern import RecurrencePattern, RecurrencePatternType
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
