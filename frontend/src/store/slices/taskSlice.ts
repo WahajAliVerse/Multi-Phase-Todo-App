@@ -88,14 +88,14 @@ const taskSlice = createSlice({
     // Reducer to update a task locally
     updateLocalTask: (state, action: PayloadAction<{ id: string; updates: Partial<Task> }>) => {
       const { id, updates } = action.payload;
-      const taskIndex = state.tasks.findIndex(task => task.id === id);
+      const taskIndex = (state.tasks || []).findIndex(task => task.id === id);
       if (taskIndex !== -1) {
         state.tasks[taskIndex] = { ...state.tasks[taskIndex], ...updates };
       }
     },
     // Reducer to remove a task locally
     removeLocalTask: (state, action: PayloadAction<string>) => {
-      state.tasks = state.tasks.filter(task => task.id !== action.payload);
+      state.tasks = state.tasks?.filter(task => task.id !== action.payload) || [];
     },
     // Reducer to clear errors
     clearError: (state) => {
@@ -126,7 +126,7 @@ const taskSlice = createSlice({
       })
       // Update task
       .addCase(updateTask.fulfilled, (state, action) => {
-        const index = state.tasks.findIndex(task => task.id === action.payload.id);
+        const index = (state.tasks || []).findIndex(task => task.id === action.payload.id);
         if (index !== -1) {
           state.tasks[index] = action.payload;
         }
@@ -143,7 +143,7 @@ const taskSlice = createSlice({
       })
       // Toggle task completion
       .addCase(toggleTaskComplete.fulfilled, (state, action) => {
-        const index = state.tasks.findIndex(task => task.id === action.payload.id);
+        const index = (state.tasks || []).findIndex(task => task.id === action.payload.id);
         if (index !== -1) {
           state.tasks[index] = action.payload;
         }

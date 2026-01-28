@@ -1,26 +1,61 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f9fafb; /* Tailwind gray-50 */
+  --foreground: #111827; /* Tailwind gray-900 */
+  --primary: #3b82f6; /* Tailwind blue-500 */
+  --primary-foreground: #f9fafb; /* Tailwind gray-50 */
+  --secondary: #8b5cf6; /* Tailwind violet-500 */
+  --secondary-foreground: #f9fafb; /* Tailwind gray-50 */
+  --accent: #f3f4f6; /* Tailwind gray-100 */
+  --accent-foreground: #111827; /* Tailwind gray-900 */
+  --destructive: #ef4444; /* Tailwind red-500 */
+  --destructive-foreground: #f9fafb; /* Tailwind gray-50 */
+  --border: #e5e7eb; /* Tailwind gray-200 */
+  --input: #e5e7eb; /* Tailwind gray-200 */
+  --ring: #3b82f6; /* Tailwind blue-500 */
+  --radius: 0.5rem; /* 8px */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius: var(--radius);
+  --font-sans: var(--font-inter), var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+.dark {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #030712; /* Tailwind gray-950 */
+    --foreground: #f9fafb; /* Tailwind gray-50 */
+    --primary: #60a5fa; /* Tailwind blue-400 */
+    --primary-foreground: #030712; /* Tailwind gray-950 */
+    --secondary: #a78bfa; /* Tailwind violet-400 */
+    --secondary-foreground: #030712; /* Tailwind gray-950 */
+    --accent: #1f2937; /* Tailwind gray-800 */
+    --accent-foreground: #f9fafb; /* Tailwind gray-50 */
+    --destructive: #f87171; /* Tailwind red-400 */
+    --destructive-foreground: #030712; /* Tailwind gray-950 */
+    --border: #374151; /* Tailwind gray-700 */
+    --input: #374151; /* Tailwind gray-700 */
+    --ring: #60a5fa; /* Tailwind blue-400 */
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }

@@ -18,8 +18,8 @@ const DashboardPage = () => {
   }, [dispatch]);
 
   // Separate active and completed tasks
-  const activeTasks = tasks.filter(task => task.status === 'active');
-  const completedTasks = tasks.filter(task => task.status === 'completed');
+  const activeTasks = tasks?.filter(task => task.status === 'active') || [];
+  const completedTasks = tasks?.filter(task => task.status === 'completed') || [];
 
   return (
     <ProtectedRoute>

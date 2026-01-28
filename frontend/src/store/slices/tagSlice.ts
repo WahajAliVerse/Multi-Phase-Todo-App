@@ -23,13 +23,13 @@ const tagSlice = createSlice({
       state.tags.push(action.payload);
     },
     updateTag: (state, action: PayloadAction<any>) => {
-      const index = state.tags.findIndex(tag => tag.id === action.payload.id);
+      const index = (state.tags || []).findIndex(tag => tag.id === action.payload.id);
       if (index !== -1) {
         state.tags[index] = action.payload;
       }
     },
     removeTag: (state, action: PayloadAction<string>) => {
-      state.tags = state.tags.filter(tag => tag.id !== action.payload);
+      state.tags = state.tags?.filter(tag => tag.id !== action.payload) || [];
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;

@@ -1,63 +1,52 @@
 'use client';
 
-import React, { useState, useEffect, ReactNode } from 'react';
+import { Component, ReactNode } from 'react';
+import { Button } from '@/components/ui/Button';
 
-interface ErrorBoundaryProps {
+interface Props {
   children: ReactNode;
-  fallback?: React.ComponentType<{ error: Error | null }>;
+  fallback?: ReactNode;
 }
 
-const ErrorBoundary: React.FC<ErrorBoundaryProps> = ({ children, fallback }) => {
-  const [hasError, setHasError] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+interface State {
+  hasError: boolean;
+  error?: Error;
+}
 
-  useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      console.error('Global error caught:', event.error);
-      setError(event.error);
-      setHasError(true);
-    };
-
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled promise rejection:', event.reason);
-      setError(event.reason instanceof Error ? event.reason : new Error(String(event.reason)));
-      setHasError(true);
-    };
-
-    window.addEventListener('error', handleError);
-    window.addEventListener('unhandledrejection', handleUnhandledRejection);
-
-    return () => {
-      window.removeEventListener('error', handleError);
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-    };
-  }, []);
-
-  if (hasError) {
-    // Use custom fallback component if provided, otherwise use default
-    if (fallback) {
-      const FallbackComponent = fallback;
-      return <FallbackComponent error={error} />;
-    }
-
-    // Default fallback UI
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-        <h2 className="text-2xl font-bold text-red-800 dark:text-red-200 mb-4">Something went wrong</h2>
-        <p className="text-red-600 dark:text-red-300 mb-4">
-          {error?.message || 'An unexpected error occurred'}
-        </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-        >
-          Reload Page
-        </button>
-      </div>
-    );
+class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
   }
 
-  return children;
-};
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div className="flex flex-col items-center justify-center min-h-[40vh] p-8 text-center">
+          <h2 className="text-2xl font-bold text-destructive mb-4">Something went wrong</h2>
+          <p className="text-muted-foreground mb-6">
+            {this.state.error?.message || 'An unexpected error occurred.'}
+          </p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="default"
+          >
+            Reload Page
+          </Button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default ErrorBoundary;

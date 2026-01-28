@@ -1,32 +1,24 @@
-"""
-RecurrencePattern model for the todo application.
-"""
-
 from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from src.database.base import Base, TimestampMixin
-from datetime import datetime
-from typing import TYPE_CHECKING
-import enum
-
-if TYPE_CHECKING:
-    from .task import Task
+from ..database.base import Base
+from enum import Enum as PyEnum
 
 
-class RecurrencePatternType(str, enum.Enum):
+class RecurrencePatternType(PyEnum):
     daily = "daily"
     weekly = "weekly"
     monthly = "monthly"
     yearly = "yearly"
 
 
-class EndCondition(str, enum.Enum):
+class EndCondition(PyEnum):
     never = "never"
     after_date = "after_date"
     after_occurrences = "after_occurrences"
 
 
-class RecurrencePattern(Base, TimestampMixin):
+class RecurrencePattern(Base):
     __tablename__ = "recurrence_patterns"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -35,7 +27,12 @@ class RecurrencePattern(Base, TimestampMixin):
     end_condition = Column(Enum(EndCondition), default=EndCondition.never)
     end_date = Column(DateTime, nullable=True)  # Date when recurrence stops
     max_occurrences = Column(Integer, nullable=True)  # Max number of occurrences
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    version = Column(Integer, default=1)  # For optimistic locking
 
     # Relationships
     task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False)
     task = relationship("Task", back_populates="recurrence_pattern_rel")
+
+

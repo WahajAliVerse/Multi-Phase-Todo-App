@@ -1,40 +1,36 @@
-"""
-Pydantic schemas for the user model in the todo application.
-"""
-
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 
-class UserSchema(BaseModel):
-    id: int
+class UserBase(BaseModel):
     username: str
     email: str
-    is_active: bool
-
-    class Config:
-        from_attributes = True
 
 
-class UserCreateSchema(BaseModel):
-    username: str
-    email: str
+class UserCreate(UserBase):
     password: str
 
 
-class UserUpdateSchema(BaseModel):
-    username: Optional[str] = None
-    email: Optional[str] = None
-    password: Optional[str] = None
+class UserLogin(BaseModel):
+    username: str
+    password: str
 
 
-class TokenSchema(BaseModel):
-    access_token: str
-    token_type: str
+class User(UserBase):
+    id: int
+    is_active: bool
+    created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
 
 
-class TokenDataSchema(BaseModel):
-    username: Optional[str] = None
+class LoginResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+    class Config:
+        from_attributes = True

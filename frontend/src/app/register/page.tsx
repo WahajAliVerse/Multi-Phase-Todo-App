@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { register as registerAction } from '@/store/slices/authSlice';
+import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 
 const RegisterPage = () => {
@@ -12,21 +11,24 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const dispatch = useAppDispatch();
+  const { register } = useAuth();
   const router = useRouter();
-  const { loading } = useAppSelector(state => state.auth);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
 
     // Basic validation
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      setLoading(false);
       return;
     }
 
     try {
-      const result = await dispatch(registerAction({ username, email, password })).unwrap();
+      await register(username, email, password);
 
       // Redirect to dashboard on successful registration
       router.push('/dashboard');
@@ -34,6 +36,8 @@ const RegisterPage = () => {
     } catch (error: any) {
       // Show error message if registration failed
       setError(error.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -2,23 +2,24 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { login as loginAction } from '@/store/slices/authSlice';
+import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const dispatch = useAppDispatch();
+  const { login } = useAuth();
   const router = useRouter();
-  const { loading } = useAppSelector(state => state.auth);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      const result = await dispatch(loginAction({ username: email, password })).unwrap();
+      await login(username, password);
 
       // Redirect to dashboard on successful login
       router.push('/dashboard');
@@ -26,6 +27,8 @@ const LoginPage = () => {
     } catch (error: any) {
       // Show error message if login failed
       setError(error.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,8 +59,8 @@ const LoginPage = () => {
                 type="text"
                 autoComplete="username"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Username"
               />

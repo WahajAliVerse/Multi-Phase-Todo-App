@@ -20,17 +20,17 @@ const TagsPage = () => {
 
   // Extract all unique tags from tasks
   const allTags = Array.from(
-    new Set(tasks.flatMap(task => task.tags || []))
+    new Set(tasks?.flatMap(task => task.tags || []) || [])
   ).sort();
 
   // Filter tasks by selected tag
   const filteredTasks = selectedTag
-    ? tasks.filter(task => task.tags?.includes(selectedTag))
-    : tasks;
+    ? tasks?.filter(task => task.tags?.includes(selectedTag)) || []
+    : tasks || [];
 
   // Group tasks by tag
   const tasksByTag: Record<string, typeof tasks> = {};
-  tasks.forEach(task => {
+  (tasks || []).forEach(task => {
     if (task.tags) {
       task.tags.forEach(tag => {
         if (!tasksByTag[tag]) {

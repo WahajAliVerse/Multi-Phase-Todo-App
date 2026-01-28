@@ -1,15 +1,5 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import ErrorBoundary from '@/components/ErrorBoundary/ErrorBoundary';
-import ClientProviders from '@/components/ClientProviders/ClientProviders';
-
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-  title: 'Todo App',
-  description: 'A modern todo application with light/dark themes',
-};
+import { Providers } from '../components/providers';
+import '../styles/globals.css';
 
 export default function RootLayout({
   children,
@@ -18,12 +8,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <ErrorBoundary>
-          <ClientProviders>
-            {children}
-          </ClientProviders>
-        </ErrorBoundary>
+      <body>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

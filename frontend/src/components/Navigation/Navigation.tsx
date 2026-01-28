@@ -3,20 +3,17 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { useAppSelector, useAppDispatch } from '@/hooks/redux';
-import { logout } from '@/store/slices/authSlice';
-import { authService } from '@/services/auth';
+import { useAuth } from '@/hooks/useAuth';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
+import { Button } from '@/components/ui/Button';
 
 const Navigation = () => {
   const pathname = usePathname();
-  const dispatch = useAppDispatch();
-  const { isAuthenticated } = useAppSelector(state => state.auth);
+  const { logout, isAuthenticated } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    authService.logout();
-    dispatch(logout());
+    logout();
   };
 
   const navLinks = [
@@ -26,10 +23,10 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-md py-4 px-6">
+    <nav className="bg-background border-b border-border py-4 px-6">
       <div className="flex justify-between items-center">
         {/* Logo */}
-        <Link href="/" className="text-xl font-bold text-blue-600 dark:text-blue-400">
+        <Link href="/" className="text-xl font-bold text-primary">
           Todo App
         </Link>
 
@@ -41,40 +38,41 @@ const Navigation = () => {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`font-medium ${
+                  className={`font-medium transition-colors ${
                     pathname === link.href
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400'
+                      ? 'text-primary'
+                      : 'text-foreground/70 hover:text-foreground'
                   }`}
                 >
                   {link.name}
                 </Link>
               ))}
-              <button
+              <Button
                 onClick={handleLogout}
-                className="text-gray-600 hover:text-red-500 dark:text-gray-300 dark:hover:text-red-400 font-medium"
+                variant="ghost"
+                className="text-foreground/70 hover:text-destructive"
               >
                 Logout
-              </button>
+              </Button>
             </>
           ) : (
             <>
               <Link
                 href="/login"
-                className={`font-medium ${
+                className={`font-medium transition-colors ${
                   pathname === '/login'
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400'
+                    ? 'text-primary'
+                    : 'text-foreground/70 hover:text-foreground'
                 }`}
               >
                 Login
               </Link>
               <Link
                 href="/register"
-                className={`font-medium ${
+                className={`font-medium transition-colors ${
                   pathname === '/register'
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400'
+                    ? 'text-primary'
+                    : 'text-foreground/70 hover:text-foreground'
                 }`}
               >
                 Register
@@ -89,7 +87,9 @@ const Navigation = () => {
           <ThemeToggle />
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="ml-4 text-gray-600 dark:text-gray-300 focus:outline-none"
+            className="ml-4 text-foreground/70 focus:outline-none focus:ring-1 focus:ring-ring rounded-md p-1"
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           >
             <svg
               className="h-6 w-6"
@@ -110,7 +110,7 @@ const Navigation = () => {
 
       {/* Mobile Navigation */}
       {menuOpen && (
-        <div className="md:hidden mt-4 py-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="md:hidden mt-4 py-4 border-t border-border">
           <div className="flex flex-col space-y-4">
             {isAuthenticated ? (
               <>
@@ -118,34 +118,35 @@ const Navigation = () => {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`font-medium ${
+                    className={`font-medium transition-colors ${
                       pathname === link.href
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400'
+                        ? 'text-primary'
+                        : 'text-foreground/70 hover:text-foreground'
                     }`}
                     onClick={() => setMenuOpen(false)}
                   >
                     {link.name}
                   </Link>
                 ))}
-                <button
+                <Button
                   onClick={() => {
                     handleLogout();
                     setMenuOpen(false);
                   }}
-                  className="text-left text-gray-600 hover:text-red-500 dark:text-gray-300 dark:hover:text-red-400 font-medium"
+                  variant="ghost"
+                  className="justify-start text-foreground/70 hover:text-destructive"
                 >
                   Logout
-                </button>
+                </Button>
               </>
             ) : (
               <>
                 <Link
                   href="/login"
-                  className={`font-medium ${
+                  className={`font-medium transition-colors ${
                     pathname === '/login'
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400'
+                      ? 'text-primary'
+                      : 'text-foreground/70 hover:text-foreground'
                   }`}
                   onClick={() => setMenuOpen(false)}
                 >
@@ -153,10 +154,10 @@ const Navigation = () => {
                 </Link>
                 <Link
                   href="/register"
-                  className={`font-medium ${
+                  className={`font-medium transition-colors ${
                     pathname === '/register'
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400'
+                      ? 'text-primary'
+                      : 'text-foreground/70 hover:text-foreground'
                   }`}
                   onClick={() => setMenuOpen(false)}
                 >

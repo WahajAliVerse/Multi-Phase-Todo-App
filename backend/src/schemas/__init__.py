@@ -1,7 +1,7 @@
-from .task import TaskSchema, TaskCreateSchema, TaskUpdateSchema
-from .tag import TagSchema, TagCreateSchema, TagUpdateSchema
+from .task import Task, TaskCreate, TaskUpdate, PaginatedTasks
+from .tag import Tag, TagCreate, TagUpdate
 
 __all__ = [
-    "TaskSchema", "TaskCreateSchema", "TaskUpdateSchema",
-    "TagSchema", "TagCreateSchema", "TagUpdateSchema"
+    "Task", "TaskCreate", "TaskUpdate", "PaginatedTasks",
+    "Tag", "TagCreate", "TagUpdate"
 ]
