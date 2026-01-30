@@ -1,47 +1,53 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api.task_routes import router as task_router
-from src.api.tag_routes import router as tag_router
-from src.api.user_routes import router as user_router
-from src.api.users import router as users_router
-from src.api.user_auth_routes import router as user_auth_router
-from src.database.connection import engine
-from src.database.base import Base
-from contextlib import asynccontextmanager
+from src.api import auth_router, user_router, task_router, tag_router, reminder_router
+from src.database.database import engine, Base
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Create database tables
-    Base.metadata.create_all(bind=engine)
-    yield
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
-
-app = FastAPI(lifespan=lifespan)
-
-# Add CORS middleware to allow frontend to communicate with backend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins like ["http://localhost:3000"]
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    # expose_headers=["Access-Control-Allow-Origin"]
+# Create FastAPI app
+app = FastAPI(
+    title="Todo App API",
+    description="API for the Phase 2 Todo Application with authentication, task management, and advanced features",
+    version="1.0.0"
 )
 
-# Include API routers
-app.include_router(task_router, prefix="/api/v1/tasks", tags=["tasks"])
-app.include_router(tag_router, prefix="/api/v1/tags", tags=["tags"])
-app.include_router(user_router, prefix="/api/v1/user", tags=["user"])
-app.include_router(users_router, prefix="/api/v1/users", tags=["users"])
-app.include_router(user_auth_router, prefix="/api/v1/auth", tags=["auth"])
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Next.js default
+        "http://localhost:3001",  # Alternative Next.js port
+        "http://localhost:3002",  # Another alternative Next.js port
+        "http://localhost:8000",  # For direct API access
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3002",
+        "http://127.0.0.1:8000",
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["*"],
+    # Allow Authorization header for JWT
+    expose_headers=["Access-Control-Allow-Origin"]
+)
 
+# Include routers
+app.include_router(auth_router.router)
+app.include_router(user_router.router)
+app.include_router(task_router.router)
+app.include_router(tag_router.router)
+app.include_router(reminder_router.router)
 
 @app.get("/")
 def read_root():
-    return {"Hello": "Welcome to the Todo API!"}
+    return {"message": "Welcome to the Todo App API"}
 
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "message": "API is running"}

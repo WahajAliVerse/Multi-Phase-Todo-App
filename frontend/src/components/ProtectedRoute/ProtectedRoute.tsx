@@ -1,43 +1,36 @@
-'use client';
-
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  fallbackUrl?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  fallbackUrl = '/login'
-}) => {
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    // If user is not authenticated and not still loading, redirect to login
     if (!isLoading && !isAuthenticated) {
-      router.push(fallbackUrl);
+      router.push('/auth/login');
     }
-  }, [isAuthenticated, isLoading, router, fallbackUrl]);
+  }, [isAuthenticated, isLoading, router]);
 
   // Show nothing while checking authentication status
-  if (!isAuthenticated && isLoading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  // If authenticated, render the child components
+  // If authenticated, render the children
   if (isAuthenticated) {
     return <>{children}</>;
   }
 
-  // If not authenticated and not loading, return null (router will handle redirect)
+  // If not authenticated and not loading, return null (the redirect effect will handle navigation)
   return null;
 };
 

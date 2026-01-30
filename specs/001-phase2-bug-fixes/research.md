@@ -1,84 +1,48 @@
-# Research Findings for Phase 2 Bug Fixes and Enhancements
+# Research Findings: Phase 2 Bug Fixes and Enhancements for Full-Stack Todo App
 
 ## Overview
-This document captures research findings for implementing the Phase 2 bug fixes and enhancements for the full-stack todo application. All requirements from the feature specification have been researched and validated.
+This document captures research findings for implementing Phase 2 bug fixes and enhancements for the full-stack todo application, focusing on authentication, CORS, modern UI, and advanced task management features.
 
-## Authentication Implementation
-### Decision: JWT-based authentication with secure storage
-### Rationale: 
-- JWT tokens provide stateless authentication that scales well
-- Proper storage in httpOnly cookies or secure localStorage with expiration
-- Automatic header inclusion via Axios interceptors ensures seamless API communication
-- Aligns with industry best practices for SPAs
+## Decision: JWT Token Storage Strategy
+**Rationale**: HTTP-only cookies provide superior security against XSS attacks compared to localStorage, which is vulnerable to client-side script access. This approach aligns with OWASP security recommendations for SPAs.
+**Alternatives considered**: 
+- localStorage with additional security measures (vulnerable to XSS)
+- sessionStorage (limited persistence)
+- Memory storage (lost on page refresh)
 
-### Alternatives considered:
-- Session-based authentication: Requires server-side session storage, less scalable
-- OAuth2: More complex than needed for this application
-- Simple token-based auth: Less secure than JWT with claims
+## Decision: API Error Response Standardization
+**Rationale**: Using HTTP status codes with detailed JSON error objects provides clear, consistent error handling that clients can programmatically process while including human-readable messages and remediation steps.
+**Alternatives considered**:
+- Simple error messages (insufficient for automated handling)
+- Custom error format with stack traces (potential security information disclosure)
 
-## UI Framework Selection
-### Decision: TailwindCSS with Shadcn/UI components
-### Rationale:
-- TailwindCSS provides utility-first approach for rapid UI development
-- Shadcn/UI offers accessible, customizable components that integrate well with Tailwind
-- Enables sleek, modern design with dark mode support
-- Responsive design capabilities built-in
-- Aligns with 2026 design trends
+## Decision: Frontend State Management
+**Rationale**: Using Redux Toolkit with React for predictable state management, combined with Redux Persist for offline capability, provides a robust solution for managing complex application state across components.
+**Alternatives considered**:
+- React Context API alone (performance issues with large applications)
+- Zustand (less ecosystem support for complex state management)
 
-### Alternatives considered:
-- Styled-components: Adds extra complexity and runtime overhead
-- Traditional CSS frameworks: Less flexible than utility-first approach
-- Custom component library: Higher development cost
+## Decision: Component Library Selection
+**Rationale**: Shadcn/UI with TailwindCSS provides customizable, accessible components that align with modern UI/UX trends while maintaining full design control and accessibility compliance.
+**Alternatives considered**:
+- Material UI (opinionated styling, larger bundle size)
+- Ant Design (different design philosophy)
+- Pure TailwindCSS without components (increased development time)
 
-## CORS Configuration
-### Decision: Configure flask-cors to allow localhost:3000, 3001, 3002
-### Rationale:
-- Essential for frontend-backend communication during development
-- Allows multiple local environments for different team members
-- Secure when properly configured with specific origins (not wildcard)
-- Aligns with development workflow requirements
+## Decision: Backend Authentication Implementation
+**Rationale**: FastAPI with JWT tokens and proper session management provides robust, scalable authentication with excellent performance characteristics and built-in documentation.
+**Alternatives considered**:
+- Flask with sessions (less performant, less modern)
+- OAuth2 with PKCE (overkill for basic authentication needs)
 
-### Alternatives considered:
-- Disabling CORS entirely: Security risk
-- Using proxy during development: More complex setup
-- Wildcard origins (*): Security risk
+## Decision: Database Migration Strategy
+**Rationale**: Starting with SQLite for development and migrating to PostgreSQL for production provides a smooth transition path with similar SQL syntax while enabling production scalability.
+**Alternatives considered**:
+- Direct PostgreSQL development (higher barrier to entry for development)
+- MongoDB (less suitable for relational data like tasks and users)
 
-## PWA Implementation
-### Decision: Implement PWA with service worker for offline functionality
-### Rationale:
-- Enables offline access to todo data as required by specification
-- Provides app-like experience on mobile devices
-- Supports synchronization when connectivity is restored
-- Aligns with 2026 trends for progressive web experiences
-
-### Alternatives considered:
-- Native mobile apps: Would require separate codebases
-- Hybrid apps (React Native, etc.): More complex than needed
-- Pure web app without offline: Doesn't meet specification requirements
-
-## Security Measures
-### Decision: Multi-layered security approach
-### Rationale:
-- JWT with proper expiration and refresh mechanisms
-- Input validation and sanitization to prevent XSS
-- Secure token storage with httpOnly cookies where possible
-- Proper authentication enforcement on all protected endpoints
-- Comprehensive logging for security monitoring
-
-### Alternatives considered:
-- Client-side only security: Insufficient for protecting data
-- Simple token without expiration: Security risk
-- Minimal validation: Vulnerable to injection attacks
-
-## Performance Optimization
-### Decision: Lazy loading with efficient data fetching
-### Rationale:
-- Handles large datasets (>10,000 tasks) efficiently
-- Reduces initial load time and memory usage
-- Improves user experience with faster perceived performance
-- Supports efficient filtering and sorting of large datasets
-
-### Alternatives considered:
-- Load all data at once: Performance issues with large datasets
-- Pagination only: Less smooth user experience
-- Virtual scrolling: More complex implementation
+## Decision: Testing Strategy
+**Rationale**: Comprehensive testing approach with unit tests for individual components, integration tests for API endpoints, and end-to-end tests for critical user flows ensures quality across all layers of the application.
+**Alternatives considered**:
+- Unit tests only (insufficient coverage of integration issues)
+- End-to-end tests only (slower feedback, harder to debug)

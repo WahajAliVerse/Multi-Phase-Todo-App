@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Task } from '../types/task';
-import { TaskCard } from '../components/TaskCard';
-import { Button } from '../components/ui/Button';
-import { taskApi } from '../services/api';
+import { useState, useEffect, useCallback } from 'react';
+import { Task } from '@/types/index';
+import { TaskCard } from '@/components/TaskCard';
+import { Button } from '@/components/ui/Button';
+import api from '@/services/api';
 
 interface TaskListProps {
   filterStatus?: 'active' | 'completed';
@@ -10,20 +10,16 @@ interface TaskListProps {
   searchTerm?: string;
 }
 
-export const TaskList = ({ 
-  filterStatus, 
-  filterPriority, 
-  searchTerm 
+export const TaskList = ({
+  filterStatus,
+  filterPriority,
+  searchTerm
 }: TaskListProps) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchTasks();
-  }, [filterStatus, filterPriority, searchTerm]);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -32,14 +28,18 @@ export const TaskList = ({
       if (filterPriority) params.priority = filterPriority;
       if (searchTerm) params.search = searchTerm;
 
-      const response = await taskApi.getAll(params);
+      const response = await api.get('/tasks', { params });
       setTasks(response.data.tasks || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, filterPriority, searchTerm]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   if (loading) {
     return (

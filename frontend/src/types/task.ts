@@ -1,44 +1,37 @@
 // types/task.ts
-import { Tag } from './tag';
 
 export interface Task {
   id: number;
   title: string;
   description?: string;
   status: 'active' | 'completed';
-  priority: 'low' | 'medium' | 'high';
-  due_date?: string; // ISO date string
-  completed_at?: string; // ISO date string
-  recurrence_pattern?: string;
-  user_id: number;
-  created_at: string; // ISO date string
-  updated_at?: string; // ISO date string
-  version: number;
-  tags: Tag[];
+  priority: 'high' | 'medium' | 'low';
+  dueDate?: string; // ISO string format
+  createdAt: string; // ISO string format
+  updatedAt: string; // ISO string format
+  completedAt?: string; // ISO string format
+  userId: number;
+  recurrencePatternId?: number;
+  tags?: string[]; // Array of tag IDs or tag objects
 }
 
-export interface TaskCreate {
-  title: string;
-  description?: string;
-  priority?: 'low' | 'medium' | 'high';
-  due_date?: string;
-  recurrence_pattern?: string;
-  tag_ids?: number[];
+export interface Tag {
+  id: number;
+  name: string;
+  color: string;
+  userId: number;
+  createdAt: string; // ISO string format
 }
 
-export interface TaskUpdate {
-  title?: string;
-  description?: string;
-  status?: 'active' | 'completed';
-  priority?: 'low' | 'medium' | 'high';
-  due_date?: string;
-  recurrence_pattern?: string;
-  tag_ids?: number[];
-}
-
-export interface PaginatedTasks {
-  tasks: Task[];
-  total: number;
-  skip: number;
-  limit: number;
+export interface RecurrencePattern {
+  id: number;
+  patternType: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  interval: number;
+  endCondition: 'never' | 'after_occurrences' | 'on_date';
+  occurrenceCount?: number; // For 'after_occurrences' condition
+  endDate?: string; // For 'on_date' condition (ISO date string)
+  daysOfWeek?: string; // For weekly patterns (e.g., 'mon,tue,fri')
+  daysOfMonth?: string; // For monthly patterns (e.g., '1,15')
+  createdAt: string; // ISO string format
+  updatedAt: string; // ISO string format
 }

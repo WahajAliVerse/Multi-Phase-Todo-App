@@ -1,138 +1,182 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { fetchTasks } from '@/store/slices/taskSlice';
-import TaskCard from '@/components/TaskCard/TaskCard';
-import Navigation from '@/components/Navigation/Navigation';
-import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
+import { useState, useEffect, FormEvent } from 'react';
+import { Tag } from '@/types/index';
 
-const TagsPage = () => {
-  const dispatch = useAppDispatch();
-  const { tasks, loading, error } = useAppSelector((state) => state.tasks);
+export default function TagsPage() {
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [tagName, setTagName] = useState('');
+  const [tagColor, setTagColor] = useState('#000000');
+  const [editingTag, setEditingTag] = useState<Tag | null>(null);
 
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-
+  // In a real app, you would fetch tags from an API
   useEffect(() => {
-    // Fetch tasks when component mounts
-    dispatch(fetchTasks());
-  }, [dispatch]);
+    // Mock data for now
+    setTags([
+      { id: '1', name: 'Work', color: '#FF6B6B', userId: '1', createdAt: new Date().toISOString() },
+      { id: '2', name: 'Personal', color: '#4ECDC4', userId: '1', createdAt: new Date().toISOString() },
+      { id: '3', name: 'Urgent', color: '#45B7D1', userId: '1', createdAt: new Date().toISOString() },
+    ]);
+  }, []);
 
-  // Extract all unique tags from tasks
-  const allTags = Array.from(
-    new Set(tasks?.flatMap(task => task.tags || []) || [])
-  ).sort();
+  const handleCreateTag = (e: FormEvent) => {
+    e.preventDefault();
+    if (!tagName.trim()) return;
 
-  // Filter tasks by selected tag
-  const filteredTasks = selectedTag
-    ? tasks?.filter(task => task.tags?.includes(selectedTag)) || []
-    : tasks || [];
+    const newTag: Tag = {
+      id: (tags.length + 1).toString(), // In a real app, this would come from the backend
+      name: tagName,
+      color: tagColor,
+      userId: '1', // Placeholder user ID
+      createdAt: new Date().toISOString(),
+    };
 
-  // Group tasks by tag
-  const tasksByTag: Record<string, typeof tasks> = {};
-  (tasks || []).forEach(task => {
-    if (task.tags) {
-      task.tags.forEach(tag => {
-        if (!tasksByTag[tag]) {
-          tasksByTag[tag] = [];
-        }
-        tasksByTag[tag].push(task);
-      });
-    }
-  });
+    setTags([...tags, newTag]);
+    setTagName('');
+    setTagColor('#000000');
+  };
+
+  const handleUpdateTag = (e: FormEvent) => {
+    e.preventDefault();
+    if (!tagName.trim() || !editingTag) return;
+
+    setTags(tags.map(tag =>
+      tag.id === editingTag.id
+        ? { ...tag, name: tagName, color: tagColor, updatedAt: new Date().toISOString() }
+        : tag
+    ));
+
+    setEditingTag(null);
+    setTagName('');
+    setTagColor('#000000');
+  };
+
+  const handleEditClick = (tag: Tag) => {
+    setEditingTag(tag);
+    setTagName(tag.name);
+    setTagColor(tag.color);
+  };
+
+  const handleDeleteTag = (id: string) => {
+    setTags(tags.filter(tag => tag.id !== id));
+  };
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-background text-foreground">
-        <Navigation />
-
-        <main className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Tags</h1>
-
-          {loading ? (
-            <div className="flex justify-center items-center h-32">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Manage Tags</h1>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Form for creating/updating tags */}
+        <div className="bg-card p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">
+            {editingTag ? 'Edit Tag' : 'Create New Tag'}
+          </h2>
+          
+          <form onSubmit={editingTag ? handleUpdateTag : handleCreateTag}>
+            <div className="mb-4">
+              <label htmlFor="tagName" className="block text-sm font-medium mb-1">
+                Tag Name
+              </label>
+              <input
+                type="text"
+                id="tagName"
+                value={tagName}
+                onChange={(e) => setTagName(e.target.value)}
+                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-ring"
+                placeholder="Enter tag name"
+                required
+              />
             </div>
-          ) : error ? (
-            <div className="text-red-500 text-center py-4">{error}</div>
+            
+            <div className="mb-4">
+              <label htmlFor="tagColor" className="block text-sm font-medium mb-1">
+                Tag Color
+              </label>
+              <div className="flex items-center">
+                <input
+                  type="color"
+                  id="tagColor"
+                  value={tagColor}
+                  onChange={(e) => setTagColor(e.target.value)}
+                  className="w-10 h-10 border border-input rounded cursor-pointer"
+                />
+                <span className="ml-2 text-sm">{tagColor}</span>
+              </div>
+            </div>
+            
+            <div className="flex space-x-2">
+              {editingTag ? (
+                <>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                  >
+                    Update Tag
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingTag(null);
+                      setTagName('');
+                      setTagColor('#000000');
+                    }}
+                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                >
+                  Create Tag
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+        
+        {/* List of existing tags */}
+        <div className="bg-card p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Existing Tags</h2>
+          
+          {tags.length === 0 ? (
+            <p className="text-muted-foreground">No tags created yet.</p>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Tag List */}
-              <section className="lg:col-span-1">
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">All Tags</h2>
-
-                {allTags.length > 0 ? (
-                  <div className="space-y-2">
+            <div className="space-y-3">
+              {tags.map((tag) => (
+                <div 
+                  key={tag.id} 
+                  className="flex items-center justify-between p-3 border rounded-md"
+                >
+                  <div className="flex items-center">
+                    <div 
+                      className="w-4 h-4 rounded-full mr-3" 
+                      style={{ backgroundColor: tag.color }}
+                    ></div>
+                    <span className="font-medium">{tag.name}</span>
+                  </div>
+                  <div className="flex space-x-2">
                     <button
-                      onClick={() => setSelectedTag(null)}
-                      className={`w-full text-left px-4 py-2 rounded-md ${
-                        selectedTag === null
-                          ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100'
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`}
+                      onClick={() => handleEditClick(tag)}
+                      className="px-3 py-1 text-sm bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
                     >
-                      All Tasks
-                      <span className="ml-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full">
-                        {tasks.length}
-                      </span>
+                      Edit
                     </button>
-
-                    {allTags.map(tag => (
-                      <button
-                        key={tag}
-                        onClick={() => setSelectedTag(tag)}
-                        className={`w-full text-left px-4 py-2 rounded-md ${
-                          selectedTag === tag
-                            ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100'
-                            : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        #{tag}
-                        <span className="ml-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 text-xs font-medium px-2 py-0.5 rounded-full">
-                          {tasksByTag[tag]?.length || 0}
-                        </span>
-                      </button>
-                    ))}
+                    <button
+                      onClick={() => handleDeleteTag(tag.id)}
+                      className="px-3 py-1 text-sm bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90"
+                    >
+                      Delete
+                    </button>
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <p>No tags found.</p>
-                    <p className="mt-2">Start by adding tags to your tasks!</p>
-                  </div>
-                )}
-              </section>
-
-              {/* Task List for Selected Tag */}
-              <section className="lg:col-span-3">
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-                  {selectedTag ? (
-                    <span>
-                      Tasks with tag: <span className="text-blue-600 dark:text-blue-400">#{selectedTag}</span>
-                    </span>
-                  ) : (
-                    <span>All Tasks</span>
-                  )}
-                </h2>
-
-                {filteredTasks.length > 0 ? (
-                  <div className="space-y-4">
-                    {filteredTasks.map((task) => (
-                      <TaskCard key={task.id} task={task} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <p>No tasks found for this tag.</p>
-                    <p className="mt-2">Try selecting a different tag or adding tags to your tasks.</p>
-                  </div>
-                )}
-              </section>
+                </div>
+              ))}
             </div>
           )}
-        </main>
+        </div>
       </div>
-    </ProtectedRoute>
+    </div>
   );
-};
-
-export default TagsPage;
+}

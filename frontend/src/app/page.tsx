@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../hooks/useAuth';
-import { TaskList } from '../components/TaskList';
-import { TaskForm } from '../components/TaskForm';
-import { TaskFilters } from '../components/TaskFilters';
-import { ThemeToggle } from '../components/ThemeToggle';
-import { Button } from '../components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { TaskList } from '@/components/TaskList/TaskList';
+import TaskForm from '@/components/TaskForm/TaskForm';
+import TaskFilters from '@/components/TaskFilters/TaskFilters';
+import ThemeToggle from '@/components/ThemeToggle/ThemeToggle';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 
 export default function HomePage() {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function HomePage() {
           <h1 className="text-2xl font-bold">Todo App</h1>
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-            <Button 
+            <Button
               onClick={() => setShowTaskForm(true)}
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
@@ -86,7 +86,7 @@ export default function HomePage() {
           <div className="bg-card p-6 rounded-lg w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Create New Task</h2>
-              <Button 
+              <Button
                 onClick={() => setShowTaskForm(false)}
                 variant="ghost"
                 className="text-muted-foreground hover:text-foreground"
@@ -94,9 +94,9 @@ export default function HomePage() {
                 ✕
               </Button>
             </div>
-            <TaskForm 
-              onSuccess={() => setShowTaskForm(false)} 
-              onCancel={() => setShowTaskForm(false)} 
+            <TaskForm
+              onSuccess={() => setShowTaskForm(false)}
+              onCancel={() => setShowTaskForm(false)}
             />
           </div>
         </div>

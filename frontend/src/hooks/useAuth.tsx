@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { authApi, userApi } from '../services/api';
+import api from '../services/api';
 
 interface User {
   id: number;
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await userApi.getCurrentUser();
+      const response = await api.get('/users/me');
       setUser(response.data);
       setIsAuthenticated(true);
     } catch (error) {
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string) => {
     try {
-      const response = await authApi.login({ username, password });
+      const response = await api.post('/auth/login', { username, password });
       const { access_token, refresh_token } = response.data;
 
       // Store tokens
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (username: string, email: string, password: string) => {
     try {
-      const response = await authApi.register({ username, email, password });
+      const response = await api.post('/auth/register', { username, email, password });
       return response.data;
     } catch (error) {
       console.error('Registration error:', error);
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      const response = await authApi.refreshToken(refreshToken);
+      const response = await api.post('/auth/refresh', { refresh_token: refreshToken });
 
       if (response.status === 200) {
         const { access_token, refresh_token: new_refresh_token } = response.data;

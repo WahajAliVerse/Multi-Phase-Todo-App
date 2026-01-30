@@ -1,185 +1,195 @@
-# Quickstart Guide for Phase 2 Todo Application
-
-## Overview
-This guide provides instructions for setting up and running the Phase 2 Todo Application with all bug fixes and enhancements implemented.
+# Quickstart Guide: Phase 2 Bug Fixes and Enhancements for Full-Stack Todo App
 
 ## Prerequisites
+
 - Python 3.12+
-- Node.js 18+ and npm/yarn
-- PostgreSQL (for production) or SQLite (for development)
+- Node.js 18+ / npm 9+
+- Bun (alternative to npm)
+- Docker and Docker Compose (optional, for containerized deployment)
 - Git
 
-## Backend Setup
+## Setup Instructions
 
 ### 1. Clone the Repository
+
 ```bash
 git clone <repository-url>
-cd <repository-name>
+cd multi-phase-todo
+git checkout 001-phase2-bug-fixes
+```
+
+### 2. Backend Setup
+
+#### Using uv (recommended):
+
+```bash
+# Navigate to backend directory
 cd backend
+
+# Install uv if you don't have it
+pip install uv
+
+# Install dependencies
+uv add fastapi uvicorn python-multipart python-jose[cryptography] passlib[bcrypt] sqlalchemy asyncpg python-multipart
+
+# Or install from requirements.txt if available
+uv add -r requirements.txt
 ```
 
-### 2. Create Virtual Environment
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+#### Environment Variables:
+
+Create a `.env` file in the backend directory:
+
+```env
+SECRET_KEY=your-super-secret-key-here-make-it-long-and-random
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+DATABASE_URL=sqlite:///./todo_app.db
+DEBUG=false
 ```
 
-### 3. Install Dependencies
+#### Run Backend:
+
 ```bash
-pip install -r requirements.txt
+# From backend directory
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 4. Set Up Environment Variables
+### 3. Frontend Setup
+
 ```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
+# Navigate to frontend directory
+cd frontend
 
-### 5. Initialize Database
-```bash
-python -m src.database.init_db
-```
+# Install dependencies using Bun
+bun install
 
-### 6. Run Backend Server
-```bash
-uvicorn src.main:app --reload
-```
-
-The backend will be available at `http://localhost:8000`.
-
-## Frontend Setup
-
-### 1. Navigate to Frontend Directory
-```bash
-cd frontend  # From repository root
-```
-
-### 2. Install Dependencies
-```bash
+# Or alternatively with npm:
 npm install
+```
+
+#### Environment Variables:
+
+Create a `.env.local` file in the frontend directory:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_APP_NAME=Todo App
+NEXT_PUBLIC_DEFAULT_THEME=light
+```
+
+#### Run Frontend:
+
+```bash
+# From frontend directory
+bun run dev
 # or
-yarn install
-```
-
-### 3. Set Up Environment Variables
-```bash
-cp .env.example .env.local
-# Edit .env.local with your configuration
-```
-
-### 4. Run Frontend Development Server
-```bash
 npm run dev
-# or
-yarn dev
 ```
 
-The frontend will be available at `http://localhost:3000`.
+The frontend will be available at http://localhost:3000
 
-## API Documentation
-API documentation is available at `http://localhost:8000/docs` when the backend is running.
+## API Endpoints
+
+### Authentication
+- `POST /auth/login` - User login
+- `POST /auth/register` - User registration
+- `GET /auth/me` - Get current user info (requires auth)
+- `POST /auth/logout` - User logout
+
+### Tasks
+- `GET /tasks` - Get all tasks (with optional filters)
+- `POST /tasks` - Create a new task
+- `GET /tasks/{id}` - Get a specific task
+- `PUT /tasks/{id}` - Update a specific task
+- `DELETE /tasks/{id}` - Delete a specific task
+
+### Tags
+- `GET /tags` - Get all tags
+- `POST /tags` - Create a new tag
+- `PUT /tags/{id}` - Update a tag
+- `DELETE /tags/{id}` - Delete a tag
+
+### Recurring Tasks
+- `POST /recurring-patterns` - Create a recurrence pattern
+- `PUT /recurring-patterns/{id}` - Update a recurrence pattern
+- `DELETE /recurring-patterns/{id}` - Delete a recurrence pattern
 
 ## Running Tests
 
 ### Backend Tests
-```bash
-# Run all backend tests
-cd backend
-source venv/bin/activate
-pytest
 
-# Run tests with coverage
-pytest --cov=src --cov-report=html
+```bash
+# From backend directory
+python -m pytest tests/ -v
 ```
 
 ### Frontend Tests
-```bash
-# Run all frontend tests
-cd frontend
-npm test
-# or for watch mode
-npm run test:watch
 
-# Run end-to-end tests
-npm run e2e
+```bash
+# From frontend directory
+bun run test
+# or
+npm run test
 ```
 
-## Key Features Setup
+### End-to-End Tests
 
-### 1. Authentication
-- Register a new user via the `/auth/register` endpoint
-- Login via the `/auth/login` endpoint to get JWT tokens
-- Include the token in the `Authorization` header as `Bearer <token>` for protected endpoints
+```bash
+# From project root
+cd e2e
+bun install
+bun run cypress open
+```
 
-### 2. CORS Configuration
-- The backend is configured to allow requests from `localhost:3000`, `localhost:3001`, and `localhost:3002`
-- All necessary methods and headers are allowed for frontend-backend communication
+## Building for Production
 
-### 3. Dark Mode
-- Toggle between light and dark themes using the theme toggle in the UI
-- Theme preference is saved in user settings
+### Backend
 
-### 4. PWA Features
-- The application is configured as a Progressive Web App
-- Install the PWA to access offline functionality
-- Sync data when connectivity is restored
+```bash
+# From backend directory
+uv build
+# Or simply deploy with uvicorn in production mode
+uvicorn src.main:app --host 0.0.0.0 --port 8000
+```
+
+### Frontend
+
+```bash
+# From frontend directory
+bun run build
+bun run start
+```
+
+## Docker Deployment
+
+If you prefer containerized deployment:
+
+```bash
+# From project root
+docker-compose up --build
+```
+
+This will start both frontend and backend services with all dependencies.
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### 1. CORS Errors
-- Ensure the backend is running on `localhost:8000`
-- Verify that the frontend is running on one of the allowed origins (`localhost:3000`, `localhost:3001`, `localhost:3002`)
+1. **CORS errors**: Make sure backend allows requests from frontend origin (localhost:3000)
+2. **Database connection errors**: Verify DATABASE_URL in backend .env file
+3. **Token storage issues**: Check that JWT tokens are properly stored in localStorage with security measures
+4. **PWA not working**: Ensure service worker is registered and HTTPS is enabled in production
 
-#### 2. Authentication Issues
-- Ensure JWT tokens are properly stored and included in API requests
-- Check that tokens are not expired
-- Verify that the `Authorization` header is formatted correctly as `Bearer <token>`
+### Useful Commands
 
-#### 3. Database Connection Issues
-- Verify that the database URL in your `.env` file is correct
-- Ensure the database server is running
-- Run the database initialization script if needed
-
-#### 4. Frontend Build Issues
-- Clear node_modules and reinstall dependencies if encountering build errors
-- Ensure you're using the correct Node.js version (18+)
-
-## Production Deployment
-
-### Backend
 ```bash
-# Build and run with gunicorn
-pip install gunicorn
-gunicorn src.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+# Check backend API status
+curl http://localhost:8000/health
+
+# Format backend code
+black src/
+
+# Format frontend code
+bun run format
 ```
-
-### Frontend
-```bash
-# Build for production
-npm run build
-
-# Serve with a production server
-npm run start
-```
-
-## Environment Variables
-
-### Backend (.env)
-- `SECRET_KEY`: Secret key for JWT signing (generate a strong random key)
-- `DATABASE_URL`: Database connection string (e.g., `sqlite:///./todo_app.db` or `postgresql://user:pass@localhost/dbname`)
-- `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time in minutes (default: 30)
-- `REFRESH_TOKEN_EXPIRE_DAYS`: Refresh token expiration time in days (default: 7)
-
-### Frontend (.env.local)
-- `NEXT_PUBLIC_API_URL`: Backend API URL (e.g., `http://localhost:8000`)
-- `NEXT_PUBLIC_APP_NAME`: Name of the application
-- `NEXT_PUBLIC_DEFAULT_THEME`: Default theme (light or dark)
-
-## Security Best Practices
-- Store JWT tokens securely (preferably in httpOnly cookies)
-- Use HTTPS in production
-- Validate and sanitize all user inputs
-- Regularly update dependencies
-- Monitor authentication logs for suspicious activity

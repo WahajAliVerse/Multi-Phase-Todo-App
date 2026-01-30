@@ -1,162 +1,91 @@
-import { Task } from '@/types';
-import { useState, memo } from 'react';
-import { useAppDispatch } from '@/hooks/redux';
-import { updateTask, deleteTask, toggleTaskComplete } from '@/store/slices/taskSlice';
+import { Task } from '@/types/index';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardContent, CardFooter } from '@/components/ui/Card';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Badge } from '@/components/ui/Badge';
+import api from '@/services/api';
 
 interface TaskCardProps {
   task: Task;
+  onUpdate?: () => void;
 }
 
-const TaskCard = memo(({ task }: TaskCardProps) => {
-  const dispatch = useAppDispatch();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(task.title);
-  const [editedDescription, setEditedDescription] = useState(task.description || '');
-
-  const handleSave = () => {
-    dispatch(updateTask({
-      id: task.id,
-      title: editedTitle,
-      description: editedDescription,
-      updatedAt: new Date().toISOString()
-    }));
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setEditedTitle(task.title);
-    setEditedDescription(task.description || '');
-    setIsEditing(false);
-  };
-
-  const handleDelete = () => {
-    dispatch(deleteTask(task.id));
-  };
-
-  const handleToggleComplete = async () => {
+const TaskCard = ({ task, onUpdate }: TaskCardProps) => {
+  const toggleTaskStatus = async () => {
     try {
-      await dispatch(toggleTaskComplete(task.id)).unwrap();
+      await api.patch(`/tasks/${task.id}/toggle-complete`);
+      if (onUpdate) {
+        onUpdate(); // Refresh the task list
+      }
     } catch (error) {
-      console.error('Failed to toggle task completion:', error);
-      // In a real app, you might want to show an error message to the user
+      console.error('Error toggling task status:', error);
     }
   };
 
-  // Determine priority color
-  const priorityColor =
-    task.priority === 'high' ? 'bg-destructive text-destructive-foreground' :
-    task.priority === 'medium' ? 'bg-yellow-500 text-yellow-900 dark:bg-yellow-600 dark:text-yellow-50' :
-    'bg-success text-success-foreground';
+  const deleteTask = async () => {
+    if (!window.confirm('Are you sure you want to delete this task?')) {
+      return;
+    }
+
+    try {
+      await api.delete(`/tasks/${task.id}`);
+      if (onUpdate) {
+        onUpdate(); // Refresh the task list
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
+  };
 
   return (
-    <Card className={`transition-all duration-200 ${
-      task.status === 'completed'
-        ? 'bg-accent/50 border-accent opacity-70'
-        : 'hover:shadow-md'
+    <Card className={`border-l-4 ${
+      task.priority === 'high' ? 'border-l-red-500' :
+      task.priority === 'medium' ? 'border-l-yellow-500' :
+      'border-l-green-500'
     }`}>
       <CardContent className="p-4">
-        <div className="flex justify-between items-start">
-          <div className="flex items-start space-x-3 flex-1 min-w-0">
-            <input
-              type="checkbox"
-              checked={task.status === 'completed'}
-              onChange={handleToggleComplete}
-              className="mt-1 h-5 w-5 rounded border-input text-primary focus:ring-primary"
-              aria-label={`Mark task "${task.title}" as ${task.status === 'completed' ? 'incomplete' : 'complete'}`}
-            />
-
-            <div className="flex-1 min-w-0">
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
-                  className="w-full font-medium text-foreground bg-transparent border-b border-input focus:outline-none focus:ring-0"
-                  autoFocus
-                  aria-label="Edit task title"
-                />
-              ) : (
-                <h3 className={`font-medium truncate ${
-                  task.status === 'completed'
-                    ? 'text-muted-foreground line-through'
-                    : 'text-foreground'
-                }`}>
-                  {task.title}
-                </h3>
+        <div className="flex items-start space-x-3">
+          <Checkbox
+            checked={task.status === 'completed'}
+            onCheckedChange={toggleTaskStatus}
+            className="mt-1"
+          />
+          <div className="flex-1 min-w-0">
+            <h3 className={`font-medium truncate ${
+              task.status === 'completed' ? 'line-through text-muted-foreground' : 'text-foreground'
+            }`}>
+              {task.title}
+            </h3>
+            {task.description && (
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                {task.description}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Badge variant={task.status === 'completed' ? 'secondary' : 'default'}>
+                {task.status}
+              </Badge>
+              <Badge variant="outline">{task.priority}</Badge>
+              {task.dueDate && (
+                <Badge variant="outline">
+                  {new Date(task.dueDate).toLocaleDateString()}
+                </Badge>
               )}
-
-              {isEditing ? (
-                <textarea
-                  value={editedDescription}
-                  onChange={(e) => setEditedDescription(e.target.value)}
-                  className="w-full mt-2 text-sm text-muted-foreground bg-transparent border-b border-input focus:outline-none focus:ring-0 resize-none"
-                  rows={3}
-                  aria-label="Edit task description"
-                />
-              ) : task.description ? (
-                <p className="mt-1 text-sm text-muted-foreground truncate">
-                  {task.description}
-                </p>
-              ) : null}
+              {task.tags?.map(tag => (
+                <Badge key={tag} variant="secondary">
+                  {tag}
+                </Badge>
+              ))}
             </div>
           </div>
-
-          <div className="flex items-center space-x-2 ml-2">
-            <span className={`text-xs px-2 py-1 rounded-full font-medium ${priorityColor}`}>
-              {task.priority}
-            </span>
-
-            {task.dueDate && (
-              <span className="text-xs text-muted-foreground bg-accent px-2 py-1 rounded">
-                {new Date(task.dueDate).toLocaleDateString()}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-3 flex justify-end space-x-2">
-          {isEditing ? (
-            <>
-              <Button onClick={handleSave} size="sm" className="h-8">
-                Save
-              </Button>
-              <Button
-                onClick={handleCancel}
-                variant="outline"
-                size="sm"
-                className="h-8"
-              >
-                Cancel
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                onClick={() => setIsEditing(true)}
-                variant="outline"
-                size="sm"
-                className="h-8"
-              >
-                Edit
-              </Button>
-              <Button
-                onClick={handleDelete}
-                variant="destructive"
-                size="sm"
-                className="h-8"
-              >
-                Delete
-              </Button>
-            </>
-          )}
         </div>
       </CardContent>
+      <CardFooter className="flex justify-between p-4 pt-0">
+        <Button variant="outline" size="sm">Edit</Button>
+        <Button variant="destructive" size="sm" onClick={deleteTask}>Delete</Button>
+      </CardFooter>
     </Card>
   );
-});
-
-TaskCard.displayName = 'TaskCard';
+};
 
 export default TaskCard;

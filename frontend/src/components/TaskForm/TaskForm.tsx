@@ -2,12 +2,17 @@ import { useState } from 'react';
 import { z, ZodError } from 'zod';
 import { useAppDispatch } from '@/hooks/redux';
 import { createTask } from '@/store/slices/taskSlice';
-import { Task } from '@/types';
+import { Task } from '@/types/index';
 import RecurrenceForm from '@/components/RecurrenceForm/RecurrenceForm';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 
-const TaskForm = () => {
+interface TaskFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
   const dispatch = useAppDispatch();
 
   const [title, setTitle] = useState('');
@@ -110,6 +115,11 @@ const TaskForm = () => {
       setTags('');
       setRecurrencePattern(null);
       setErrors({});
+
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error('Failed to create task:', error);
       // In a real app, you might want to show an error message to the user
@@ -232,7 +242,17 @@ const TaskForm = () => {
             </div>
           </div>
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-end space-x-2">
+            {onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               type="submit"
               className="px-6"

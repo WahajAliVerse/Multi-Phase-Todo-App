@@ -8,8 +8,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .database.base import Base
-from .core.config import settings
+from .base import Base
+from ..core.config import settings
 
 
 def init_db():

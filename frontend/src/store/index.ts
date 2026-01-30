@@ -1,37 +1,37 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
-import storage from 'redux-persist/lib/storage'; // defaults to localStorage for web
-import taskReducer from './slices/taskSlice';
-import userReducer from './slices/userSlice';
-import tagReducer from './slices/tagSlice';
-import recurrenceReducer from './slices/recurrenceSlice';
+import { configureStore } from '@reduxjs/toolkit'
+import { persistStore, persistReducer } from 'redux-persist'
+import storage from 'redux-persist/lib/storage' // defaults to localStorage for web
+import authReducer from './slices/authSlice'
+import taskReducer from './slices/taskSlice'
+import uiReducer from './slices/uiSlice'
 
-// Configuration for persisting user state
-const userPersistConfig = {
-  key: 'user',
+// Persist configuration
+const persistConfig = {
+  key: 'root',
   storage,
-};
+}
 
-const persistedUserReducer = persistReducer(userPersistConfig, userReducer);
+const persistedAuthReducer = persistReducer(persistConfig, authReducer)
+const persistedTaskReducer = persistReducer(persistConfig, taskReducer)
+const persistedUiReducer = persistReducer(persistConfig, uiReducer)
 
 export const store = configureStore({
   reducer: {
-    tasks: taskReducer,
-    user: persistedUserReducer,
-    tags: tagReducer,
-    recurrence: recurrenceReducer,
+    auth: persistedAuthReducer,
+    tasks: persistedTaskReducer,
+    ui: persistedUiReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
     }),
-});
+})
 
-export const persistor = persistStore(store);
+export const persistor = persistStore(store)
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
 
-export default store;
+export default store

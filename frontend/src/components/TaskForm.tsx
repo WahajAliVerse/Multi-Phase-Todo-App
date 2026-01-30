@@ -6,7 +6,7 @@ import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/Select';
 import { Label } from './ui/Label';
-import { tagApi, taskApi } from '../services/api';
+import api from '../services/api';
 
 interface TaskFormProps {
   task?: Task;
@@ -18,9 +18,9 @@ export const TaskForm = ({ task, onSuccess, onCancel }: TaskFormProps) => {
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>((task?.priority as 'low' | 'medium' | 'high') || 'medium');
-  const [dueDate, setDueDate] = useState(task?.due_date || '');
-  const [recurrencePattern, setRecurrencePattern] = useState(task?.recurrence_pattern || '');
-  const [selectedTags, setSelectedTags] = useState<number[]>(task?.tags?.map(tag => tag.id) || []);
+  const [dueDate, setDueDate] = useState(task?.dueDate || '');
+  const [recurrencePattern, setRecurrencePattern] = useState(task?.recurrencePatternId || '');
+  const [selectedTags, setSelectedTags] = useState<string[]>(task?.tags || []);
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export const TaskForm = ({ task, onSuccess, onCancel }: TaskFormProps) => {
 
   const fetchTags = async () => {
     try {
-      const response = await tagApi.getAll();
+      const response = await api.get('/tags');
       setAllTags(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
@@ -55,10 +55,10 @@ export const TaskForm = ({ task, onSuccess, onCancel }: TaskFormProps) => {
 
       if (task) {
         // Update existing task
-        await taskApi.update(task.id.toString(), taskData);
+        await api.put(`/tasks/${task.id}`, taskData);
       } else {
         // Create new task
-        await taskApi.create(taskData);
+        await api.post('/tasks', taskData);
       }
 
       onSuccess();
@@ -69,7 +69,7 @@ export const TaskForm = ({ task, onSuccess, onCancel }: TaskFormProps) => {
     }
   };
 
-  const handleTagToggle = (tagId: number) => {
+  const handleTagToggle = (tagId: string) => {
     setSelectedTags(prev =>
       prev.includes(tagId)
         ? prev.filter(id => id !== tagId)
@@ -149,13 +149,13 @@ export const TaskForm = ({ task, onSuccess, onCancel }: TaskFormProps) => {
             <Button
               key={tag.id}
               type="button"
-              variant={selectedTags.includes(tag.id) ? "default" : "outline"}
+              variant={selectedTags.includes(tag.id.toString()) ? "default" : "outline"}
               size="sm"
-              onClick={() => handleTagToggle(tag.id)}
+              onClick={() => handleTagToggle(tag.id.toString())}
               style={{
-                backgroundColor: selectedTags.includes(tag.id) ? tag.color : 'transparent',
+                backgroundColor: selectedTags.includes(tag.id.toString()) ? tag.color : 'transparent',
                 borderColor: tag.color,
-                color: selectedTags.includes(tag.id) ? '#fff' : tag.color
+                color: selectedTags.includes(tag.id.toString()) ? '#fff' : tag.color
               }}
             >
               {tag.name}

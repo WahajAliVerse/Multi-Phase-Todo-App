@@ -1,20 +1,22 @@
-import { Task } from '../types/task';
+import { Task } from '../types/index';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { Card, CardContent, CardFooter } from './ui/Card';
 import { Checkbox } from './ui/Checkbox';
-import { taskApi } from '../services/api';
+import api from '../services/api';
 
 interface TaskCardProps {
   task: Task;
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export const TaskCard = ({ task, onUpdate }: TaskCardProps) => {
   const toggleTaskStatus = async () => {
     try {
-      await taskApi.toggleComplete(task.id.toString());
-      onUpdate(); // Refresh the task list
+      await api.patch(`/tasks/${task.id}/toggle-complete`);
+      if (onUpdate) {
+        onUpdate(); // Refresh the task list
+      }
     } catch (error) {
       console.error('Error toggling task status:', error);
     }
@@ -26,8 +28,10 @@ export const TaskCard = ({ task, onUpdate }: TaskCardProps) => {
     }
 
     try {
-      await taskApi.delete(task.id.toString());
-      onUpdate(); // Refresh the task list
+      await api.delete(`/tasks/${task.id}`);
+      if (onUpdate) {
+        onUpdate(); // Refresh the task list
+      }
     } catch (error) {
       console.error('Error deleting task:', error);
     }
@@ -62,14 +66,14 @@ export const TaskCard = ({ task, onUpdate }: TaskCardProps) => {
                 {task.status}
               </Badge>
               <Badge variant="outline">{task.priority}</Badge>
-              {task.due_date && (
+              {task.dueDate && (
                 <Badge variant="outline">
-                  {new Date(task.due_date).toLocaleDateString()}
+                  {new Date(task.dueDate).toLocaleDateString()}
                 </Badge>
               )}
-              {task.tags?.map(tag => (
-                <Badge key={tag.id} variant="secondary" style={{ backgroundColor: tag.color + '20', color: tag.color }}>
-                  {tag.name}
+              {task.tags?.map((tag, index) => (
+                <Badge key={`${task.id}-${index}`} variant="secondary">
+                  {tag}
                 </Badge>
               ))}
             </div>

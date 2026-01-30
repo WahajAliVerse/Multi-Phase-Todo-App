@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export const ThemeToggle: React.FC = () => {
-  const { themeMode, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <Button 
@@ -16,7 +16,7 @@ export const ThemeToggle: React.FC = () => {
         zIndex: 1300,
       }}
     >
-      Switch to {themeMode === 'light' ? 'dark' : 'light'} mode
+      Switch to {theme === 'light' ? 'dark' : 'light'} mode
     </Button>
   );
 };
