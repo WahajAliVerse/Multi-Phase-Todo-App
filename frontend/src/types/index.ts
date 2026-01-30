@@ -15,7 +15,7 @@ export interface User {
 }
 
 export interface Task {
-  id: string;
+  id: number;
   title: string;
   description?: string;
   status: 'active' | 'completed';
@@ -24,8 +24,8 @@ export interface Task {
   createdAt: string; // ISO string format
   updatedAt: string; // ISO string format
   completedAt?: string; // ISO string format
-  userId: string;
-  recurrencePatternId?: string;
+  userId: number;
+  recurrencePatternId?: number;
   tags?: string[]; // Array of tag IDs or tag objects
 }
 

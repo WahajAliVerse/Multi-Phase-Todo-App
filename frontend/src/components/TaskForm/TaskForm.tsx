@@ -79,7 +79,7 @@ const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
     setIsSubmitting(true);
 
     // If there's a recurrence pattern, we need to create it first
-    let recurrencePatternId: string | undefined;
+    let recurrencePatternId: number | undefined;
     if (recurrencePattern && recurrencePattern.patternType !== 'none') {
       // In a real app, we would dispatch an action to create the recurrence pattern
       // and wait for the response to get the ID. For now, we'll simulate this.
@@ -100,7 +100,7 @@ const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       completedAt: undefined, // New tasks are not completed
-      userId: 'current-user-id', // This would come from auth state in a real app
+      userId: 1, // This would come from auth state in a real app
     };
 
     try {

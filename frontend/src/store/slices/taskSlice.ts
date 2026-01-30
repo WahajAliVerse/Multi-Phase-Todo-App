@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit'
-import { Task } from '../../types/index'
+import { Task } from '../../types/task'
 import api from '../../services/api'
 
 interface TaskState {
@@ -31,7 +31,7 @@ const taskSlice = createSlice({
       }
     },
     deleteTask: (state, action: PayloadAction<number>) => {
-      state.tasks = state.tasks.filter(task => task.id !== action.payload)
+      state.tasks = state.tasks.filter(task => task.id !== action.payload);
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload
@@ -69,7 +69,7 @@ export const createTask = createAsyncThunk(
 
 export const toggleTaskComplete = createAsyncThunk(
   'tasks/toggleTaskComplete',
-  async (taskId: string, { rejectWithValue }) => {
+  async (taskId: number, { rejectWithValue }) => {
     try {
       const response = await api.patch(`/tasks/${taskId}/toggle-complete`);
       return response.data;

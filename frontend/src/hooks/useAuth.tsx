@@ -1,12 +1,15 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '../services/api';
+import { authService } from '../services/authService';
 
 interface User {
-  id: number;
+  id: string;
   username: string;
   email: string;
-  is_active: boolean;
+  preferences?: {
+    theme?: 'light' | 'dark';
+    notificationSettings?: any;
+  };
 }
 
 interface AuthContextType {
@@ -14,7 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string) => Promise<any>;
   logout: () => void;
   refreshToken: () => Promise<boolean>;
 }
@@ -29,25 +32,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check if user is logged in on initial load
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      fetchUserInfo();
-    } else {
-      setIsLoading(false);
-    }
+    fetchUserInfo();
   }, []);
 
   const fetchUserInfo = async () => {
     try {
-      const response = await api.get('/users/me');
-      setUser(response.data);
+      const userInfo = await authService.getCurrentUser();
+      setUser(userInfo);
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Error fetching user info:', error);
       // Token might be expired, try to refresh
       const refreshed = await refreshToken();
       if (!refreshed) {
-        throw new Error('Token invalid and refresh failed');
+        // If refresh fails, user is not authenticated
+        setIsAuthenticated(false);
       }
     } finally {
       setIsLoading(false);
@@ -56,15 +55,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string) => {
     try {
-      const response = await api.post('/auth/login', { username, password });
-      const { access_token, refresh_token } = response.data;
+      await authService.login({ username, password });
 
-      // Store tokens
-      localStorage.setItem('access_token', access_token);
-      localStorage.setItem('refresh_token', refresh_token);
+      // Fetch user info after successful login
+      const userInfo = await authService.getCurrentUser();
+      setUser(userInfo);
+      setIsAuthenticated(true);
 
-      // Fetch user info
-      await fetchUserInfo();
+      // Redirect to dashboard or home
+      router.push('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -73,42 +72,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (username: string, email: string, password: string) => {
     try {
-      const response = await api.post('/auth/register', { username, email, password });
-      return response.data;
+      const response = await authService.register({ username, email, password });
+      return response;
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    setUser(null);
-    setIsAuthenticated(false);
-    setIsLoading(false);
-    router.push('/auth/login');
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Continue with local cleanup even if API call fails
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+      router.push('/login');
+    }
   };
 
   const refreshToken = async (): Promise<boolean> => {
     try {
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (!refreshToken) {
-        return false;
-      }
-
-      const response = await api.post('/auth/refresh', { refresh_token: refreshToken });
-
-      if (response.status === 200) {
-        const { access_token, refresh_token: new_refresh_token } = response.data;
-        localStorage.setItem('access_token', access_token);
-        if (new_refresh_token) {
-          localStorage.setItem('refresh_token', new_refresh_token);
-        }
-        return true;
-      } else {
-        return false;
-      }
+      await authService.refreshToken();
+      return true;
     } catch (error) {
       console.error('Token refresh error:', error);
       return false;

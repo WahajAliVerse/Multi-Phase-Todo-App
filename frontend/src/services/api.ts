@@ -4,24 +4,18 @@ import { logout } from '../store/slices/authSlice';
 
 // Create axios instance with defaults
 const api: AxiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
+  // Important: Enable sending cookies with requests for authentication
+  withCredentials: true
 });
 
-// Request interceptor to add auth token
+// Request interceptor - no need to manually add auth token since withCredentials is true
 api.interceptors.request.use(
   (config) => {
-    // Get token from wherever you store it (localStorage, cookies, etc.)
-    const token = localStorage.getItem('access_token');
-
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
     return config;
   },
   (error) => {
@@ -38,8 +32,6 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token expired or invalid, dispatch logout
       store.dispatch(logout());
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
     }
     return Promise.reject(error);
   }
