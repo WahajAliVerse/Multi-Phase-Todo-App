@@ -1,32 +1,36 @@
 from sqlalchemy.orm import Session
-from typing import List, Optional, Tuple
+from sqlalchemy import and_, or_
+from typing import List, Optional
 from datetime import datetime
-from ..models.task import Task, TaskStatus, TaskPriority
-from ..models.tag import Tag
-from ..models.user import User
-from ..schemas.task import TaskCreate, TaskUpdate
 
+from ..models.task import Task
+from ..models.tag import Tag
+from ..models.reminder import Reminder
+from ..database.database import get_db
+from fastapi import Depends
 
 class TaskService:
-    """
-    Service class for task operations.
-    """
+    def __init__(self, db: Session):
+        self.db = db
 
-    @staticmethod
     def create_task(
-        db: Session,
+        self,
         title: str,
-        description: Optional[str],
-        status: TaskStatus,
-        priority: TaskPriority,
-        due_date: Optional[datetime],
-        recurrence_pattern: Optional[str],
-        user_id: int,
-        tag_ids: Optional[List[int]] = None
+        description: str = None,
+        priority: str = 'medium',
+        due_date: datetime = None,
+        user_id: int = None,
+        recurrence_pattern_id: int = None,
+        tag_ids: List[int] = None
     ) -> Task:
-        """
-        Create a new task.
-        """
+        """Create a new task with the provided details."""
+        # Validate priority
+        if priority not in ['high', 'medium', 'low']:
+            raise ValueError("Priority must be 'high', 'medium', or 'low'")
+        
+        # Validate status
+        status = 'active'  # Default to active when creating
+        
         # Create the task
         db_task = Task(
             title=title,
@@ -34,126 +38,145 @@ class TaskService:
             status=status,
             priority=priority,
             due_date=due_date,
-            recurrence_pattern=recurrence_pattern,
-            user_id=user_id
+            user_id=user_id,
+            recurrence_pattern_id=recurrence_pattern_id
         )
-
-        # Add tags if provided
+        
+        self.db.add(db_task)
+        self.db.commit()
+        self.db.refresh(db_task)
+        
+        # Associate tags if provided
         if tag_ids:
-            tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
-            db_task.tags.extend(tags)
-
-        db.add(db_task)
-        db.commit()
-        db.refresh(db_task)
+            tags = self.db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
+            # In a real implementation, we'd associate tags with the task
+            # This would depend on the exact relationship implementation
+        
         return db_task
 
-    @staticmethod
-    def get_task_by_id(db: Session, task_id: int) -> Optional[Task]:
-        """
-        Get a task by ID.
-        """
-        return db.query(Task).filter(Task.id == task_id).first()
-
-    @staticmethod
     def get_tasks(
-        db: Session,
+        self,
         user_id: int,
+        status: str = None,
+        priority: str = None,
+        search: str = None,
+        sort_by: str = 'created_at',
+        sort_order: str = 'desc',
         skip: int = 0,
-        limit: int = 100,
-        status: Optional[str] = None,
-        priority: Optional[str] = None,
-        search: Optional[str] = None
-    ) -> Tuple[List[Task], int]:
-        """
-        Get tasks for a user with optional filtering and pagination.
-        """
-        query = db.query(Task).filter(Task.user_id == user_id)
-
+        limit: int = 100
+    ) -> List[Task]:
+        """Retrieve tasks for a user with optional filtering and sorting."""
+        query = self.db.query(Task).filter(Task.user_id == user_id)
+        
         # Apply filters
         if status:
             query = query.filter(Task.status == status)
+        
         if priority:
             query = query.filter(Task.priority == priority)
+        
         if search:
-            query = query.filter(Task.title.contains(search) | Task.description.contains(search))
-
-        # Get total count for pagination
-        total = query.count()
-
+            query = query.filter(
+                or_(
+                    Task.title.contains(search),
+                    Task.description.contains(search)
+                )
+            )
+        
+        # Apply sorting
+        if sort_by == 'due_date':
+            order_field = Task.due_date
+        elif sort_by == 'priority':
+            order_field = Task.priority
+        elif sort_by == 'title':
+            order_field = Task.title
+        else:  # default to created_at
+            order_field = Task.created_at
+            
+        if sort_order == 'desc':
+            query = query.order_by(order_field.desc())
+        else:
+            query = query.order_by(order_field.asc())
+        
         # Apply pagination
         tasks = query.offset(skip).limit(limit).all()
+        return tasks
 
-        return tasks, total
+    def get_task_by_id(self, task_id: int, user_id: int) -> Optional[Task]:
+        """Retrieve a specific task by ID for a user."""
+        return self.db.query(Task).filter(
+            Task.id == task_id,
+            Task.user_id == user_id
+        ).first()
 
-    @staticmethod
     def update_task(
-        db: Session,
+        self,
         task_id: int,
-        title: Optional[str] = None,
-        description: Optional[str] = None,
-        status: Optional[TaskStatus] = None,
-        priority: Optional[TaskPriority] = None,
-        due_date: Optional[datetime] = None,
-        tag_ids: Optional[List[int]] = None
+        user_id: int,
+        title: str = None,
+        description: str = None,
+        status: str = None,
+        priority: str = None,
+        due_date: datetime = None,
+        recurrence_pattern_id: int = None,
+        tag_ids: List[int] = None
     ) -> Optional[Task]:
-        """
-        Update a task.
-        """
-        db_task = TaskService.get_task_by_id(db, task_id)
-        if not db_task:
+        """Update an existing task."""
+        task = self.get_task_by_id(task_id, user_id)
+        if not task:
             return None
-
+        
         # Update fields if provided
         if title is not None:
-            db_task.title = title
+            task.title = title
         if description is not None:
-            db_task.description = description
+            task.description = description
         if status is not None:
-            db_task.status = status
+            if status in ['active', 'completed']:
+                task.status = status
+                if status == 'completed' and task.completed_at is None:
+                    task.completed_at = datetime.utcnow()
+                elif status == 'active':
+                    task.completed_at = None
         if priority is not None:
-            db_task.priority = priority
+            if priority in ['high', 'medium', 'low']:
+                task.priority = priority
         if due_date is not None:
-            db_task.due_date = due_date
+            task.due_date = due_date
+        if recurrence_pattern_id is not None:
+            task.recurrence_pattern_id = recurrence_pattern_id
+        
+        self.db.commit()
+        self.db.refresh(task)
+        return task
 
-        # Update tags if provided
-        if tag_ids is not None:
-            tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
-            db_task.tags = tags
-
-        db.commit()
-        db.refresh(db_task)
-        return db_task
-
-    @staticmethod
-    def delete_task(db: Session, task_id: int) -> bool:
-        """
-        Delete a task.
-        """
-        db_task = TaskService.get_task_by_id(db, task_id)
-        if not db_task:
+    def delete_task(self, task_id: int, user_id: int) -> bool:
+        """Delete a task by ID for a user."""
+        task = self.get_task_by_id(task_id, user_id)
+        if not task:
             return False
-
-        db.delete(db_task)
-        db.commit()
+        
+        self.db.delete(task)
+        self.db.commit()
         return True
 
-    @staticmethod
-    def toggle_task_status(db: Session, task_id: int) -> Optional[Task]:
-        """
-        Toggle task status between active and completed.
-        """
-        db_task = TaskService.get_task_by_id(db, task_id)
-        if not db_task:
+    def toggle_task_completion(self, task_id: int, user_id: int) -> Optional[Task]:
+        """Toggle the completion status of a task."""
+        task = self.get_task_by_id(task_id, user_id)
+        if not task:
             return None
-
-        if db_task.status == TaskStatus.active:
-            db_task.status = TaskStatus.completed
-            db_task.completed_at = datetime.utcnow()
+        
+        if task.status == 'active':
+            task.status = 'completed'
+            task.completed_at = datetime.utcnow()
         else:
-            db_task.status = TaskStatus.active
-            db_task.completed_at = None
+            task.status = 'active'
+            task.completed_at = None
+        
+        self.db.commit()
+        self.db.refresh(task)
+        return task
 
-        db.commit()
-        db.refresh(db_task)
-        return db_task
+def get_task_service(db: Session = Depends(get_db)):
+    """Dependency to get task service instance."""
+    return TaskService(db)

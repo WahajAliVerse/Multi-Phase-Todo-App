@@ -1,179 +1,197 @@
-# Data Model for Phase 2 Todo Application
+# Data Model: Phase 2 Bug Fixes and Enhancements for Full-Stack Todo App
 
 ## Overview
-This document defines the data models for the Phase 2 Todo Application, incorporating all bug fixes and enhancements while preserving Phase 1 functionality.
+This document defines the data model for the full-stack Todo application, addressing the issues identified in the bug root cause analysis. The model reflects the key entities from the feature specification with proper relationships and constraints.
 
-## Entity Models
+## Entities
 
 ### User
-Represents a person using the application, with authentication credentials, preferences, and associated tasks.
+Represents a person using the application, with authentication credentials (username, email, hashed password), preferences (theme, notification settings), and associated tasks.
 
-**Fields:**
-- `id` (Integer, Primary Key): Unique identifier for the user
-- `username` (String, 50): Unique username for login
-- `email` (String, 100): Unique email address
-- `hashed_password` (String, 255): Hashed password using bcrypt
-- `is_active` (Boolean): Whether the account is active
-- `preferences` (Text): JSON string for user preferences (theme, language, etc.)
-- `created_at` (DateTime): Account creation timestamp
-- `updated_at` (DateTime): Last update timestamp
-- `version` (Integer): For optimistic locking
+**Fields**:
+- id: UUID (Primary Key)
+- username: String (Unique, Not Null)
+- email: String (Unique, Not Null, Valid Email Format)
+- hashed_password: String (Not Null)
+- is_active: Boolean (Default: True)
+- preferences: JSON (Optional, for theme and notification settings)
+- created_at: DateTime (Auto-generated)
+- updated_at: DateTime (Auto-generated)
 
-**Relationships:**
-- One-to-Many with Task (user.tasks)
-- One-to-Many with Tag (user.tags)
+**Relationships**:
+- One-to-Many: User -> Task
+- One-to-Many: User -> Tag
+- One-to-Many: User -> Reminder
 
-**Validation:**
-- Username must be unique and 3-50 characters
-- Email must be valid and unique
-- Password must meet security requirements
+**Validation Rules**:
+- Username must be 3-50 characters
+- Email must follow standard email format
+- Password must be hashed using bcrypt or similar
 
 ### Task
-Represents a todo item with title, description, priority, due date, status, recurrence pattern, and associated tags.
+Represents a todo item with title, description, status (active/completed), priority (high/medium/low), due date, creation/update timestamps, completion timestamp, user ID, recurrence pattern ID, and associated tags.
 
-**Fields:**
-- `id` (Integer, Primary Key): Unique identifier for the task
-- `title` (String, 255): Task title (required)
-- `description` (Text): Detailed description of the task
-- `status` (Enum: active, completed): Current status of the task
-- `priority` (Enum: low, medium, high): Priority level of the task
-- `due_date` (DateTime): Deadline for the task (nullable)
-- `completed_at` (DateTime): Timestamp when task was completed (nullable)
-- `recurrence_pattern` (String): Cron-like pattern for recurring tasks (nullable)
-- `parent_task_id` (Integer, Foreign Key): Reference to parent task for subtasks (nullable)
-- `user_id` (Integer, Foreign Key): Owner of the task (required)
-- `created_at` (DateTime): Task creation timestamp
-- `updated_at` (DateTime): Last update timestamp
-- `version` (Integer): For optimistic locking
+**Fields**:
+- id: UUID (Primary Key)
+- title: String (Not Null, Max 200 chars)
+- description: Text (Optional)
+- status: String (Enum: 'active', 'completed', Default: 'active')
+- priority: String (Enum: 'low', 'medium', 'high', Default: 'medium')
+- due_date: DateTime (Optional)
+- created_at: DateTime (Auto-generated)
+- updated_at: DateTime (Auto-generated)
+- completed_at: DateTime (Optional)
+- user_id: UUID (Foreign Key: User.id, Not Null)
+- recurrence_pattern_id: UUID (Foreign Key: RecurrencePattern.id, Optional)
 
-**Relationships:**
-- Many-to-One with User (task.user)
-- Many-to-Many with Tag through TaskTag (task.tags)
-- One-to-Many with RecurrencePattern (task.recurrence_pattern_rel)
-- Self-referencing for parent/child tasks (task.parent_task, task.child_tasks)
+**Indexes**:
+- idx_status: ON status (for filtering)
+- idx_priority: ON priority (for sorting)
+- idx_due_date: ON due_date (for date-based queries)
+- idx_user_id: ON user_id (for user-specific queries)
 
-**Validation:**
-- Title is required and must be 1-255 characters
-- Priority must be one of the allowed values
-- Due date must be a future date if provided
+**Relationships**:
+- Many-to-One: Task -> User
+- Many-to-One: Task -> RecurrencePattern (Optional)
+- Many-to-Many: Task <-> Tag (via association table)
+
+**Validation Rules**:
+- Title must be 1-200 characters
 - Status must be one of the allowed values
+- Priority must be one of the allowed values
+- Due date must be in the future if provided
 
 ### Tag
-Represents a category or label that can be applied to tasks for organization and filtering.
+Represents a category or label that can be applied to tasks for organization and filtering, with name, color, user ID, and creation timestamp.
 
-**Fields:**
-- `id` (Integer, Primary Key): Unique identifier for the tag
-- `name` (String, 50): Tag name (required)
-- `color` (String, 7): Hex color code for visual identification (default: #007bff)
-- `user_id` (Integer, Foreign Key): Owner of the tag (required)
-- `created_at` (DateTime): Tag creation timestamp
-- `updated_at` (DateTime): Last update timestamp
-- `version` (Integer): For optimistic locking
+**Fields**:
+- id: UUID (Primary Key)
+- name: String (Not Null, Max 50 chars)
+- color: String (Hex color code, Optional)
+- user_id: UUID (Foreign Key: User.id, Not Null)
+- created_at: DateTime (Auto-generated)
 
-**Relationships:**
-- Many-to-One with User (tag.user)
-- Many-to-Many with Task through TaskTag (tag.tasks)
+**Relationships**:
+- Many-to-One: Tag -> User
+- Many-to-Many: Tag <-> Task (via association table)
 
-**Validation:**
-- Name is required and must be 1-50 characters
-- Color must be a valid hex color code
-
-### TaskTag (Association Table)
-Intermediate table for the many-to-many relationship between Task and Tag.
-
-**Fields:**
-- `task_id` (Integer, Foreign Key): Reference to the task
-- `tag_id` (Integer, Foreign Key): Reference to the tag
-
-**Constraints:**
-- Composite primary key of (task_id, tag_id)
-- Foreign key constraints to both Task and Tag tables
+**Validation Rules**:
+- Name must be 1-50 characters
+- Color must be valid hex format if provided
 
 ### Session
 Represents an authenticated user session with JWT token and associated permissions.
 
-**Fields:**
-- `id` (Integer, Primary Key): Unique identifier for the session
-- `user_id` (Integer, Foreign Key): Reference to the user
-- `token_hash` (String, 255): Hash of the JWT token
-- `expires_at` (DateTime): Expiration timestamp
-- `created_at` (DateTime): Session creation timestamp
-- `last_accessed` (DateTime): Last access timestamp
-- `device_info` (Text): Information about the device used
-- `ip_address` (String): IP address of the session
+**Fields**:
+- id: UUID (Primary Key)
+- token_hash: String (Not Null, Unique)
+- user_id: UUID (Foreign Key: User.id, Not Null)
+- expires_at: DateTime (Not Null)
+- created_at: DateTime (Auto-generated)
+- is_revoked: Boolean (Default: False)
 
-**Relationships:**
-- Many-to-One with User (session.user)
+**Relationships**:
+- Many-to-One: Session -> User
 
-**Validation:**
-- Token hash is required
-- Expires_at must be in the future
+**Validation Rules**:
+- Token hash must be unique
+- Expires at must be in the future
 
 ### Reminder
-Represents a scheduled notification for a task with timing and delivery status.
+Represents a scheduled notification for a task with timing, delivery status, and associated task ID.
 
-**Fields:**
-- `id` (Integer, Primary Key): Unique identifier for the reminder
-- `task_id` (Integer, Foreign Key): Reference to the task
-- `scheduled_time` (DateTime): When the reminder should be triggered
-- `delivery_status` (Enum: pending, sent, missed): Status of the reminder
-- `notification_type` (Enum: email, push, in_app): Method of delivery
-- `created_at` (DateTime): Reminder creation timestamp
-- `updated_at` (DateTime): Last update timestamp
+**Fields**:
+- id: UUID (Primary Key)
+- task_id: UUID (Foreign Key: Task.id, Not Null)
+- reminder_time: DateTime (Not Null)
+- is_delivered: Boolean (Default: False)
+- created_at: DateTime (Auto-generated)
 
-**Relationships:**
-- Many-to-One with Task (reminder.task)
+**Relationships**:
+- Many-to-One: Reminder -> Task
 
-**Validation:**
-- Scheduled time must be in the future
-- Delivery status must be one of the allowed values
+**Validation Rules**:
+- Reminder time must be in the future
 
 ### RecurrencePattern
-Defines how a task repeats over time (daily, weekly, monthly, etc.).
+Defines how a task repeats over time (daily, weekly, monthly, etc.) with interval, end conditions, and day/month specifications.
 
-**Fields:**
-- `id` (Integer, Primary Key): Unique identifier for the pattern
-- `pattern_type` (Enum: daily, weekly, monthly, yearly): Type of recurrence
-- `interval` (Integer): How often the pattern repeats (e.g., every 2 weeks)
-- `end_condition` (Enum: never, after_date, after_occurrences): When to stop recurrence
-- `end_date` (DateTime): Date when recurrence stops (nullable)
-- `max_occurrences` (Integer): Max number of occurrences (nullable)
-- `created_at` (DateTime): Pattern creation timestamp
-- `updated_at` (DateTime): Last update timestamp
-- `version` (Integer): For optimistic locking
+**Fields**:
+- id: UUID (Primary Key)
+- pattern_type: String (Enum: 'daily', 'weekly', 'monthly', 'yearly', Not Null)
+- interval: Integer (Default: 1, Positive)
+- end_condition: String (Enum: 'never', 'after_date', 'after_occurrences', Not Null)
+- end_date: DateTime (Optional)
+- end_occurrences: Integer (Optional, Positive)
+- days_of_week: String[] (For weekly patterns, Optional)
+- days_of_month: Integer[] (For monthly patterns, Optional)
+- created_at: DateTime (Auto-generated)
+- updated_at: DateTime (Auto-generated)
 
-**Relationships:**
-- One-to-One with Task (pattern.task)
+**Relationships**:
+- One-to-Many: RecurrencePattern -> Task
 
-**Validation:**
-- Pattern type must be one of the allowed values
+**Validation Rules**:
 - Interval must be positive
-- End condition must be valid with corresponding fields
+- End condition must be one of allowed values
+- Days of week must be valid day abbreviations if provided
+- Days of month must be valid day numbers if provided
+
+## Relationships
+
+### User ↔ Task
+One-to-Many relationship where one user can have many tasks.
+- Foreign Key: Task.user_id references User.id
+- Cascade delete: Tasks are deleted when user is deleted
+
+### Task ↔ Tag
+Many-to-Many relationship where tasks can have multiple tags and tags can be applied to multiple tasks.
+- Association Table: task_tags
+- Fields: task_id (FK), tag_id (FK)
+- Cascade delete: Association records removed when either task or tag is deleted
+
+### Task → RecurrencePattern
+Many-to-One relationship where tasks can optionally have a recurrence pattern.
+- Foreign Key: Task.recurrence_pattern_id references RecurrencePattern.id
+- Optional: Tasks don't need to have a recurrence pattern
+
+### User ↔ Tag
+Many-to-One relationship where tags belong to a specific user.
+- Foreign Key: Tag.user_id references User.id
+- Cascade delete: Tags are deleted when user is deleted
+
+### Task → Reminder
+One-to-Many relationship where tasks can have multiple reminders.
+- Foreign Key: Reminder.task_id references Task.id
+- Cascade delete: Reminders are deleted when task is deleted
+
+### User → Session
+One-to-Many relationship where users can have multiple sessions.
+- Foreign Key: Session.user_id references User.id
+- Cascade delete: Sessions are deleted when user is deleted
 
 ## State Transitions
 
 ### Task Status Transitions
-- `active` → `completed`: When user marks task as complete
-- `completed` → `active`: When user reopens a completed task
-- On completion: `completed_at` is set to current timestamp
-- On reopening: `completed_at` is set to null
+- active → completed (when task is marked as done)
+- completed → active (when task is reopened)
 
-### Recurrence Handling
-- When a recurring task is completed, the next occurrence is automatically scheduled based on the recurrence pattern
-- The new task inherits properties from the original task but has a new due date
-- Original task is archived or marked as historical depending on user preference
+### Session State Transitions
+- active → revoked (when user logs out or token is invalidated)
+- active → expired (when token expires)
 
-## Indexes for Performance
-- User: indexes on `username`, `email`
-- Task: indexes on `user_id`, `status`, `priority`, `due_date`, `created_at`
-- Tag: indexes on `user_id`, `name`
-- TaskTag: indexes on `task_id`, `tag_id`
-- Session: indexes on `user_id`, `expires_at`
-- Reminder: indexes on `task_id`, `scheduled_time`, `delivery_status`
+## Constraints
 
-## Data Integrity Constraints
-- Foreign key constraints to maintain referential integrity
+### Data Integrity
+- All foreign key relationships must be validated
 - Unique constraints on username and email in User table
-- Check constraints to validate enum values
-- Cascade delete for user removal (deletes associated tasks and tags)
-- Prevent deletion of tags currently assigned to tasks (soft delete instead)
+- Proper indexing on frequently queried fields
+
+### Security
+- Passwords must be hashed before storage
+- Session tokens must be stored securely
+- Access control based on user ownership of data
+
+### Performance
+- Indexes on status, priority, due_date, and user_id fields in Task table
+- Proper indexing strategy for efficient querying

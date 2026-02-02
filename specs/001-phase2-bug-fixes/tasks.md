@@ -1,241 +1,196 @@
-# Implementation Tasks: Phase 2 Bug Fixes and Enhancements for Full-Stack Todo App
+# Tasks: Phase 2 Bug Fixes and Enhancements for Full-Stack Todo App
 
-**Feature**: Phase 2 Bug Fixes and Enhancements for Full-Stack Todo App  
-**Branch**: `001-phase2-bug-fixes`  
-**Created**: 2026-01-26  
-**Status**: Draft  
+## Feature Overview
 
-## Overview
-
-This document outlines the implementation tasks for Phase 2 of the Todo Application, focusing on bug fixes and enhancements. The implementation preserves all Phase 1 features while adding modern UI elements, security enhancements, and performance optimizations.
+This document outlines the implementation tasks for Phase 2 of the todo application, focusing on bug fixes and enhancements. The primary requirements include resolving authentication inconsistencies, fixing security vulnerabilities, improving performance, and enhancing code quality based on the comprehensive bug root cause analysis.
 
 ## Implementation Strategy
 
 - **MVP First**: Implement User Story 1 (Authentication) as the minimum viable product
-- **Incremental Delivery**: Complete each user story as a complete, independently testable increment
-- **Parallel Execution**: Where possible, tasks are marked with [P] for parallel execution
-- **Dependency Order**: Complete foundational tasks before user story-specific tasks
+- **Incremental Delivery**: Each user story builds upon the previous one
+- **Parallel Execution**: Tasks marked with [P] can be executed in parallel
+- **Test-Driven Development**: Each user story includes test tasks for verification
 
 ## Dependencies
 
-- **User Story 1 (P1)**: Bug-Free Authentication and Authorization (Foundation for all other stories)
-- **User Story 2 (P1)**: Modern, Responsive UI Experience (Depends on US1 for auth)
-- **User Story 3 (P2)**: Reliable Task Management with Advanced Features (Depends on US1 for auth)
-- **User Story 4 (P2)**: Cross-Origin Resource Sharing (CORS) Functionality (Depends on US1 for backend)
+- Foundational tasks must be completed before any user story tasks
+- CORS configuration (US4) requires proper authentication setup (US1) to handle credentials correctly
+- User Story 4 (CORS) must be completed before User Stories 2 and 3 can be fully tested with authenticated requests
 
 ## Parallel Execution Examples
 
-- **User Story 2**: UI components can be developed in parallel with backend API development
-- **User Story 3**: Task management backend services can be developed in parallel with frontend UI
-- **User Story 4**: CORS configuration can be implemented independently once backend is set up
+Per User Story:
+- US1: Authentication service and middleware can be developed in parallel
+- US2: UI components and theme management can be developed in parallel
+- US3: Task, Tag, and Recurrence models can be developed in parallel
+- US4: CORS configuration and API endpoint testing can be done in parallel
 
 ---
 
 ## Phase 1: Setup
 
-### Goal
-Initialize project structure and set up foundational infrastructure.
+- [X] T001 Create backend directory structure: backend/src/{models,services,api,auth,middleware}
+- [X] T002 Create frontend directory structure: frontend/src/{components,pages,services,hooks,utils}
+- [ ] T003 Initialize backend with FastAPI and install dependencies (uv add fastapi python-multipart python-jose[cryptography] passlib[bcrypt] sqlalchemy asyncpg)
+- [ ] T004 Initialize frontend with Next.js and install dependencies (bun install next react react-dom typescript @types/react @types/node @types/react-dom tailwindcss postcss autoprefixer shadcn-ui)
+- [X] T005 Set up shared testing structure: tests/{contract,integration,e2e}
 
-### Independent Test
-Project structure is created and basic server runs without errors.
+## Phase 2: Foundational
 
-### Tasks
-
-- [ ] T001 Create backend directory structure: `backend/src/{models,services,api,database,core}`
-- [ ] T002 Create frontend directory structure: `frontend/src/{app,components,services,hooks,store,types,utils,contexts}`
-- [ ] T003 Set up backend requirements.txt with FastAPI, SQLAlchemy, Pydantic, JWT libraries
-- [ ] T004 Set up frontend package.json with Next.js 14+, TypeScript 5.x, TailwindCSS, Shadcn/UI
-- [ ] T005 Initialize backend main.py with basic FastAPI app
-- [ ] T006 Initialize frontend with basic Next.js app structure
-- [ ] T007 Configure database connection with SQLite for development
-- [ ] T008 Set up environment variables for backend and frontend
-- [ ] T009 Configure CORS middleware to allow localhost:3000, 3001, 3002
-
----
-
-## Phase 2: Foundational Components
-
-### Goal
-Implement foundational components that are required for all user stories.
-
-### Independent Test
-Authentication, database models, and basic API endpoints work correctly.
-
-### Tasks
-
-- [ ] T010 [P] Create User model with fields: id, username, email, hashed_password, is_active, preferences, timestamps, version
-- [ ] T011 [P] Create Task model with fields: id, title, description, status, priority, due_date, completed_at, recurrence_pattern, user_id, timestamps, version
-- [ ] T012 [P] Create Tag model with fields: id, name, color, user_id, timestamps, version
-- [ ] T013 [P] Create TaskTag association model with task_id and tag_id
-- [ ] T014 [P] Create Session model with fields: id, user_id, token_hash, expires_at, timestamps, device_info, ip_address
-- [ ] T015 [P] Create Reminder model with fields: id, task_id, scheduled_time, delivery_status, notification_type, timestamps
-- [ ] T016 [P] Create RecurrencePattern model with fields: id, pattern_type, interval, end_condition, end_date, max_occurrences, timestamps, version
-- [ ] T017 [P] Create Pydantic schemas for User (UserCreate, UserLogin, User, LoginResponse)
-- [ ] T018 [P] Create Pydantic schemas for Task (Task, TaskCreate, TaskUpdate, PaginatedTasks)
-- [ ] T019 [P] Create Pydantic schemas for Tag (Tag, TagCreate, TagUpdate)
-- [ ] T020 [P] Create Pydantic schemas for Session, Reminder, RecurrencePattern
-- [ ] T021 [P] Implement JWT authentication utilities (create_access_token, create_refresh_token, verify_token)
-- [ ] T022 [P] Implement password hashing utilities (get_password_hash, verify_password)
-- [ ] T023 [P] Create database session management utilities
-- [ ] T024 [P] Create database initialization script to create all tables
-- [ ] T025 [P] Implement authentication dependency for protected endpoints
-
----
+- [X] T006 [P] Consolidate JWT implementations into src/core/security.py following security-first approach
+- [X] T007 [P] Set up database connection and session management in backend/src/database
+- [X] T008 [P] Implement password hashing utilities in backend/src/auth/hash.py
+- [X] T009 [P] Set up environment variables and configuration in backend/src/config.py
+- [X] T010 [P] Configure FastAPI CORS middleware to allow specific origins with credentials support in backend/src/main.py
+- [X] T011 [P] Set up centralized error handling in backend/src/errors.py
+- [X] T012 [P] Configure logging in backend/src/logging.py
+- [X] T013 [P] Create API response utility functions in backend/src/utils/responses.py
+- [X] T014 [P] Set up frontend API service with axios and interceptors to handle HTTP-only cookies in frontend/src/services/api.ts
+- [X] T015 [P] Configure TailwindCSS and initialize with shadcn/ui components in frontend
+- [ ] T016 [P] Set up frontend state management (Redux Toolkit or React Context) in frontend/src/store
+- [X] T017 [P] Create frontend theme management for light/dark mode in frontend/src/context/ThemeContext.tsx
+- [X] T018 [P] Set up frontend utility functions for date formatting, etc. in frontend/src/utils
 
 ## Phase 3: User Story 1 - Bug-Free Authentication and Authorization (Priority: P1)
 
-### Goal
-Implement secure JWT-based authentication with proper token storage and automatic header inclusion in API requests.
+**Goal**: Implement secure JWT-based authentication with proper token storage and API access following the consolidated JWT approach.
 
-### Independent Test
-Users can register, login, receive JWT tokens, and access protected endpoints with proper authorization headers.
+**Independent Test**: The authentication flow can be tested independently by verifying login, token storage, and API access with proper authorization headers.
 
-### Acceptance Scenarios
-1. Given a user enters valid credentials, when they submit the login form, then they receive a JWT token that is securely stored and automatically included in API requests
-2. Given a user has a valid session, when they navigate between app sections, then their authentication state is maintained without requiring re-login
-3. Given a user's token expires, when they make an API request, then they are prompted to re-authenticate seamlessly
-
-### Tasks
-
-- [ ] T026 [US1] Create auth service functions: create_user, authenticate_user, login_user, token_refresh
-- [ ] T027 [US1] Implement /auth/register endpoint with user creation and validation
-- [ ] T028 [US1] Implement /auth/login endpoint with JWT token generation
-- [ ] T029 [US1] Implement token refresh functionality
-- [ ] T030 [US1] Create authentication middleware to validate JWT tokens
-- [ ] T031 [US1] Implement dependency to get current user from JWT token
-- [ ] T032 [US1] Create /users/me endpoint to get current user profile
-- [ ] T033 [US1] Implement proper error handling for authentication failures
-- [ ] T034 [US1] Create frontend authentication service with token storage in localStorage/cookies
-- [ ] T035 [US1] Implement axios interceptors to automatically include JWT tokens in API requests
-- [ ] T036 [US1] Create login and registration forms with proper validation
-- [ ] T037 [US1] Implement logout functionality that clears tokens
-- [ ] T038 [US1] Create authentication context/provider for React state management
-- [ ] T039 [US1] Implement token expiration handling with automatic refresh or redirect to login
-- [ ] T040 [US1] Add security measures: XSS protection, secure token storage, input validation
-
----
+- [X] T019 [US1] Create User model with all required fields and validation in backend/src/models/user.py
+- [X] T020 [US1] Create Session model for JWT token management with proper constraints in backend/src/models/session.py
+- [X] T021 [US1] Implement User service with CRUD operations in backend/src/services/user_service.py
+- [X] T022 [US1] Implement authentication service with register, login, logout functionality in backend/src/services/auth_service.py
+- [X] T023 [US1] Create authentication endpoints: /auth/register, /auth/login (sets HTTP-only cookie with Secure, HttpOnly, and SameSite flags), /auth/me in backend/src/api/auth.py
+- [X] T024 [US1] Implement JWT token creation and validation with standardized payload structure (using "sub" field) in backend/src/core/security.py
+- [X] T025 [US1] Create authentication middleware to protect routes using cookie-based token validation in backend/src/middleware/auth_middleware.py
+- [X] T026 [US1] Implement password hashing and verification in backend/src/auth/hash.py
+- [X] T027 [US1] Add token refresh functionality with HTTP-only cookie updates (maintaining Secure, HttpOnly, and SameSite flags) in backend/src/auth/refresh.py
+- [X] T028 [US1] Create frontend Login component with form validation in frontend/src/components/LoginForm.tsx
+- [X] T029 [US1] Create frontend Register component with form validation in frontend/src/components/RegisterForm.tsx
+- [X] T030 [US1] Implement frontend authentication service to handle API calls in frontend/src/services/authService.ts
+- [X] T031 [US1] Create frontend hook for authentication state management in frontend/src/hooks/useAuth.ts
+- [X] T032 [US1] Implement secure token storage using HTTP-only cookies with Secure, HttpOnly, and SameSite flags in backend/src/auth/cookie_handler.py
+- [ ] T033 [US1] Create ProtectedRoute component to guard authenticated routes in frontend/src/components/ProtectedRoute.tsx
+- [X] T034 [US1] Implement automatic token inclusion in API requests via axios interceptors configured for cookie handling in frontend/src/services/api.ts
+- [ ] T035 [US1] Create user profile page to display current user info in frontend/src/pages/Profile.tsx
+- [ ] T036 [US1] Add logout functionality with proper HTTP-only cookie clearing in backend/src/api/auth.py and frontend/src/services/authService.ts
+- [ ] T037 [US1] Implement token expiration handling and re-authentication prompts in frontend/src/hooks/useAuth.ts
+- [ ] T038 [US1] Write unit tests for authentication services in backend/tests/unit/test_auth_service.py
+- [ ] T039 [US1] Write integration tests for authentication endpoints in backend/tests/integration/test_auth_api.py
+- [ ] T040 [US1] Write frontend component tests for login/register forms in frontend/tests/components/test_auth_components.tsx
 
 ## Phase 4: User Story 2 - Modern, Responsive UI Experience (Priority: P1)
 
-### Goal
-Provide a sleek, modern, and responsive UI using TailwindCSS and component libraries with dark/light mode support.
+**Goal**: Create a sleek, modern, and responsive UI with dark mode support following WCAG 2.2 AA compliance.
 
-### Independent Test
-UI renders correctly across different devices with responsive layouts, dark/light mode, and smooth transitions.
+**Independent Test**: The UI can be tested independently by evaluating visual design elements, responsiveness across devices, and user interaction flows.
 
-### Acceptance Scenarios
-1. Given a user accesses the app on any device, when they view the main dashboard, then they see a clean, responsive layout with TailwindCSS styling and dark mode option
-2. Given a user interacts with UI components, when they perform actions, then they see smooth transitions and animations that enhance the experience
-3. Given a user switches between light and dark modes, when they make the selection, then the entire UI updates consistently with appropriate contrast ratios
-
-### Tasks
-
-- [ ] T041 [US2] Set up TailwindCSS configuration for the frontend project
-- [ ] T042 [US2] Install and configure Shadcn/UI components library
-- [ ] T043 [US2] Create theme context for dark/light mode switching
-- [ ] T044 [US2] Implement theme toggle component with persistent user preference
-- [ ] T045 [US2] Create responsive layout components (header, sidebar, main content area)
-- [ ] T046 [US2] Design and implement task card component with priority indicators and status badges
-- [ ] T047 [US2] Create task form modal with all required fields (title, description, priority, due date, tags)
-- [ ] T048 [US2] Implement tag management UI with color selection
-- [ ] T049 [US2] Create filter and sort controls with dropdowns and checkboxes
-- [ ] T050 [US2] Implement search functionality with debounced input
-- [ ] T051 [US2] Add smooth transitions and animations using Framer Motion or CSS transitions
-- [ ] T052 [US2] Create loading spinners and skeleton components for better UX
-- [ ] T053 [US2] Implement responsive design for mobile, tablet, and desktop views
-- [ ] T054 [US2] Add accessibility features: ARIA labels, keyboard navigation, screen reader support
-- [ ] T055 [US2] Create dashboard with task statistics and quick actions
-- [ ] T056 [US2] Implement error boundary components for graceful error handling
-
----
+- [ ] T041 [US2] Create responsive layout components using TailwindCSS in frontend/src/components/Layout.tsx
+- [ ] T042 [US2] Implement dark/light mode toggle with system preference detection in frontend/src/components/ThemeToggle.tsx
+- [ ] T043 [US2] Create reusable UI components (Button, Card, Input, etc.) using shadcn/ui in frontend/src/components/ui/
+- [ ] T044 [US2] Design and implement dashboard page with responsive grid layout in frontend/src/pages/Dashboard.tsx
+- [ ] T045 [US2] Create task list component with filtering and sorting options in frontend/src/components/TaskList.tsx
+- [ ] T046 [US2] Implement smooth transitions and animations for UI interactions in frontend/src/components/AnimatedWrapper.tsx
+- [ ] T047 [US2] Create modal components for task creation/editing in frontend/src/components/Modal.tsx
+- [ ] T048 [US2] Design and implement task card component with priority indicators in frontend/src/components/TaskCard.tsx
+- [ ] T049 [US2] Create tag management UI components in frontend/src/components/TagManager.tsx
+- [ ] T050 [US2] Implement responsive navigation menu in frontend/src/components/Navigation.tsx
+- [ ] T051 [US2] Create search and filter UI components in frontend/src/components/SearchFilter.tsx
+- [ ] T052 [US2] Implement skeleton loaders for improved perceived performance in frontend/src/components/SkeletonLoader.tsx
+- [ ] T053 [US2] Add accessibility features (ARIA labels, keyboard navigation) to all components
+- [ ] T054 [US2] Create responsive sidebar for navigation and quick actions in frontend/src/components/Sidebar.tsx
+- [ ] T055 [US2] Implement toast notifications for user feedback in frontend/src/components/Toast.tsx
+- [ ] T056 [US2] Create settings panel for user preferences in frontend/src/components/SettingsPanel.tsx
+- [ ] T057 [US2] Add PWA manifest and service worker configuration in frontend/public/manifest.json and frontend/src/service-worker.js
+- [ ] T058 [US2] Write component tests for UI elements in frontend/tests/components/test_ui_components.tsx
+- [ ] T059 [US2] Write accessibility tests using axe-core in frontend/tests/accessibility/test_accessibility.tsx
+- [ ] T060 [US2] Create responsive design tests for mobile and desktop views in frontend/tests/responsive/test_responsive.tsx
 
 ## Phase 5: User Story 3 - Reliable Task Management with Advanced Features (Priority: P2)
 
-### Goal
-Enable all task management features (CRUD, priorities, tags, search, filter, sort, recurring tasks, due dates, reminders) to work reliably without bugs.
+**Goal**: Ensure all task management features (CRUD, priorities, tags, search, filter, sort, recurring tasks, due dates, reminders) work reliably without bugs following performance optimization principles.
 
-### Independent Test
-Users can create, read, update, delete tasks with all advanced features working correctly.
+**Independent Test**: Task management features can be tested independently by creating, updating, filtering, and organizing tasks with various configurations.
 
-### Acceptance Scenarios
-1. Given a user creates a recurring task, when the task is completed, then the next occurrence is automatically scheduled according to the recurrence pattern
-2. Given a user sets a reminder for a task, when the reminder time arrives, then they receive notification that persists across sessions
-3. Given a user applies filters or sorts tasks, when they view the task list, then results are displayed efficiently with lazy loading for large datasets
-
-### Tasks
-
-- [ ] T057 [US3] Create task service functions: create_task, get_task, get_tasks, update_task, delete_task, toggle_task_status (full CRUD with priorities, tags, search, filter, sort, recurring tasks, due dates, reminders)
-- [ ] T058 [US3] Implement /tasks GET endpoint with pagination, filtering, sorting, and search
-- [ ] T059 [US3] Implement /tasks POST endpoint for creating new tasks
-- [ ] T060 [US3] Implement /tasks/{task_id} GET endpoint for retrieving specific tasks
-- [ ] T061 [US3] Implement /tasks/{task_id} PUT endpoint for updating tasks
-- [ ] T062 [US3] Implement /tasks/{task_id} DELETE endpoint for deleting tasks
-- [ ] T063 [US3] Implement /tasks/{task_id}/toggle-status PATCH endpoint for toggling task status
-- [ ] T064 [US3] Create tag service functions: create_tag, get_tag, get_tags, update_tag, delete_tag
-- [ ] T065 [US3] Implement /tags endpoints for tag management
-- [ ] T066 [US3] Implement recurring task scheduling logic with pattern handling and rescheduling on completion
-- [ ] T067 [US3] Create reminder service with scheduling, notification handling, and persistence across sessions
-- [ ] T068 [US3] Implement efficient search and filter algorithms with indexing
-- [ ] T069 [US3] Add lazy loading functionality for large task lists
-- [ ] T070 [US3] Create frontend task management components (list, form, filters)
-- [ ] T071 [US3] Implement drag-and-drop functionality for task reordering
-- [ ] T072 [US3] Add bulk operations for task management (bulk delete, bulk update status)
-- [ ] T073 [US3] Create calendar view for tasks with due dates
-- [ ] T074 [US3] Implement optimistic locking with version fields to handle concurrent modifications
-- [ ] T075 [US3] Add comprehensive error handling for all task operations
-
----
+- [ ] T061 [US3] Create Task model with all required fields, validation, and indexes in backend/src/models/task.py
+- [ ] T062 [US3] Create Tag model with all required fields and validation in backend/src/models/tag.py
+- [ ] T063 [US3] Create Reminder model with all required fields and validation in backend/src/models/reminder.py
+- [ ] T064 [US3] Create RecurrencePattern model with all required fields and validation in backend/src/models/recurrence.py
+- [ ] T065 [US3] Implement Task service with CRUD operations and optimized queries in backend/src/services/task_service.py
+- [ ] T066 [US3] Implement Tag service with CRUD operations in backend/src/services/tag_service.py
+- [ ] T067 [US3] Implement Reminder service with scheduling and notification logic in backend/src/services/reminder_service.py
+- [ ] T068 [US3] Implement RecurrencePattern service with pattern creation and management in backend/src/services/recurrence_service.py
+- [ ] T069 [US3] Create task endpoints: /tasks, /tasks/{id} in backend/src/api/tasks.py
+- [ ] T070 [US3] Create tag endpoints: /tags, /tags/{id} in backend/src/api/tags.py
+- [ ] T071 [US3] Create recurrence pattern endpoints: /recurring-patterns in backend/src/api/recurrence.py
+- [ ] T072 [US3] Implement task filtering, searching, and sorting logic with database indexes in backend/src/services/task_filters.py
+- [ ] T073 [US3] Implement recurring task scheduling logic when completed in backend/src/services/recurrence_scheduler.py
+- [ ] T074 [US3] Create reminder scheduling service to persist across sessions in backend/src/services/reminder_scheduler.py
+- [ ] T075 [US3] Implement efficient data retrieval with pagination for large datasets in backend/src/services/pagination.py
+- [ ] T076 [US3] Create frontend TaskForm component for creating/updating tasks in frontend/src/components/TaskForm.tsx
+- [ ] T077 [US3] Create frontend TaskDetail component for viewing task details in frontend/src/components/TaskDetail.tsx
+- [ ] T078 [US3] Implement task management hooks for state management in frontend/src/hooks/useTasks.ts
+- [ ] T079 [US3] Create tag management components for creating and assigning tags in frontend/src/components/TagSelector.tsx
+- [ ] T080 [US3] Implement priority selection UI with visual indicators in frontend/src/components/PrioritySelector.tsx
+- [ ] T081 [US3] Create due date picker with reminder setting in frontend/src/components/DatePicker.tsx
+- [ ] T082 [US3] Implement recurring task configuration UI in frontend/src/components/RecurrenceConfig.tsx
+- [ ] T083 [US3] Create task filtering and sorting controls in frontend/src/components/TaskControls.tsx
+- [ ] T084 [US3] Implement search functionality with debounced input in frontend/src/components/SearchBar.tsx
+- [ ] T085 [US3] Create bulk task operations (update, delete) UI in frontend/src/components/BulkActions.tsx
+- [ ] T086 [US3] Implement optimistic UI updates for better user experience in frontend/src/hooks/useOptimisticUpdates.ts
+- [ ] T087 [US3] Create task statistics and analytics dashboard in frontend/src/components/TaskAnalytics.tsx
+- [ ] T088 [US3] Write unit tests for task services in backend/tests/unit/test_task_service.py
+- [ ] T089 [US3] Write integration tests for task endpoints in backend/tests/integration/test_task_api.py
+- [ ] T090 [US3] Write tests for recurring task logic in backend/tests/unit/test_recurrence_logic.py
+- [ ] T091 [US3] Write frontend component tests for task management UI in frontend/tests/components/test_task_components.tsx
+- [ ] T092 [US3] Write end-to-end tests for task management workflows in tests/e2e/test_task_workflows.py
 
 ## Phase 6: User Story 4 - Cross-Origin Resource Sharing (CORS) Functionality (Priority: P2)
 
-### Goal
-Configure CORS to allow requests from localhost:3000, 3001, 3002 with appropriate methods and headers.
+**Goal**: Properly configure CORS to allow frontend to communicate with backend without browser security restrictions following security-first approach.
 
-### Independent Test
-Frontend running on localhost:3000 can successfully make API requests to the backend without CORS errors.
+**Independent Test**: CORS functionality can be tested independently by making requests from the frontend origin to backend endpoints.
 
-### Acceptance Scenarios
-1. Given the frontend runs on localhost:3000, when it makes API requests to the backend, then the requests succeed without CORS errors
-2. Given a preflight OPTIONS request is made, when the backend receives it, then it responds with appropriate CORS headers allowing the actual request
-
-### Tasks
-
-- [ ] T076 [US4] Configure FastAPI CORS middleware to allow origins: localhost:3000, 3001, 3002
-- [ ] T077 [US4] Set CORS middleware to allow credentials and appropriate HTTP methods
-- [ ] T078 [US4] Configure CORS to allow Authorization header and other necessary headers
-- [ ] T079 [US4] Test CORS configuration with preflight requests
-- [ ] T080 [US4] Verify OPTIONS requests return proper CORS headers
-- [ ] T081 [US4] Test API endpoints from frontend origin to confirm no CORS errors
-- [ ] T082 [US4] Document CORS configuration for deployment environments
-
----
+- [ ] T093 [US4] Configure FastAPI CORS middleware with proper settings for localhost:3000 including credentials support in backend/src/main.py
+- [ ] T094 [US4] Add environment-specific CORS configuration for development/production with credentials support in backend/src/config.py
+- [ ] T095 [US4] Implement preflight OPTIONS request handling for complex requests in backend/src/middleware/cors_middleware.py
+- [ ] T096 [US4] Test CORS headers with various request methods (GET, POST, PUT, DELETE) in backend/tests/integration/test_cors.py
+- [ ] T097 [US4] Verify credential passing works correctly with CORS in backend/tests/integration/test_cors_credentials.py
+- [ ] T098 [US4] Create API health check endpoint to verify CORS functionality in backend/src/api/health.py
+- [ ] T099 [US4] Document CORS configuration in API documentation in backend/docs/cors.md
+- [ ] T100 [US4] Write contract tests to verify CORS headers in all API responses in tests/contract/test_cors_contracts.py
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-### Goal
-Implement non-functional requirements and polish the application.
-
-### Independent Test
-Application meets all non-functional requirements including security, performance, accessibility, and PWA features.
-
-### Tasks
-
-- [ ] T083 [P] Implement comprehensive error handling with standardized responses
-- [ ] T084 [P] Add logging throughout the application for debugging and monitoring
-- [ ] T085 [P] Implement input validation and sanitization to prevent injection attacks
-- [ ] T086 [P] Add rate limiting to prevent abuse of API endpoints
-- [ ] T087 [P] Implement PWA features: manifest.json, service worker, offline functionality
-- [ ] T088 [P] Add comprehensive tests: unit, integration, and end-to-end tests
-- [ ] T089 [P] Implement accessibility features compliant with WCAG 2.2 standards
-- [ ] T090 [P] Add performance benchmarks and monitoring tools
-- [ ] T091 [P] Optimize performance: implement caching, database indexing, efficient queries
-- [ ] T092 [P] Add comprehensive documentation for API endpoints
-- [ ] T093 [P] Create deployment configuration for production environment
-- [ ] T094 [P] Implement security scanning and vulnerability assessment
-- [ ] T095 [P] Add comprehensive UI testing with Cypress
-- [ ] T096 [P] Perform final integration testing of all features
-- [ ] T097 [P] Conduct performance testing to ensure <500ms API responses and <300ms UI interactions
-- [ ] T098 [P] Verify 95% test coverage across all critical functionality
-- [ ] T099 [P] Final user acceptance testing with all acceptance scenarios
-- [ ] T100 [P] Prepare release notes and deployment documentation
-- [ ] T101 [P] Conduct final security and accessibility audit
+- [ ] T101 Implement comprehensive logging throughout the application in backend/src/logging.py
+- [ ] T102 Add input validation and sanitization to prevent injection attacks in backend/src/validation.py
+- [ ] T103 Implement rate limiting for API endpoints to prevent abuse in backend/src/middleware/rate_limit.py
+- [ ] T104 Add comprehensive error handling with user-friendly messages in backend/src/errors.py
+- [ ] T105 Implement caching for frequently accessed data in backend/src/cache.py
+- [ ] T106 Create API documentation with Swagger/OpenAPI in backend/src/main.py
+- [ ] T107 Add comprehensive unit and integration tests to achieve 95% coverage in all test files
+- [ ] T108 Add specific tests for concurrent edit handling to prevent conflicts in backend/src/services/task_service.py
+- [ ] T109 Add performance tests for large datasets (>10,000 tasks) with complex filtering and sorting in backend/src/services/task_filters.py
+- [ ] T110 Implement end-to-end tests covering all user stories in tests/e2e/
+- [ ] T111 Add performance monitoring and optimization for slow queries in backend/src/performance.py
+- [ ] T112 Implement security headers for XSS protection in backend/src/middleware/security_headers.py
+- [ ] T113 Create deployment configurations for production in deployment/
+- [ ] T114 Add monitoring and alerting setup in backend/src/monitoring.py
+- [ ] T115 Conduct accessibility audit using automated tools and manual testing
+- [ ] T116 Add offline synchronization mechanism for task data when connectivity is restored in frontend/src/services/syncService.ts
+- [ ] T117 Add token revocation mechanism for compromised JWT tokens in backend/src/services/auth_service.py
+- [ ] T118 Perform security audit and penetration testing
+- [ ] T119 Add conflict resolution mechanism for recurring tasks with overlapping schedules in backend/src/services/recurrence_scheduler.py
+- [ ] T120 Add handling for expired tokens during long-running operations in frontend/src/hooks/useAuth.ts
+- [ ] T121 Add comprehensive error handling for network connectivity interruptions in frontend/src/services/api.ts
+- [ ] T122 Add tests for token revocation mechanism in backend/tests/unit/test_auth_service.py
+- [ ] T123 Add tests for conflict resolution in recurring tasks in backend/tests/unit/test_recurrence_scheduler.py
+- [ ] T124 Add tests for offline synchronization in frontend/tests/unit/test_syncService.ts
+- [ ] T125 Add tests for handling expired tokens during long-running operations in frontend/tests/unit/test_useAuth.ts
+- [ ] T126 Add tests for network connectivity interruption handling in frontend/tests/unit/test_api.ts
+- [ ] T127 Write user documentation for the application in docs/user-guide.md
+- [ ] T128 Write developer documentation for the codebase in docs/developer-guide.md
+- [ ] T129 Set up CI/CD pipeline with automated testing and deployment in .github/workflows/
+- [ ] T130 Conduct final integration testing of all components
+- [ ] T131 Prepare release notes and deployment checklist

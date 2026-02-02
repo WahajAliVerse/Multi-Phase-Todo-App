@@ -3,7 +3,7 @@
 **Feature Branch**: `001-phase2-bug-fixes`
 **Created**: 2026-01-26
 **Status**: Draft
-**Input**: User description: "Update specifications for Phase 2: Full-Stack Web Application to fix bugs, based on clarification.md, original spec.md, and plan.md. Preserve all original features (Phase 1 CRUD + priorities/tags/search/filter/sort/recurring/due dates/reminders) while addressing issues. Structure updated spec.md as: Overview: Enhanced full-stack app with bug-free auth, CORS, and modern UI for 2026 (sleek, minimalistic, with themes/animations). Frontend Fixes: UI (use TailwindCSS/Shadcn for uncluttered layouts: grids, cards, modals; add dark mode, transitions; responsive for mobile/desktop); Token storage (localStorage/Cookies with expiry, secure against XSS); API calls (axios with interceptors to pass Bearer tokens). Backend Fixes: CORS (configure flask-cors to allow localhost:3000, methods/headers); Auth (JWT implementation for sessions, endpoints to login/validate); Error handling (standardized responses, logging). Functionality Fixes: Ensure token-required APIs enforce auth; Fix edges (e.g., recurring tasks reschedule on completion, reminders persist across sessions). Non-Functional: Security (token encryption, input validation); Performance (lazy loading for lists); Accessibility (ARIA labels, WCAG 2.2); 2026 trends (PWA support for offline). Verification: Updated tests for fixes (e.g., CORS headers in responses, UI snapshots with Cypress). Migration Notes: Non-breaking changes for Phase 3 AI embed. Align with constitution (95% coverage, <500ms responses). Output only updated spec content."
+**Input**: User description: "Update specifications for Phase 2: Full-Stack Web Application to fix bugs, based on clarification.md, original spec.md, and plan.md. Preserve all original features (Phase 1 CRUD + priorities/tags/search/filter/sort/recurring/due dates/reminders) while addressing issues. Structure updated spec.md as: Overview: Enhanced full-stack app with bug-free auth, CORS, and modern UI for 2026 (sleek, minimalistic, with themes/animations). Frontend Fixes: UI (use TailwindCSS/Shadcn for uncluttered layouts: grids, cards, modals; add dark mode, transitions; responsive for mobile/desktop); Token storage (HTTP-only Cookies with expiry, secure against XSS); API calls (axios with interceptors to pass Bearer tokens). Backend Fixes: CORS (configure FastAPI CORS middleware to allow localhost:3000, methods/headers); Auth (JWT implementation for sessions, endpoints to login/validate); Error handling (standardized responses, logging). Functionality Fixes: Ensure token-required APIs enforce auth; Fix edges (e.g., recurring tasks reschedule on completion, reminders persist across sessions). Non-Functional: Security (token encryption, input validation); Performance (lazy loading for lists); Accessibility (ARIA labels, WCAG 2.2); 2026 trends (PWA support for offline). Verification: Updated tests for fixes (e.g., CORS headers in responses, UI snapshots with Cypress). Migration Notes: Non-breaking changes for Phase 3 AI embed. Align with constitution (95% coverage, <500ms responses). Output only updated spec content."
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -84,11 +84,11 @@ As a developer integrating the frontend and backend, I want proper CORS configur
 
 ### Functional Requirements
 
-- **FR-001**: System MUST implement secure JWT-based authentication with proper token storage and automatic header inclusion in API requests
+- **FR-001**: System MUST implement secure JWT-based authentication with HTTP-only cookie storage (using Secure, HttpOnly, and SameSite flags) to prevent XSS attacks and automatic header inclusion in API requests
 - **FR-002**: System MUST configure CORS to allow requests from localhost:3000, 3001, 3002 with appropriate methods and headers
 - **FR-003**: System MUST provide a modern UI using TailwindCSS and component libraries (e.g., shadcn/ui) with dark/light mode support
 - **FR-004**: Users MUST be able to create, read, update, and delete tasks with priorities, tags, due dates, and recurrence patterns
-- **FR-005**: System MUST implement proper error handling with standardized responses and comprehensive logging
+- **FR-005**: System MUST implement proper error handling with standardized JSON responses containing error codes, messages, and remediation steps, along with comprehensive logging
 - **FR-006**: System MUST enforce authentication for all protected API endpoints
 - **FR-007**: System MUST handle recurring tasks by automatically scheduling next occurrences when completed
 - **FR-008**: System MUST persist reminders across sessions and notify users appropriately
@@ -100,12 +100,27 @@ As a developer integrating the frontend and backend, I want proper CORS configur
 
 ### Key Entities
 
-- **User**: Represents a person using the application, with authentication credentials, preferences, and associated tasks
-- **Task**: Represents a todo item with title, description, priority, due date, status, recurrence pattern, and associated tags
-- **Tag**: Represents a category or label that can be applied to tasks for organization and filtering
+- **User**: Represents a person using the application, with authentication credentials (username, email, hashed password), preferences (theme, notification settings), and associated tasks
+- **Task**: Represents a todo item with title, description, status (active/completed), priority (high/medium/low), due date, creation/update timestamps, completion timestamp, user ID, recurrence pattern ID, and associated tags
+- **Tag**: Represents a category or label that can be applied to tasks for organization and filtering, with name, color, user ID, and creation timestamp
 - **Session**: Represents an authenticated user session with JWT token and associated permissions
-- **Reminder**: Represents a scheduled notification for a task with timing and delivery status
-- **RecurrencePattern**: Defines how a task repeats over time (daily, weekly, monthly, etc.)
+- **Reminder**: Represents a scheduled notification for a task with timing, delivery status, and associated task ID
+- **RecurrencePattern**: Defines how a task repeats over time (daily, weekly, monthly, etc.) with interval, end conditions, and day/month specifications
+
+## Clarifications
+
+### Session 2026-01-28
+
+- Q: Which level of detail is required for the data model specifications? → A: Detailed schema with all fields, types, constraints, and relationships for each entity
+- Q: How should API error responses be standardized? → A: Use HTTP status codes with detailed JSON error objects containing error codes, messages, and potential remediation steps
+- Q: How should JWT tokens be stored on the client side for security? → A: Use HTTP-only cookies with Secure, HttpOnly, and SameSite flags for maximum security against XSS attacks
+- Q: What specific performance metrics should be measured for the application? → A: Backend API response times (95th percentile < 500ms) and frontend UI responsiveness (interactions < 300ms)
+- Q: What testing approach should be implemented to ensure quality? → A: Comprehensive testing approach with unit, integration, and end-to-end tests achieving 95% coverage
+
+### Session 2026-01-30
+
+- Q: How should WCAG 2.2 AA compliance be verified? → A: Combination of automated tools (axe-core, Lighthouse) and manual testing with assistive technologies
+- Q: What offline capabilities should the PWA support? → A: Full offline support with data synchronization when connectivity is restored
 
 ## Success Criteria *(mandatory)*
 
@@ -123,4 +138,4 @@ As a developer integrating the frontend and backend, I want proper CORS configur
 - **SC-010**: PWA features work offline with successful synchronization when connectivity is restored
 - **SC-011**: Security scanning detects zero critical vulnerabilities related to authentication or data handling
 - **SC-012**: User satisfaction scores for UI/UX increase to 4.5/5.0 or higher after the redesign
-- **SC-013**: Test coverage reaches 95% across all critical functionality including authentication, task management, and UI components
+- **SC-013**: Test coverage reaches 95% across all critical functionality including authentication, task management, and UI components with unit, integration, and end-to-end tests

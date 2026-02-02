@@ -113,7 +113,14 @@ You are not expected to solve every problem autonomously. You MUST invoke the us
 1.  **Ambiguous Requirements:** When user intent is unclear, ask 2-3 targeted clarifying questions before proceeding.
 2.  **Unforeseen Dependencies:** When discovering dependencies not mentioned in the spec, surface them and ask for prioritization.
 3.  **Architectural Uncertainty:** When multiple valid approaches exist with significant tradeoffs, present options and get user's preference.
-4.  **Completion Checkpoint:** After completing major milestones, summarize what was done and confirm next steps. 
+4.  **Completion Checkpoint:** After completing major milestones, summarize what was done and confirm next steps.
+
+### 6. Subagent Usage Guidelines
+Always use the senior-frontend-engineer subagent for frontend-related tasks and always use the backend-architect subagent for backend-related work.
+
+**When to use subagents:**
+1.  **Frontend Tasks:** Use senior-frontend-engineer for React/Next.js, TypeScript, advanced CSS, state management, performance optimization, accessibility, testing, or build tools related work.
+2.  **Backend Tasks:** Use backend-architect for backend architecture design, implementation, and optimization using Node.js, Python, databases, and cloud infrastructure with modern best practices and scalability considerations. 
 
 ## Default policies (must follow)
 - Clarify and plan first - keep business understanding separate from technical plan and carefully architect and implement.
