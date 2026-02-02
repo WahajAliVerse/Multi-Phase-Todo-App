@@ -1,48 +1,56 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.api import auth_router, user_router, task_router, tag_router, reminder_router
-from src.database.database import engine, Base
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from src.api.api_v1.api import api_router
+from src.core.config import settings
+from src.errors import (
+    validation_exception_handler,
+    app_exception_handler,
+    http_exception_handler,
+    general_exception_handler,
+    RequestValidationError,
+    AppException
+)
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from src.database.database import Base, engine
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
-# Create FastAPI app
 app = FastAPI(
-    title="Todo App API",
-    description="API for the Phase 2 Todo Application with authentication, task management, and advanced features",
-    version="1.0.0"
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js default
-        "http://localhost:3001",  # Alternative Next.js port
-        "http://localhost:3002",  # Another alternative Next.js port
-        "http://localhost:8000",  # For direct API access
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-        "http://127.0.0.1:3002",
-        "http://127.0.0.1:8000",
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["*"],
-    # Allow Authorization header for JWT
-    expose_headers=["Access-Control-Allow-Origin"]
-)
+# Register exception handlers
+app.exception_handler(RequestValidationError)(validation_exception_handler)
+app.exception_handler(AppException)(app_exception_handler)
+app.exception_handler(StarletteHTTPException)(http_exception_handler)
+app.exception_handler(Exception)(general_exception_handler)
 
-# Include routers
-app.include_router(auth_router.router)
-app.include_router(user_router.router)
-app.include_router(task_router.router)
-app.include_router(tag_router.router)
-app.include_router(reminder_router.router)
+# Set all CORS enabled origins
+if settings.BACKEND_CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        # Expose headers related to cookies to frontend
+        expose_headers=["Access-Control-Allow-Origin", "Set-Cookie", "Access-Control-Allow-Credentials"]
+    )
+else:
+    # For development, allow all origins with credentials
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        # Expose headers related to cookies to frontend
+        expose_headers=["Access-Control-Allow-Origin", "Set-Cookie", "Access-Control-Allow-Credentials"]
+    )
+
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def read_root():
@@ -50,4 +58,4 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "message": "API is running"}
+    return {"status": "healthy"}

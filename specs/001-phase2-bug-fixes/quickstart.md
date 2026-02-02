@@ -1,195 +1,196 @@
 # Quickstart Guide: Phase 2 Bug Fixes and Enhancements for Full-Stack Todo App
 
-## Prerequisites
+## Overview
+This guide provides instructions for setting up, running, and testing the full-stack Todo application after implementing the bug fixes and enhancements identified in the root cause analysis.
 
+## Prerequisites
 - Python 3.12+
-- Node.js 18+ / npm 9+
-- Bun (alternative to npm)
+- Node.js 18+ (for frontend development)
+- PostgreSQL (for production) or SQLite (for development)
 - Docker and Docker Compose (optional, for containerized deployment)
-- Git
 
 ## Setup Instructions
 
-### 1. Clone the Repository
+### Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
 
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your specific configuration
+   ```
+
+5. Run database migrations:
+   ```bash
+   alembic upgrade head
+   ```
+
+6. Start the backend server:
+   ```bash
+   uvicorn src.main:app --reload
+   ```
+
+### Frontend Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your specific configuration
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+## Running the Application
+
+### Development Mode
+1. Start the backend server (see above)
+2. In a separate terminal, start the frontend server (see above)
+3. Access the application at `http://localhost:3000`
+
+### Production Mode
+1. Build the frontend:
+   ```bash
+   cd frontend && npm run build
+   ```
+
+2. Start the backend with production settings:
+   ```bash
+   cd backend && uvicorn src.main:app --host 0.0.0.0 --port 8000
+   ```
+
+### Using Docker
+1. Build and start the containers:
+   ```bash
+   docker-compose up --build
+   ```
+
+2. Access the application at `http://localhost:3000`
+
+## Testing
+
+### Backend Tests
+Run all backend tests:
 ```bash
-git clone <repository-url>
-cd multi-phase-todo
-git checkout 001-phase2-bug-fixes
-```
-
-### 2. Backend Setup
-
-#### Using uv (recommended):
-
-```bash
-# Navigate to backend directory
 cd backend
-
-# Install uv if you don't have it
-pip install uv
-
-# Install dependencies
-uv add fastapi uvicorn python-multipart python-jose[cryptography] passlib[bcrypt] sqlalchemy asyncpg python-multipart
-
-# Or install from requirements.txt if available
-uv add -r requirements.txt
+pytest
 ```
 
-#### Environment Variables:
-
-Create a `.env` file in the backend directory:
-
-```env
-SECRET_KEY=your-super-secret-key-here-make-it-long-and-random
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-DATABASE_URL=sqlite:///./todo_app.db
-DEBUG=false
-```
-
-#### Run Backend:
-
+Run specific test files:
 ```bash
-# From backend directory
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+pytest tests/unit/test_auth_service.py
 ```
 
-### 3. Frontend Setup
-
+Run tests with coverage:
 ```bash
-# Navigate to frontend directory
+pytest --cov=src
+```
+
+### Frontend Tests
+Run all frontend tests:
+```bash
 cd frontend
-
-# Install dependencies using Bun
-bun install
-
-# Or alternatively with npm:
-npm install
+npm run test
 ```
 
-#### Environment Variables:
-
-Create a `.env.local` file in the frontend directory:
-
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-NEXT_PUBLIC_APP_NAME=Todo App
-NEXT_PUBLIC_DEFAULT_THEME=light
-```
-
-#### Run Frontend:
-
+Run specific test files:
 ```bash
-# From frontend directory
-bun run dev
-# or
-npm run dev
+npm run test -- src/components/LoginForm.test.tsx
 ```
 
-The frontend will be available at http://localhost:3000
+### End-to-End Tests
+Run end-to-end tests:
+```bash
+npm run test:e2e
+```
+
+## Key Fixes Implemented
+
+### Authentication Fixes
+- Consolidated JWT implementations into a single module (`src/core/security.py`)
+- Fixed token payload mismatch (now consistently using "sub" field)
+- Standardized authentication method to cookie-based approach
+
+### Security Improvements
+- Restricted CORS configuration to specific origins and methods
+- Implemented proper session management
+- Improved input validation and sanitization
+
+### Performance Optimizations
+- Added database indexes to frequently queried fields (status, priority, due_date)
+- Fixed N+1 query problems in task service
+- Optimized database queries with proper joins and eager loading
+
+### Code Quality Improvements
+- Removed duplicate JWT implementations
+- Standardized error handling with specific exception classes
+- Improved logging for debugging
 
 ## API Endpoints
 
 ### Authentication
-- `POST /auth/login` - User login
-- `POST /auth/register` - User registration
-- `GET /auth/me` - Get current user info (requires auth)
+- `POST /auth/login` - User login with JWT token in HTTP-only cookie
 - `POST /auth/logout` - User logout
+- `GET /auth/me` - Get current user info
 
 ### Tasks
-- `GET /tasks` - Get all tasks (with optional filters)
+- `GET /tasks` - Get all tasks for current user
 - `POST /tasks` - Create a new task
 - `GET /tasks/{id}` - Get a specific task
-- `PUT /tasks/{id}` - Update a specific task
-- `DELETE /tasks/{id}` - Delete a specific task
+- `PUT /tasks/{id}` - Update a task
+- `DELETE /tasks/{id}` - Delete a task
 
 ### Tags
-- `GET /tags` - Get all tags
+- `GET /tags` - Get all tags for current user
 - `POST /tags` - Create a new tag
+- `GET /tags/{id}` - Get a specific tag
 - `PUT /tags/{id}` - Update a tag
 - `DELETE /tags/{id}` - Delete a tag
-
-### Recurring Tasks
-- `POST /recurring-patterns` - Create a recurrence pattern
-- `PUT /recurring-patterns/{id}` - Update a recurrence pattern
-- `DELETE /recurring-patterns/{id}` - Delete a recurrence pattern
-
-## Running Tests
-
-### Backend Tests
-
-```bash
-# From backend directory
-python -m pytest tests/ -v
-```
-
-### Frontend Tests
-
-```bash
-# From frontend directory
-bun run test
-# or
-npm run test
-```
-
-### End-to-End Tests
-
-```bash
-# From project root
-cd e2e
-bun install
-bun run cypress open
-```
-
-## Building for Production
-
-### Backend
-
-```bash
-# From backend directory
-uv build
-# Or simply deploy with uvicorn in production mode
-uvicorn src.main:app --host 0.0.0.0 --port 8000
-```
-
-### Frontend
-
-```bash
-# From frontend directory
-bun run build
-bun run start
-```
-
-## Docker Deployment
-
-If you prefer containerized deployment:
-
-```bash
-# From project root
-docker-compose up --build
-```
-
-This will start both frontend and backend services with all dependencies.
 
 ## Troubleshooting
 
 ### Common Issues
+1. **Authentication failures**: Check that token payload structure is consistent across all modules
+2. **CORS errors**: Verify that your frontend origin is included in the allowed origins
+3. **Database connection issues**: Ensure your database is running and credentials are correct
+4. **Performance issues**: Check that database indexes have been created properly
 
-1. **CORS errors**: Make sure backend allows requests from frontend origin (localhost:3000)
-2. **Database connection errors**: Verify DATABASE_URL in backend .env file
-3. **Token storage issues**: Check that JWT tokens are properly stored in localStorage with security measures
-4. **PWA not working**: Ensure service worker is registered and HTTPS is enabled in production
+### Debugging Tips
+- Enable debug logging by setting `DEBUG=true` in your environment
+- Check the logs in the respective backend and frontend consoles
+- Use browser developer tools to inspect network requests and cookies
 
-### Useful Commands
-
-```bash
-# Check backend API status
-curl http://localhost:8000/health
-
-# Format backend code
-black src/
-
-# Format frontend code
-bun run format
-```
+## Next Steps
+1. Review the updated API documentation at `/docs`
+2. Run the full test suite to ensure all fixes are working correctly
+3. Perform security scanning to verify vulnerabilities have been addressed
+4. Load test the application to verify performance improvements

@@ -5,7 +5,7 @@ from typing import Optional
 from ....database.session import get_db
 from ....models.user import User as UserModel
 from ....services.auth_service import AuthService, get_auth_service
-from ....auth.jwt import create_access_token, create_refresh_token, verify_token
+from ....core.security import create_access_token, create_refresh_token, verify_token
 from ....schemas.user import UserCreate, UserLogin
 from datetime import timedelta
 from jose import jwt
@@ -32,22 +32,26 @@ def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Create access and refresh tokens
-    access_token_expires = timedelta(minutes=30)  # Configurable
+    # Create access and refresh tokens using core security functions
+    from ....core.config import settings
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "user_id": user.id},
+        data={"sub": str(user.id)},  # Using user ID instead of username for security
         expires_delta=access_token_expires
     )
     refresh_token = create_refresh_token(
-        data={"sub": user.username, "user_id": user.id}
+        data={"sub": str(user.id)}   # Using user ID instead of username for security
     )
+
+    # Determine if we should use secure cookies based on environment
+    is_secure = os.getenv("ENVIRONMENT", "development") == "production"
 
     # Set tokens in HTTP-only cookies with security flags
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,  # Set to True for HTTPS in production
+        secure=is_secure,  # Set to True for HTTPS in production
         samesite="lax",  # Changed to "lax" for better UX while maintaining security
         max_age=1800  # 30 minutes in seconds
     )
@@ -56,12 +60,12 @@ def login(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,  # Set to True for HTTPS in production
+        secure=is_secure,  # Set to True for HTTPS in production
         samesite="lax",  # Changed to "lax" for better UX while maintaining security
         max_age=604800  # 7 days in seconds
     )
 
-    return {"message": "Login successful"}
+    return {"message": "Login successful", "user_id": user.id}
 
 
 @router.post("/register")
@@ -98,12 +102,15 @@ def logout(response: Response):
     """
     Logout user by clearing HTTP-only cookies.
     """
+    # Determine if we should use secure cookies based on environment
+    is_secure = os.getenv("ENVIRONMENT") == "production"
+
     # Clear the authentication cookies
     response.set_cookie(
         key="access_token",
         value="",
         httponly=True,
-        secure=False,  # Set to True for HTTPS in production
+        secure=is_secure,  # Set to True for HTTPS in production
         samesite="lax",
         max_age=0,
         expires="Thu, 01 Jan 1970 00:00:00 GMT"
@@ -113,7 +120,7 @@ def logout(response: Response):
         key="refresh_token",
         value="",
         httponly=True,
-        secure=False,  # Set to True for HTTPS in production
+        secure=is_secure,  # Set to True for HTTPS in production
         samesite="lax",
         max_age=0,
         expires="Thu, 01 Jan 1970 00:00:00 GMT"
@@ -140,11 +147,14 @@ def refresh_token_route(
         )
 
     try:
-        payload = jwt.decode(
-            refresh_token,
-            os.getenv("SECRET_KEY", "your-super-secret-key-here"),
-            algorithms=[os.getenv("ALGORITHM", "HS256")]
-        )
+        # Use the core verify_token function instead of direct jwt.decode
+        payload = verify_token(refresh_token)
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token",
+            )
+
         token_type = payload.get("type")
         if token_type != "refresh":
             raise HTTPException(
@@ -152,42 +162,48 @@ def refresh_token_route(
                 detail="Invalid refresh token type",
             )
 
-        username: str = payload.get("sub")
-        if not username:
+        user_id: str = payload.get("sub")  # Using sub field which now contains user ID
+        if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid refresh token",
             )
-    except jwt.JWTError:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
         )
 
     # Verify user still exists
-    user = db.query(UserModel).filter(UserModel.username == username).first()
+    user = db.query(UserModel).filter(UserModel.id == int(user_id)).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User no longer exists",
         )
 
-    # Create new access token
+    # Create new access token using core security functions
+    from ....core.config import settings
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     new_access_token = create_access_token(
-        data={"sub": user.username, "user_id": user.id}
+        data={"sub": str(user.id)},  # Using user ID for consistency
+        expires_delta=access_token_expires
     )
+
+    # Determine if we should use secure cookies based on environment
+    is_secure = os.getenv("ENVIRONMENT", "development") == "production"
 
     # Set new access token in cookie
     response.set_cookie(
         key="access_token",
         value=new_access_token,
         httponly=True,
-        secure=False,  # Set to True for HTTPS in production
+        secure=is_secure,  # Set to True for HTTPS in production
         samesite="lax",
         max_age=1800  # 30 minutes
     )
 
-    return {"message": "Token refreshed successfully"}
+    return {"message": "Token refreshed successfully", "user_id": user.id}
 
 
 @router.get("/me")
@@ -209,14 +225,15 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
             detail="Invalid access token",
         )
 
-    username: str = payload.get("sub")
-    if not username:
+    user_id: str = payload.get("sub")  # Using sub field which contains user ID
+
+    if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid access token",
         )
 
-    user = db.query(UserModel).filter(UserModel.username == username).first()
+    user = db.query(UserModel).filter(UserModel.id == int(user_id)).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -1,147 +1,134 @@
+"""
+Logging configuration for the application.
+
+This module implements comprehensive logging throughout the application
+as specified in the requirements.
+"""
+
 import logging
 import sys
 from datetime import datetime
-from typing import Any, Dict
-from pathlib import Path
-import json
+from typing import Optional
+from logging.handlers import RotatingFileHandler
+import os
 
 
-class AppLogger:
+# Create logs directory if it doesn't exist
+logs_dir = "logs"
+if not os.path.exists(logs_dir):
+    os.makedirs(logs_dir)
+
+
+def setup_logging(
+    log_level: int = logging.INFO,
+    log_file: Optional[str] = "logs/app.log",
+    max_bytes: int = 10 * 1024 * 1024,  # 10 MB
+    backup_count: int = 5
+):
     """
-    Centralized logging configuration for the application
+    Set up comprehensive logging for the application.
+    
+    Args:
+        log_level: Logging level (default: INFO)
+        log_file: Path to log file (default: logs/app.log)
+        max_bytes: Maximum size of log file before rotation (default: 10MB)
+        backup_count: Number of backup files to keep (default: 5)
     """
+    # Create formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s'
+    )
     
-    def __init__(self, name: str = "todo_app", level: int = logging.INFO):
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(level)
-        
-        # Prevent duplicate handlers if logger already has handlers
-        if not self.logger.handlers:
-            self._setup_handlers()
+    # Create root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
     
-    def _setup_handlers(self):
-        """Set up console and file handlers"""
-        # Console handler
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.DEBUG)
-        console_formatter = ColoredFormatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+    # Remove any existing handlers
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    
+    # Create console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
+    
+    # Create file handler if log_file is specified
+    if log_file:
+        file_handler = RotatingFileHandler(
+            log_file,
+            maxBytes=max_bytes,
+            backupCount=backup_count
         )
-        console_handler.setFormatter(console_formatter)
-        self.logger.addHandler(console_handler)
-        
-        # File handler
-        log_dir = Path("logs")
-        log_dir.mkdir(exist_ok=True)
-        file_handler = logging.FileHandler(log_dir / "app.log")
-        file_handler.setLevel(logging.DEBUG)
-        file_formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
-        )
-        file_handler.setFormatter(file_formatter)
-        self.logger.addHandler(file_handler)
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
     
-    def get_logger(self):
-        """Return the configured logger instance"""
-        return self.logger
+    # Set specific log levels for certain loggers
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("passlib").setLevel(logging.WARNING)
 
 
-class ColoredFormatter(logging.Formatter):
+def get_logger(name: str) -> logging.Logger:
     """
-    Custom formatter to add colors to log levels
-    """
+    Get a logger with the specified name.
     
-    # Define color codes
-    COLORS = {
-        'DEBUG': '\033[36m',    # Cyan
-        'INFO': '\033[32m',     # Green
-        'WARNING': '\033[33m',  # Yellow
-        'ERROR': '\033[31m',    # Red
-        'CRITICAL': '\033[35m', # Magenta
-    }
-    RESET = '\033[0m'  # Reset to default color
+    Args:
+        name: Name of the logger
     
-    def format(self, record):
-        # Add color to the level name
-        level_color = self.COLORS.get(record.levelname, '')
-        record.levelname = f"{level_color}{record.levelname}{self.RESET}"
-        
-        # Call parent format method
-        return super().format(record)
+    Returns:
+        logging.Logger instance
+    """
+    return logging.getLogger(name)
 
 
-def setup_logging(name: str = "todo_app", level: int = logging.INFO) -> logging.Logger:
+def log_info(logger: logging.Logger, message: str, extra: Optional[dict] = None):
     """
-    Set up and return a configured logger instance
-    """
-    app_logger = AppLogger(name, level)
-    return app_logger.get_logger()
-
-
-def log_api_call(
-    logger: logging.Logger,
-    endpoint: str,
-    method: str,
-    user_id: str = None,
-    status_code: int = None,
-    response_time: float = None,
-    extra_data: Dict[str, Any] = None
-):
-    """
-    Log API call details
-    """
-    log_data = {
-        "type": "api_call",
-        "endpoint": endpoint,
-        "method": method,
-        "timestamp": datetime.utcnow().isoformat(),
-        "user_id": user_id,
-        "status_code": status_code,
-        "response_time_ms": response_time,
-        "extra_data": extra_data or {}
-    }
+    Log an info message.
     
-    logger.info(f"API CALL: {json.dumps(log_data)}")
+    Args:
+        logger: Logger instance
+        message: Message to log
+        extra: Extra context information
+    """
+    logger.info(message, extra=extra)
 
 
-def log_error(
-    logger: logging.Logger,
-    error: Exception,
-    context: str = "",
-    user_id: str = None,
-    extra_data: Dict[str, Any] = None
-):
+def log_warning(logger: logging.Logger, message: str, extra: Optional[dict] = None):
     """
-    Log error details
-    """
-    log_data = {
-        "type": "error",
-        "error_type": type(error).__name__,
-        "error_message": str(error),
-        "context": context,
-        "timestamp": datetime.utcnow().isoformat(),
-        "user_id": user_id,
-        "extra_data": extra_data or {}
-    }
+    Log a warning message.
     
-    logger.error(f"ERROR: {json.dumps(log_data)}")
+    Args:
+        logger: Logger instance
+        message: Message to log
+        extra: Extra context information
+    """
+    logger.warning(message, extra=extra)
 
 
-def log_business_event(
-    logger: logging.Logger,
-    event_name: str,
-    user_id: str = None,
-    details: Dict[str, Any] = None
-):
+def log_error(logger: logging.Logger, message: str, extra: Optional[dict] = None, exc_info: bool = False):
     """
-    Log business events
-    """
-    log_data = {
-        "type": "business_event",
-        "event_name": event_name,
-        "timestamp": datetime.utcnow().isoformat(),
-        "user_id": user_id,
-        "details": details or {}
-    }
+    Log an error message.
     
-    logger.info(f"BUSINESS EVENT: {json.dumps(log_data)}")
+    Args:
+        logger: Logger instance
+        message: Message to log
+        extra: Extra context information
+        exc_info: Include exception information if True
+    """
+    logger.error(message, extra=extra, exc_info=exc_info)
+
+
+def log_debug(logger: logging.Logger, message: str, extra: Optional[dict] = None):
+    """
+    Log a debug message.
+    
+    Args:
+        logger: Logger instance
+        message: Message to log
+        extra: Extra context information
+    """
+    logger.debug(message, extra=extra)
+
+
+# Initialize logging when module is imported
+setup_logging()
