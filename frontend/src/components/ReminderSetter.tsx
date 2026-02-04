@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
-import { Reminder } from '@/src/lib/types';
-import { formatForDisplay } from '@/src/lib/timezone-utils';
+import { Reminder } from '@/lib/types';
+import { formatForDisplay } from '@/lib/timezone-utils';
 
 interface ReminderSetterProps {
   onAddReminder: (reminder: Reminder) => void;
@@ -49,24 +49,39 @@ export const ReminderSetter: React.FC<ReminderSetterProps> = ({
   };
 
   return (
-    <div className="w-full">
-      <form onSubmit={handleSubmit} className="space-y-2">
+    <div className="w-full" role="region" aria-label="Reminder Settings">
+      <form onSubmit={handleSubmit} className="space-y-2" role="form" aria-labelledby="reminder-setter-heading">
+        <h3 id="reminder-setter-heading" className="sr-only">Reminder Settings</h3>
         {error && (
-          <div className="p-2 bg-red-100 text-red-700 rounded text-sm">
+          <div
+            className="p-2 bg-red-100 text-red-700 rounded text-sm"
+            role="alert"
+            aria-live="assertive"
+          >
             {error}
           </div>
         )}
-        
+
         <div className="flex flex-col sm:flex-row gap-2">
           <Input
             type="datetime-local"
             value={scheduledTime}
             onChange={(e) => setScheduledTime(e.target.value)}
             className="flex-1"
+            aria-label="Reminder scheduled time"
+            aria-describedby="reminder-help-text"
           />
-          <Button type="submit" variant="outline" size="sm">
+          <Button
+            type="submit"
+            variant="outline"
+            size="sm"
+            aria-label="Add reminder"
+          >
             Add Reminder
           </Button>
+        </div>
+        <div id="reminder-help-text" className="sr-only">
+          Select the date and time for the reminder to be scheduled
         </div>
       </form>
       

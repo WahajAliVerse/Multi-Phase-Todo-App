@@ -14,23 +14,48 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     
     const classes = `${baseClasses} ${errorClass} ${className || ''}`;
     
+    // Generate unique IDs for accessibility
+    const id = props.id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const errorId = error ? `${id}-error` : undefined;
+    const helperId = helperText && !error ? `${id}-helper` : undefined;
+
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium mb-1 text-gray-700">
+          <label
+            htmlFor={id}
+            className="block text-sm font-medium mb-1 text-gray-700"
+          >
             {label}
+            {props.required && <span className="text-red-500 ml-1" aria-label="required">*</span>}
           </label>
         )}
         <input
           ref={ref}
+          id={id}
           className={classes}
+          aria-invalid={!!error}
+          aria-describedby={`${errorId ? errorId : ''} ${helperId ? helperId : ''}`.trim()}
           {...props}
         />
         {helperText && !error && (
-          <p className="mt-1 text-sm text-gray-500">{helperText}</p>
+          <p
+            id={helperId}
+            className="mt-1 text-sm text-gray-500"
+            aria-live="polite"
+          >
+            {helperText}
+          </p>
         )}
         {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
+          <p
+            id={errorId}
+            className="mt-1 text-sm text-red-600"
+            role="alert"
+            aria-live="assertive"
+          >
+            {error}
+          </p>
         )}
       </div>
     );

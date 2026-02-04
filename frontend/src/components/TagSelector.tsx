@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
-import { Tag } from '@/src/lib/types';
+import { Tag } from '@/lib/types';
 
 interface TagSelectorProps {
   allTags: Tag[];
@@ -132,8 +132,11 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   ];
 
   return (
-    <div className="relative w-full">
-      <div className="flex flex-wrap gap-2 mb-2 min-h-[40px] p-1 bg-gray-50 rounded border">
+    <div className="relative w-full" role="combobox" aria-haspopup="listbox" aria-expanded={showDropdown}>
+      <div
+        className="flex flex-wrap gap-2 mb-2 min-h-[40px] p-1 bg-gray-50 rounded border"
+        role="presentation"
+      >
         {selectedTags.map(tag => (
           <div 
             key={tag.id} 

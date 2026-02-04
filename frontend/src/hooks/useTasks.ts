@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Task, Tag, RecurrencePattern, Reminder } from '@/src/lib/types';
+import { Task, Tag, RecurrencePattern, Reminder } from '@/lib/types';
 
 // Custom hook for managing tasks with advanced filtering
 export const useTasks = () => {
@@ -137,12 +137,12 @@ export const useTasks = () => {
     if (criteria.startDate || criteria.endDate) {
       filteredTasks = filteredTasks.filter(task => {
         if (!task.dueDate) return false;
-        
+
         const taskDate = new Date(task.dueDate);
-        
+
         if (criteria.startDate && taskDate < criteria.startDate) return false;
         if (criteria.endDate && taskDate > criteria.endDate) return false;
-        
+
         return true;
       });
     }
@@ -150,14 +150,75 @@ export const useTasks = () => {
     // Apply search query filter
     if (criteria.searchQuery) {
       const query = criteria.searchQuery.toLowerCase();
-      filteredTasks = filteredTasks.filter(task => 
+      filteredTasks = filteredTasks.filter(task =>
         task.title.toLowerCase().includes(query) ||
         (task.description && task.description.toLowerCase().includes(query)) ||
-        task.tags.some(tag => tag.name.toLowerCase().includes(query))
+        task.tags.some(tag => tag.name.toLowerCase().includes(query)) ||
+        // Include recurrence pattern details in search
+        (task.recurrencePattern && (
+          task.recurrencePattern.patternType.toLowerCase().includes(query) ||
+          task.recurrencePattern.endCondition.toLowerCase().includes(query)
+        )) ||
+        // Include reminder details in search
+        (task.reminders && task.reminders.some(reminder =>
+          reminder.deliveryStatus.toLowerCase().includes(query)
+        ))
       );
     }
 
     return filteredTasks;
+  }, [tasks]);
+
+  // Additional filtering functions for specific use cases
+  const filterTasksByTagIds = useCallback((tagIds: number[]): Task[] => {
+    if (tagIds.length === 0) return tasks;
+    return tasks.filter(task => {
+      if (!task.tags || task.tags.length === 0) return false;
+      return task.tags.some(tag => tagIds.includes(tag.id));
+    });
+  }, [tasks]);
+
+  const filterTasksByRecurrenceType = useCallback((patternType: 'daily' | 'weekly' | 'monthly' | 'yearly'): Task[] => {
+    return tasks.filter(task =>
+      task.recurrencePattern && task.recurrencePattern.patternType === patternType
+    );
+  }, [tasks]);
+
+  const filterTasksByReminderStatus = useCallback((status: 'pending' | 'sent' | 'delivered' | 'failed'): Task[] => {
+    return tasks.filter(task =>
+      task.reminders && task.reminders.some(reminder => reminder.deliveryStatus === status)
+    );
+  }, [tasks]);
+
+  // Function to get tasks with upcoming reminders
+  const getTasksWithUpcomingReminders = useCallback((minutesAhead: number = 30): Task[] => {
+    const now = new Date();
+    const futureTime = new Date(now.getTime() + minutesAhead * 60000); // Convert minutes to milliseconds
+
+    return tasks.filter(task =>
+      task.reminders &&
+      task.reminders.some(reminder => {
+        const reminderTime = new Date(reminder.scheduledTime);
+        return reminder.deliveryStatus === 'pending' &&
+               reminderTime >= now &&
+               reminderTime <= futureTime;
+      })
+    );
+  }, [tasks]);
+
+  // Function to get recurring tasks
+  const getRecurringTasks = useCallback((): Task[] => {
+    return tasks.filter(task => task.recurrencePattern !== undefined);
+  }, [tasks]);
+
+  // Function to get tasks with tags
+  const getTasksWithTags = useCallback((): Task[] => {
+    return tasks.filter(task => task.tags && task.tags.length > 0);
+  }, [tasks]);
+
+  // Function to get tasks with reminders
+  const getTasksWithReminders = useCallback((): Task[] => {
+    return tasks.filter(task => task.reminders && task.reminders.length > 0);
   }, [tasks]);
 
   // Get tasks with upcoming due dates
@@ -265,6 +326,14 @@ export const useTasks = () => {
     filterTasksByReminders,
     filterTasksByDueDateRange,
     filterTasksAdvanced,
+    // Additional filtering functions
+    filterTasksByTagIds,
+    filterTasksByRecurrenceType,
+    filterTasksByReminderStatus,
+    getTasksWithUpcomingReminders,
+    getRecurringTasks,
+    getTasksWithTags,
+    getTasksWithReminders,
     getTasksWithUpcomingDueDates,
     getOverdueTasks,
     getTasksWithPendingReminders,

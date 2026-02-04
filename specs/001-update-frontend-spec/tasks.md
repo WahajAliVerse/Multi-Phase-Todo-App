@@ -1,23 +1,15 @@
-# Tasks: Frontend Updates for Recurrence, Reminders, and Tags
+# Tasks: Frontend UI Enhancements
 
-**Input**: Design documents from `/specs/001-update-frontend-spec/`
+**Input**: Design documents from `/specs/[001-update-frontend-spec]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
 **Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
-**Total task count**: 117 tasks
+**TDD Compliance**: All tasks follow Test-Driven Development approach as required by the project constitution. For each implementation task, there MUST be a corresponding test task that is written and verified to fail before implementation begins. This ensures compliance with the constitutional requirement for TDD. All implementation tasks must have corresponding test tasks in the same user story phase, and the test must be run and confirmed to fail before the implementation task begins.
 
-**Task count per user story**:
-- User Story 5 (Recurrence Patterns): 8 tasks
-- User Story 6 (Notifications and Reminders): 10 tasks
-- User Story 7 (Tags and Categorization): 9 tasks
-- User Story 2 (Task Management): 8 tasks
-- User Story 3 (Filtering and Search): 8 tasks
-- Edge Cases & Error Handling: 7 tasks
-- Success Criteria Validation: 18 tasks
-- Setup, Foundational, and Polish phases: 49 tasks
+**Security Compliance**: All implementation tasks must follow the security-first principle with proper validation for all user inputs as required by the project constitution.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -25,21 +17,20 @@
 - **[Story]**: Which user story this belongs to (e.g., US1, US2, US3)
 - Include exact file paths in descriptions
 
-<!--
-  ============================================================================
-  IMPORTANT: The tasks below are ACTUAL TASKS based on the feature specification
-  for implementing recurrence patterns, notifications/reminders, and tags in the
-  frontend application.
-  ============================================================================
--->
+## Path Conventions
+
+- **Single project**: `src/`, `tests/` at repository root
+- **Web app**: `backend/src/`, `frontend/src/`
+- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
+- Paths shown below assume single project - adjust based on plan.md structure
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-**Purpose**: Project initialization and basic structure for the new frontend features
+**Purpose**: Project initialization and basic structure
 
-- [X] T001 Create project structure per implementation plan in frontend/
-- [X] T002 Initialize TypeScript project with Next.js 16+ and Tailwind CSS dependencies
-- [X] T003 [P] Configure linting and formatting tools (ESLint, Prettier) for frontend
+- [ ] T001 Create project structure per implementation plan in frontend/
+- [ ] T002 Initialize TypeScript 5.x project with Next.js 16+, Redux Toolkit, RTK Query, Tailwind CSS, React Hook Form, Zod dependencies
+- [ ] T003 [P] Configure linting and formatting tools for TypeScript and Tailwind CSS
 
 ---
 
@@ -51,198 +42,264 @@
 
 Examples of foundational tasks (adjust based on your project):
 
-- [X] T004 Setup Redux store with Redux Toolkit in frontend/src/store/
-- [X] T005 [P] Implement API service layer with RTK Query in frontend/src/lib/api.ts
-- [X] T006 [P] Define TypeScript type interfaces for Task, Tag, RecurrencePattern, and Reminder in frontend/src/lib/types.ts
-- [X] T007 Create base UI components (Button, Input, Select) in frontend/src/components/ui/
-- [X] T008 Configure error handling and loading states infrastructure
-- [X] T009 Setup authentication utilities to handle HTTP-only cookies in frontend/src/lib/auth.ts
+- [ ] T004 Setup Redux store with RTK Query API configuration in frontend/src/store/
+- [ ] T005 [P] Implement authentication/authorization framework in frontend/src/services/auth.ts
+- [ ] T006 [P] Setup API routing and middleware structure in frontend/src/services/api.ts
+- [ ] T007 Create base models/types that all stories depend on in frontend/src/types/
+- [ ] T008 Configure error handling and logging infrastructure in frontend/src/lib/
+- [ ] T009 Setup environment configuration management in frontend/src/config/
+- [ ] T010 [P] Create theme provider with blue/purple gradient theme in frontend/src/context/
+- [ ] T011 Implement basic UI components (Navbar, Footer) with gradient theme in frontend/src/components/
+- [ ] T012 [P] Set up Tailwind CSS configuration with blue and purple gradient theme
+- [ ] T013 [P] Implement security middleware for input validation and sanitization in frontend/src/middleware/security.ts
+- [ ] T014 [P] Set up security headers and CSP configuration in frontend/next.config.js
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
 ---
 
-## Phase 3: User Story 5 - Task Recurrence Patterns (Priority: P2) 🎯
+## Phase 3: User Story 1 - User Registration and Login (Priority: P1) 🎯 MVP
 
-**Goal**: Enable users to create recurring tasks that repeat on a schedule (daily, weekly, monthly, yearly) so that they don't have to manually recreate repetitive tasks.
+**Goal**: Enable new users to register for the todo app and log in to start managing their tasks
 
-**Independent Test**: Can be tested by creating a recurring task, verifying it appears in the task list, and confirming that subsequent instances are generated according to the recurrence pattern.
+**Independent Test**: Can be fully tested by registering a new account, logging in, and verifying access to the dashboard. Delivers the foundational value of securing user data and enabling personalization.
 
-### Implementation for User Story 5
+### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
 
-- [X] T010 [P] [US5] Create RecurrencePattern type definition in frontend/src/lib/types.ts
-- [X] T011 [P] [US5] Create recurrenceSlice for managing recurrence patterns in frontend/src/store/slices/recurrenceSlice.ts
-- [X] T012 [US5] Create RecurrenceEditor component in frontend/src/components/RecurrenceEditor.tsx
-- [X] T013 [US5] Implement recurrence pattern validation logic in frontend/src/lib/validation.ts
-- [X] T014 [US5] Add recurrence pattern API endpoints to RTK Query service in frontend/src/lib/api.ts
-- [X] T015 [US5] Update TaskForm to include RecurrenceEditor in frontend/src/components/TaskForm.tsx
-- [X] T016 [US5] Update TaskCard to display recurrence indicators in frontend/src/components/TaskCard.tsx
-- [X] T017 [US5] Add recurrence pattern preview functionality in frontend/src/components/RecurrenceEditor.tsx
+- [ ] T013 [P] [US1] Contract test for authentication endpoints in frontend/src/__tests__/contract/auth.test.ts
+- [ ] T014 [P] [US1] Integration test for user registration/login journey in frontend/src/__tests__/integration/auth-flow.test.ts
 
-**Checkpoint**: At this point, User Story 5 should be fully functional and testable independently
+### Implementation for User Story 1
+
+- [ ] T015 [P] [US1] Create User model/type in frontend/src/types/user.ts
+- [ ] T016 [P] [US1] Create Auth service in frontend/src/services/authService.ts
+- [ ] T017 [US1] Implement registration form component with React Hook Form and Zod validation in frontend/src/components/forms/RegisterForm.tsx
+- [ ] T018 [US1] Implement login form component with React Hook Form and Zod validation in frontend/src/components/forms/LoginForm.tsx
+- [ ] T019 [US1] Create registration page in frontend/src/app/register/page.tsx
+- [ ] T020 [US1] Create login page in frontend/src/app/login/page.tsx
+- [ ] T021 [US1] Add authentication state management to Redux store in frontend/src/store/authSlice.ts
+- [ ] T022 [US1] Implement protected routes HOC in frontend/src/components/ProtectedRoute.tsx
+- [ ] T023 [US1] Add loading and error states for authentication flows
+- [ ] T024 [US1] Implement security validation for authentication inputs in frontend/src/validation/authValidation.ts
+
+**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
 ---
 
-## Phase 4: User Story 6 - Task Notifications and Reminders (Priority: P2)
+## Phase 4: User Story 2 - Task Management (Priority: P1)
 
-**Goal**: Allow users to receive notifications and reminders for their tasks so that they don't miss important deadlines or appointments.
+**Goal**: Enable logged-in users to create, view, update, and delete their tasks to effectively manage their daily activities
 
-**Independent Test**: Can be tested by setting up reminders for tasks and verifying that notifications are delivered at the scheduled time.
+**Independent Test**: Can be fully tested by creating, viewing, updating, and deleting tasks. Delivers the primary value proposition of the application.
 
-### Implementation for User Story 6
+### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-- [X] T018 [P] [US6] Create Reminder type definition in frontend/src/lib/types.ts
-- [X] T019 [P] [US6] Create remindersSlice for managing reminders in frontend/src/store/slices/remindersSlice.ts
-- [X] T020 [US6] Create ReminderSetter component in frontend/src/components/ReminderSetter.tsx
-- [X] T021 [US6] Implement browser notification API integration in frontend/src/lib/notifications.ts
-- [X] T022 [US6] Add reminder API endpoints to RTK Query service in frontend/src/lib/api.ts
-- [X] T023 [US6] Update TaskForm to include ReminderSetter in frontend/src/components/TaskForm.tsx
-- [X] T024 [US6] Update TaskCard to display reminder indicators in frontend/src/components/TaskCard.tsx
-- [X] T025 [US6] Implement reminder scheduling and management in frontend/src/hooks/useReminders.ts
-- [X] T026 [US6] Implement email notification functionality for reminders in frontend/src/lib/email-notifications.ts
-- [X] T027 [US6] Implement timezone handling for reminders using date-fns-tz in frontend/src/lib/timezone-utils.ts
+- [ ] T024 [P] [US2] Contract test for task endpoints in frontend/src/__tests__/contract/task.test.ts
+- [ ] T025 [P] [US2] Integration test for task CRUD operations in frontend/src/__tests__/integration/task-flow.test.ts
 
-**Checkpoint**: At this point, User Stories 5 AND 6 should both work independently
+### Implementation for User Story 2
+
+- [ ] T026 [P] [US2] Create Task model/type in frontend/src/types/task.ts
+- [ ] T027 [P] [US2] Create Task service in frontend/src/services/taskService.ts
+- [ ] T028 [US2] Implement task CRUD operations with RTK Query in frontend/src/services/taskApi.ts
+- [ ] T029 [US2] Create task list component in frontend/src/components/tasks/TaskList.tsx
+- [ ] T030 [US2] Create task form component with React Hook Form and Zod validation in frontend/src/components/tasks/TaskForm.tsx
+- [ ] T031 [US2] Create task item component in frontend/src/components/tasks/TaskItem.tsx
+- [ ] T032 [US2] Create dashboard page with task management in frontend/src/app/dashboard/page.tsx
+- [ ] T033 [US2] Add task state management to Redux store in frontend/src/store/taskSlice.ts
+- [ ] T034 [US2] Implement task creation modal/form in frontend/src/components/tasks/CreateTaskModal.tsx
+- [ ] T035 [US2] Add loading and error states for task operations
+- [ ] T036 [US2] Implement security validation for task inputs in frontend/src/validation/taskValidation.ts
+
+**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
 ---
 
 ## Phase 5: User Story 7 - Task Tags and Categorization (Priority: P2)
 
-**Goal**: Enable users to categorize their tasks with tags so that they can organize and filter them by topic, project, or context.
+**Goal**: Enable users to categorize their tasks with tags to organize and filter them by topic, project, or context
 
 **Independent Test**: Can be tested by creating tags, assigning them to tasks, and filtering tasks by tags.
 
+### Tests for User Story 7 (OPTIONAL - only if tests requested) ⚠️
+
+- [ ] T036 [P] [US7] Contract test for tag endpoints in frontend/src/__tests__/contract/tag.test.ts
+- [ ] T037 [P] [US7] Integration test for tag management in frontend/src/__tests__/integration/tag-flow.test.ts
+
 ### Implementation for User Story 7
 
-- [X] T028 [P] [US7] Create Tag type definition in frontend/src/lib/types.ts
-- [X] T029 [P] [US7] Create tagsSlice for managing tags in frontend/src/store/slices/tagsSlice.ts
-- [X] T030 [US7] Create TagSelector component in frontend/src/components/TagSelector.tsx
-- [X] T031 [US7] Create Tag management page in frontend/src/app/tags/page.tsx
-- [X] T032 [US7] Add tag API endpoints to RTK Query service in frontend/src/lib/api.ts
-- [X] T033 [US7] Update TaskForm to include TagSelector in frontend/src/components/TaskForm.tsx
-- [X] T034 [US7] Update TaskCard to display assigned tags in frontend/src/components/TaskCard.tsx
-- [X] T035 [US7] Implement tag filtering functionality in frontend/src/hooks/useTags.ts
-- [X] T036 [US7] Add tag autocomplete functionality in frontend/src/components/TagSelector.tsx
+- [ ] T038 [P] [US7] Create Tag model/type in frontend/src/types/tag.ts
+- [ ] T039 [P] [US7] Create Tag service in frontend/src/services/tagService.ts
+- [ ] T040 [US7] Implement tag CRUD operations with RTK Query in frontend/src/services/tagApi.ts
+- [ ] T041 [US7] Create tag management component in frontend/src/components/tags/TagManager.tsx
+- [ ] T042 [P] [US7] Create tag selector component in frontend/src/components/tags/TagSelector.tsx
+- [ ] T043 [US7] Create tag badge component in frontend/src/components/tags/TagBadge.tsx
+- [ ] T044 [US7] Add tag assignment functionality to TaskForm in frontend/src/components/tasks/TaskForm.tsx
+- [ ] T045 [US7] Add tag filtering functionality to TaskList in frontend/src/components/tasks/TaskList.tsx
+- [ ] T046 [US7] Add tag state management to Redux store in frontend/src/store/tagSlice.ts
+- [ ] T047 [US7] Create tag management page in frontend/src/app/tags/page.tsx
+- [ ] T048 [US7] Implement tag color selection from accessible palette in frontend/src/components/tags/ColorPicker.tsx
+- [ ] T049 [US7] Implement security validation for tag inputs in frontend/src/validation/tagValidation.ts
+
+**Checkpoint**: At this point, User Stories 1, 2, and 7 should all work independently
+
+---
+
+## Phase 6: User Story 5 - Task Recurrence Patterns (Priority: P2)
+
+**Goal**: Enable users to create recurring tasks that repeat on a schedule (daily, weekly, monthly, yearly) so that they don't have to manually recreate repetitive tasks
+
+**Independent Test**: Can be tested by creating a recurring task, verifying it appears in the task list, and confirming that subsequent instances are generated according to the recurrence pattern.
+
+### Tests for User Story 5 (OPTIONAL - only if tests requested) ⚠️
+
+- [ ] T049 [P] [US5] Contract test for recurrence pattern endpoints in frontend/src/__tests__/contract/recurrence.test.ts
+- [ ] T050 [P] [US5] Integration test for recurrence pattern creation in frontend/src/__tests__/integration/recurrence-flow.test.ts
+
+### Implementation for User Story 5
+
+- [ ] T051 [P] [US5] Create RecurrencePattern model/type in frontend/src/types/recurrence.ts
+- [ ] T052 [P] [US5] Create Recurrence service in frontend/src/services/recurrenceService.ts
+- [ ] T053 [US5] Implement recurrence pattern CRUD operations with RTK Query in frontend/src/services/recurrenceApi.ts
+- [ ] T054 [US5] Create recurrence pattern form component in frontend/src/components/recurrence/RecurrenceForm.tsx
+- [ ] T055 [US5] Add recurrence pattern selection to TaskForm in frontend/src/components/tasks/TaskForm.tsx
+- [ ] T056 [US5] Create recurrence pattern display component in frontend/src/components/recurrence/RecurrenceDisplay.tsx
+- [ ] T057 [US5] Add recurrence state management to Redux store in frontend/src/store/recurrenceSlice.ts
+- [ ] T058 [US5] Implement recurrence pattern validation in frontend/src/validation/recurrenceSchema.ts
+- [ ] T059 [US5] Add recurrence pattern visualization in TaskItem component in frontend/src/components/tasks/TaskItem.tsx
+- [ ] T060 [US5] Implement conflict detection and resolution for recurrence patterns in frontend/src/components/recurrence/ConflictResolver.tsx
+- [ ] T061 [US5] Implement security validation for recurrence pattern inputs in frontend/src/validation/recurrenceValidation.ts
+
+**Checkpoint**: At this point, User Stories 1, 2, 5, and 7 should all work independently
+
+---
+
+## Phase 7: User Story 6 - Task Notifications and Reminders (Priority: P2)
+
+**Goal**: Enable users to receive notifications and reminders for their tasks so that they don't miss important deadlines or appointments
+
+**Independent Test**: Can be tested by setting up reminders for tasks and verifying that notifications are delivered at the scheduled time.
+
+### Tests for User Story 6 (OPTIONAL - only if tests requested) ⚠️
+
+- [ ] T061 [P] [US6] Contract test for reminder endpoints in frontend/src/__tests__/contract/reminder.test.ts
+- [ ] T062 [P] [US6] Integration test for reminder creation and delivery in frontend/src/__tests__/integration/reminder-flow.test.ts
+
+### Implementation for User Story 6
+
+- [ ] T063 [P] [US6] Create Reminder model/type in frontend/src/types/reminder.ts
+- [ ] T064 [P] [US6] Create Reminder service in frontend/src/services/reminderService.ts
+- [ ] T065 [US6] Implement reminder CRUD operations with RTK Query in frontend/src/services/reminderApi.ts
+- [ ] T066 [US6] Create reminder form component in frontend/src/components/reminders/ReminderForm.tsx
+- [ ] T067 [US6] Add reminder selection to TaskForm in frontend/src/components/tasks/TaskForm.tsx
+- [ ] T068 [US6] Create notification display component in frontend/src/components/notifications/NotificationPanel.tsx
+- [ ] T069 [US6] Implement browser notification functionality in frontend/src/hooks/useBrowserNotification.ts
+- [ ] T070 [US6] Add reminder state management to Redux store in frontend/src/store/reminderSlice.ts
+- [ ] T071 [US6] Create reminder management page in frontend/src/app/reminders/page.tsx
+- [ ] T072 [US6] Implement timezone handling for reminders in frontend/src/utils/timezoneUtils.ts
+- [ ] T073 [US6] Implement security validation for reminder inputs in frontend/src/validation/reminderValidation.ts
+
+**Checkpoint**: At this point, User Stories 1, 2, 5, 6, and 7 should all work independently
+
+---
+
+## Phase 8: User Story 3 - Task Filtering and Search (Priority: P2)
+
+**Goal**: Enable users with many tasks to filter and search their tasks by status, priority, and keywords so that they can quickly find specific tasks
+
+**Independent Test**: Can be tested by applying filters and search terms to the task list and verifying that only matching tasks are displayed.
+
+### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
+
+- [ ] T073 [P] [US3] Contract test for filtered task endpoints in frontend/src/__tests__/contract/filter.test.ts
+- [ ] T074 [P] [US3] Integration test for task filtering and search in frontend/src/__tests__/integration/filter-flow.test.ts
+
+### Implementation for User Story 3
+
+- [ ] T075 [P] [US3] Create filter and search service in frontend/src/services/filterService.ts
+- [ ] T076 [US3] Add filtering and search functionality to TaskList in frontend/src/components/tasks/TaskList.tsx
+- [ ] T077 [US3] Create filter controls component in frontend/src/components/filters/FilterControls.tsx
+- [ ] T078 [US3] Implement search functionality with debouncing in frontend/src/hooks/useSearch.ts
+- [ ] T079 [US3] Add advanced filtering options (by tags, recurrence, reminders) in frontend/src/components/filters/AdvancedFilters.tsx
+- [ ] T080 [US3] Optimize filtering performance with memoization in frontend/src/components/tasks/TaskList.tsx
+- [ ] T081 [US3] Add search results highlighting in frontend/src/components/tasks/TaskItem.tsx
+- [ ] T082 [US3] Implement security validation for search inputs in frontend/src/validation/searchValidation.ts
+
+**Checkpoint**: At this point, all major user stories should be independently functional
+
+---
+
+## Phase 9: User Story 4 - User Profile and Preferences (Priority: P2)
+
+**Goal**: Enable users to view and update their profile information and preferences to customize their experience
+
+**Independent Test**: Can be tested by navigating to the profile page, updating settings, and verifying changes persist.
+
+### Tests for User Story 4 (OPTIONAL - only if tests requested) ⚠️
+
+- [ ] T082 [P] [US4] Contract test for profile endpoints in frontend/src/__tests__/contract/profile.test.ts
+- [ ] T083 [P] [US4] Integration test for profile update in frontend/src/__tests__/integration/profile-flow.test.ts
+
+### Implementation for User Story 4
+
+- [ ] T084 [P] [US4] Create UserProfile model/type in frontend/src/types/user.ts
+- [ ] T085 [US4] Create profile service in frontend/src/services/profileService.ts
+- [ ] T086 [US4] Implement profile CRUD operations with RTK Query in frontend/src/services/profileApi.ts
+- [ ] T087 [US4] Create profile form component with React Hook Form and Zod validation in frontend/src/components/profile/ProfileForm.tsx
+- [ ] T088 [US4] Create profile page in frontend/src/app/profile/page.tsx
+- [ ] T089 [US4] Add profile state management to Redux store in frontend/src/store/profileSlice.ts
+- [ ] T090 [US4] Implement timezone preference selection in frontend/src/components/profile/TimezoneSettings.tsx
+- [ ] T091 [US4] Add theme preference settings in frontend/src/components/profile/ThemeSettings.tsx
+- [ ] T092 [US4] Create notification preference settings in frontend/src/components/profile/NotificationSettings.tsx
+- [ ] T093 [US4] Implement security validation for profile inputs in frontend/src/validation/profileValidation.ts
 
 **Checkpoint**: All user stories should now be independently functional
 
 ---
 
-## Phase 6: User Story 2 - Task Management (Priority: P1) 🎯 MVP
+## Phase 10: Modern UI Enhancements (Frontend Updates)
 
-**Goal**: Extend the core task management functionality to incorporate the new features (recurrence, reminders, tags) into the existing task management system.
+**Goal**: Implement modern UI components including hero section, gradient theme, CTA buttons, and comprehensive navigation
 
-**Independent Test**: Can be fully tested by creating, viewing, updating, and deleting tasks with the new features (recurrence, reminders, tags).
+**Independent Test**: Can be tested by verifying the visual appearance and responsive behavior of the UI components across different screen sizes.
 
-### Implementation for User Story 2
+### Implementation for UI Enhancements
 
-- [X] T037 [P] [US2] Extend Task type definition with tags, recurrence, and reminders in frontend/src/lib/types.ts
-- [X] T038 [P] [US2] Update tasksSlice to handle relations with tags, recurrence, and reminders in frontend/src/store/slices/tasksSlice.ts
-- [X] T039 [US2] Update TaskForm to integrate all new features (recurrence, reminders, tags) in frontend/src/components/TaskForm.tsx
-- [X] T040 [US2] Update TaskCard to display all new features (recurrence, reminders, tags) in frontend/src/components/TaskCard.tsx
-- [X] T041 [US2] Update task API endpoints to handle relations in frontend/src/lib/api.ts
-- [X] T042 [US2] Add comprehensive task filtering by tags, recurrence, and reminders in frontend/src/hooks/useTasks.ts
-- [X] T043 [US2] Update task list page to support filtering by new features in frontend/src/app/tasks/page.tsx
-- [X] T044 [US2] Add task creation flow with all new features in frontend/src/app/tasks/create/page.tsx
-
-**Checkpoint**: At this point, User Stories 2, 5, 6, and 7 should all work together
-
----
-
-## Phase 7: User Story 3 - Task Filtering and Search (Priority: P2)
-
-**Goal**: Enhance the filtering and search functionality to work with the new features (tags, recurrence, reminders).
-
-**Independent Test**: Can be tested by applying filters and search terms to the task list and verifying that only matching tasks are displayed including those with specific tags, recurrence patterns, or reminders.
-
-### Implementation for User Story 3
-
-- [ ] T045 [US3] Extend filtering logic to include tags, recurrence, and reminders in frontend/src/hooks/useTasks.ts
-- [ ] T046 [US3] Update task list page with advanced filtering controls in frontend/src/app/tasks/page.tsx
-- [ ] T047 [US3] Implement search functionality that includes tags and task metadata in frontend/src/lib/search.ts
-- [ ] T048 [US3] Add filter UI components for recurrence and reminders in frontend/src/components/TaskFilters.tsx
-- [ ] T049 [US3] Optimize filtering performance for large datasets with new features
-- [ ] T050 [US3] Add error handling for filtering operations with invalid parameters in frontend/src/hooks/useTasks.ts
-- [ ] T051 [US3] Implement logging for filtering performance metrics in frontend/src/hooks/useTasks.ts
-- [ ] T052 [US3] Implement performance monitoring for filtering operations with tags, recurrence, and reminders
-- [ ] T053 [US3] Add performance benchmarks for filtering operations with 1000+ tasks and 50+ tags
-
-**Checkpoint**: Enhanced filtering and search functionality should work with all new features
+- [ ] T093 [P] Create HeroSection component with gradient theme in frontend/src/components/ui/HeroSection.tsx
+- [ ] T094 [P] Create CTAButton component with gradient effect in frontend/src/components/ui/CTAButton.tsx
+- [ ] T095 [P] Update Navbar component with comprehensive navigation in frontend/src/components/Navbar.tsx
+- [ ] T096 [P] Update Footer component with comprehensive navigation in frontend/src/components/Footer.tsx
+- [ ] T097 [P] Implement responsive design for all UI components in frontend/src/components/
+- [ ] T098 [P] Add accessibility features (ARIA labels, keyboard navigation) to UI components
+- [ ] T099 [P] Create reusable UI components following Tailwind CSS best practices
+- [ ] T100 [P] Implement dark/light theme toggle functionality
+- [ ] T101 [P] Add smooth animations and transitions to UI components
+- [ ] T102 [P] Optimize UI components for performance and accessibility
+- [ ] T103 [P] Implement internationalization (i18n) framework in frontend/src/i18n/
+- [ ] T104 [P] Add multilingual support for UI components in frontend/src/i18n/locales/
+- [ ] T105 [P] Implement comprehensive accessibility audit and WCAG 2.1 AA compliance validation for all UI components
 
 ---
 
-## Phase 8: Edge Cases & Error Handling
-
-**Purpose**: Implementation of error handling and edge case scenarios identified in the spec
-
-- [X] T054 Handle session expiration during task operations in frontend/src/middleware/auth.ts
-- [X] T055 Handle network failures when syncing task updates in frontend/src/hooks/useTasks.ts
-- [X] T056 Prevent unauthorized resource access with proper error handling in frontend/src/middleware/auth.ts
-- [X] T057 Handle empty task list UI state in frontend/src/components/TaskList.tsx
-- [X] T058 Prevent recurrence pattern conflicts with existing tasks in frontend/src/utils/recurrence.ts
-- [X] T059 Handle timezone differences for reminders and recurring tasks in frontend/src/lib/timezone-utils.ts
-- [X] T060 Handle modification of recurring tasks (future vs all instances) in frontend/src/components/RecurrenceEditor.tsx
-
-## Phase 9: Polish & Cross-Cutting Concerns
+## Phase N: Polish & Cross-Cutting Concerns
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [X] T062 [P] Update documentation in frontend/docs/ for new features
-- [X] T063 Code cleanup and refactoring across all new components
-- [X] T064 Performance optimization for task lists with many tags, recurrence patterns, and reminders
-- [X] T065 [P] Add unit tests for new components in frontend/tests/unit/
-- [X] T066 Security hardening for new API endpoints and data handling
-- [X] T067 [P] Implement comprehensive accessibility improvements for all new components (keyboard navigation, ARIA attributes, screen reader support) in frontend/src/components/
-- [X] T068 [P] Implement WCAG 2.1 AA compliance checks for all new components in frontend/src/accessibility/
-- [X] T069 [P] Add ARIA labels and screen reader support for RecurrenceEditor component in frontend/src/components/RecurrenceEditor.tsx
-- [X] T070 [P] Add ARIA labels and screen reader support for ReminderSetter component in frontend/src/components/ReminderSetter.tsx
-- [X] T071 [P] Add ARIA labels and screen reader support for TagSelector component in frontend/src/components/TagSelector.tsx
-- [X] T072 [P] Implement keyboard navigation for all new components (Tab, Enter, Arrow keys) in frontend/src/components/
-- [X] T073 [P] Add focus management and focus traps for modal dialogs in frontend/src/components/
-- [X] T074 [P] Implement color contrast compliance for all new UI elements in frontend/src/components/
-- [X] T075 [P] Add alt text and semantic HTML for all new components in frontend/src/components/
-- [X] T076 [P] Add skip navigation links for keyboard users in frontend/src/components/
-- [X] T077 [P] Implement proper heading hierarchy for all new pages and components
-- [X] T078 [P] Add focus indicators for all interactive elements in frontend/src/components/
-- [X] T079 [P] Implement screen reader announcements for dynamic content updates in frontend/src/components/
-- [X] T080 [P] Implement accessibility testing with automated tools (axe-core) for all new components
-- [X] T081 [P] Add comprehensive accessibility documentation for all new components in frontend/src/accessibility/
-- [X] T082 [P] Implement accessibility compliance checking in CI pipeline
-- [X] T083 Run quickstart.md validation to ensure all features work together
-- [X] T084 Implement metrics collection for user registration completion time in frontend/src/features/auth/metrics.ts
-- [X] T085 Create test to validate user registration completes in under 2 minutes with 95% success rate in frontend/tests/e2e/auth-flow.spec.ts
-- [X] T086 Implement metrics collection for task creation time in frontend/src/features/tasks/metrics.ts
-- [X] T087 Create test to validate user can create new task in under 30 seconds with 98% success rate in frontend/tests/e2e/task-flow.spec.ts
-- [X] T088 Create test to validate 90% of users complete primary task management workflow on first attempt in frontend/tests/e2e/task-workflow.spec.ts
-- [X] T089 Implement Core Web Vitals monitoring in frontend/src/lib/performance.ts
-- [X] T090 Create test to validate application achieves Core Web Vitals score of 90+ in frontend/tests/performance/vitals.spec.ts
-- [X] T091 Create test to validate page load times remain under 3 seconds with 100+ tasks in frontend/tests/performance/load-test.spec.ts
-- [X] T092 Create test to validate interface remains responsive with <100ms interaction response times in frontend/tests/performance/interaction.spec.ts
-- [X] T093 Create accessibility test to achieve 90+ score on automated accessibility tools in frontend/tests/accessibility/a11y.spec.ts
-- [X] T094 Create test to validate minimum Lighthouse performance score of 90 on desktop and 85 on mobile in frontend/tests/performance/lighthouse.spec.ts
-- [X] T095 Create test to validate bundle size stays under 250KB for initial JavaScript load in frontend/tests/performance/bundle-size.spec.ts
-- [X] T096 Create test to validate 95% of API requests complete successfully with appropriate error handling in frontend/tests/integration/api-error-handling.spec.ts
-- [X] T097 Create test to validate application maintains 60fps during all user interactions in frontend/tests/performance/fps.spec.ts
-- [X] T098 Create test to validate users can create and assign tags with 95% success rate and <2 second response time in frontend/tests/e2e/tag-flow.spec.ts
-- [X] T099 Create test to validate recurring tasks generated with 99% accuracy according to specified patterns in frontend/tests/unit/recurrence.spec.ts
-- [X] T100 Create test to validate notifications delivered within 1 minute of scheduled time with 95% reliability in frontend/tests/integration/notification.spec.ts
-- [X] T101 Create test to validate task filtering by tags completes in under 500ms with 1000+ tasks and 50+ tags in frontend/tests/performance/filtering.spec.ts
-- [X] T102 Internationalization setup for recurrence patterns and tag names in frontend/src/i18n/
-- [X] T103 [P] Add i18n support for RecurrenceEditor component with translations in frontend/src/i18n/
-- [X] T104 [P] Add i18n support for ReminderSetter component with translations in frontend/src/i18n/
-- [X] T105 [P] Add i18n support for TagSelector component with translations in frontend/src/i18n/
-- [X] T106 [P] Implement language switcher functionality in frontend/src/components/LanguageSwitcher.tsx
-- [X] T107 Timezone handling implementation for recurrence patterns and reminders using date-fns-tz
-- [X] T108 [P] Add timezone conversion utilities for recurrence patterns in frontend/src/lib/timezone-utils.ts
-- [X] T109 [P] Add timezone conversion utilities for reminders in frontend/src/lib/timezone-utils.ts
-- [X] T110 [P] Implement timezone-aware datetime pickers in frontend/src/components/
-- [X] T111 [P] Add timezone detection and automatic setting in frontend/src/hooks/useTimezone.ts
-- [X] T112 [P] Implement timezone display preferences in user profile settings in frontend/src/app/profile/
-- [X] T113 [P] Add timezone validation and error handling in frontend/src/lib/timezone-utils.ts
-- [X] T114 [P] Implement timezone synchronization between client and server in frontend/src/lib/timezone-utils.ts
-- [X] T115 [P] Add timezone-aware scheduling logic for recurring tasks in frontend/src/lib/timezone-utils.ts
-- [X] T116 [P] Implement timezone-aware notification timing for reminders in frontend/src/lib/timezone-utils.ts
-- [X] T117 [P] Add timezone display formatting for task lists in frontend/src/components/
+- [ ] T106 [P] Documentation updates in docs/
+- [ ] T107 Code cleanup and refactoring
+- [ ] T108 Performance optimization across all stories
+- [ ] T109 [P] Additional unit tests (if requested) in frontend/src/__tests__/unit/
+- [ ] T110 Security hardening
+- [ ] T111 Run quickstart.md validation
+- [ ] T112 [P] Accessibility audit and improvements
+- [ ] T113 SEO optimization for all pages
+- [ ] T114 Bundle size optimization
+- [ ] T115 Conduct comprehensive security audit across all components
+- [ ] T116 Implement automated accessibility testing in CI pipeline
+- [ ] T117 Add comprehensive error boundary coverage across all components
+- [ ] T118 Implement performance monitoring and metrics collection
+- [ ] T119 Conduct end-to-end testing for all user stories
+- [ ] T120 Final accessibility compliance validation (WCAG 2.1 AA)
 
 ---
 
@@ -255,22 +312,25 @@ Examples of foundational tasks (adjust based on your project):
 - **User Stories (Phase 3+)**: All depend on Foundational phase completion
   - User stories can then proceed in parallel (if staffed)
   - Or sequentially in priority order (P1 → P2 → P3)
-- **Edge Cases & Error Handling (Phase 8)**: Depends on user stories being implemented
 - **Polish (Final Phase)**: Depends on all desired user stories being complete
 
 ### User Story Dependencies
 
-- **User Story 5 (P2)**: Can start after Foundational (Phase 2) - No dependencies on other stories
-- **User Story 6 (P2)**: Can start after Foundational (Phase 2) - No dependencies on other stories
-- **User Story 7 (P2)**: Can start after Foundational (Phase 2) - No dependencies on other stories
-- **User Story 2 (P1)**: Can start after Foundational (Phase 2) and should integrate with US5, US6, US7
-- **User Story 3 (P2)**: Can start after US2, US5, US6, US7 are implemented
+- **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
+- **User Story 2 (P2)**: Can start after Foundational (Phase 2) - May integrate with US1 but should be independently testable
+- **User Story 7 (P3)**: Can start after Foundational (Phase 2) - Builds on US2 but should be independently testable
+- **User Story 5 (P4)**: Can start after Foundational (Phase 2) - Builds on US2 but should be independently testable
+- **User Story 6 (P5)**: Can start after Foundational (Phase 2) - Builds on US2 but should be independently testable
+- **User Story 3 (P6)**: Can start after Foundational (Phase 2) - Builds on US2, US5, US6, US7 but should be independently testable
+- **User Story 4 (P7)**: Can start after Foundational (Phase 2) - May integrate with other stories but should be independently testable
 
 ### Within Each User Story
 
+- Tests (if included) MUST be written and FAIL before implementation (TDD approach as required by constitution)
 - Models before services
 - Services before endpoints
 - Core implementation before integration
+- Security validation implemented for all user inputs
 - Story complete before moving to next priority
 
 ### Parallel Opportunities
@@ -278,47 +338,47 @@ Examples of foundational tasks (adjust based on your project):
 - All Setup tasks marked [P] can run in parallel
 - All Foundational tasks marked [P] can run in parallel (within Phase 2)
 - Once Foundational phase completes, all user stories can start in parallel (if team capacity allows)
-- All models within a story marked [P] can run in parallel
+- All tests for a user story marked [P] can run in parallel
+- Models within a story marked [P] can run in parallel
 - Different user stories can be worked on in parallel by different team members
 
 ---
 
-## Parallel Example: User Story 5
+## Parallel Example: User Story 1
 
 ```bash
-# Launch all parallel tasks for User Story 5 together:
-Task: "Create RecurrencePattern type definition in frontend/src/lib/types.ts"
-Task: "Create recurrenceSlice for managing recurrence patterns in frontend/src/store/slices/recurrenceSlice.ts"
-Task: "Create RecurrenceEditor component in frontend/src/components/RecurrenceEditor.tsx"
+# Launch all tests for User Story 1 together (if tests requested):
+Task: "Contract test for authentication endpoints in frontend/src/__tests__/contract/auth.test.ts"
+Task: "Integration test for user registration/login journey in frontend/src/__tests__/integration/auth-flow.test.ts"
+
+# Launch all models for User Story 1 together:
+Task: "Create User model/type in frontend/src/types/user.ts"
+Task: "Create Auth service in frontend/src/services/authService.ts"
 ```
 
 ---
 
 ## Implementation Strategy
 
-### MVP First (User Stories 5, 6, 7, then 2)
+### MVP First (User Story 1 Only)
 
 1. Complete Phase 1: Setup
 2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
-3. Complete Phase 3: User Story 5 (Recurrence Patterns)
-4. Complete Phase 4: User Story 6 (Reminders)
-5. Complete Phase 5: User Story 7 (Tags)
-6. Complete Phase 6: User Story 2 (Integrate all features)
-7. **STOP and VALIDATE**: Test all features together
-8. Deploy/demo if ready
+3. Complete Phase 3: User Story 1
+4. **STOP and VALIDATE**: Test User Story 1 independently
+5. Deploy/demo if ready
 
 ### Incremental Delivery
 
 1. Complete Setup + Foundational → Foundation ready
-2. Add Recurrence Patterns → Test independently → Deploy/Demo
-3. Add Reminders → Test independently → Deploy/Demo
-4. Add Tags → Test independently → Deploy/Demo
-5. Integrate all features → Test together → Deploy/Demo (MVP!)
-6. Add advanced filtering → Test → Deploy/Demo
-7. Add accessibility features → Test → Deploy/Demo
-8. Add internationalization → Test → Deploy/Demo
-9. Add timezone handling → Test → Deploy/Demo
-10. Polish and optimize → Final deployment
+2. Add User Story 1 → Test independently → Deploy/Demo (MVP!)
+3. Add User Story 2 → Test independently → Deploy/Demo
+4. Add User Story 7 → Test independently → Deploy/Demo
+5. Add User Story 5 → Test independently → Deploy/Demo
+6. Add User Story 6 → Test independently → Deploy/Demo
+7. Add User Story 3 → Test independently → Deploy/Demo
+8. Add User Story 4 → Test independently → Deploy/Demo
+9. Each story adds value without breaking previous stories
 
 ### Parallel Team Strategy
 
@@ -326,10 +386,10 @@ With multiple developers:
 
 1. Team completes Setup + Foundational together
 2. Once Foundational is done:
-   - Developer A: User Story 5 (Recurrence Patterns)
-   - Developer B: User Story 6 (Reminders)
-   - Developer C: User Story 7 (Tags)
-   - Developer D: Begin work on User Story 2 (Integration)
+   - Developer A: User Story 1
+   - Developer B: User Story 2
+   - Developer C: User Story 7
+   - Developer D: User Story 5
 3. Stories complete and integrate independently
 
 ---
@@ -339,7 +399,8 @@ With multiple developers:
 - [P] tasks = different files, no dependencies
 - [Story] label maps task to specific user story for traceability
 - Each user story should be independently completable and testable
-- Verify tests fail before implementing
+- Verify tests fail before implementing (TDD approach as required by constitution) - ALL implementation tasks must have corresponding test tasks that are written and verified to fail before implementation begins
+- All implementation must follow security-first principle with proper validation for all user inputs
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence

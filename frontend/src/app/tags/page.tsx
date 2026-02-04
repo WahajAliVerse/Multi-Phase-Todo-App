@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/src/components/ui/Button';
-import { Input } from '@/src/components/ui/Input';
-import { useAppDispatch, useAppSelector } from '@/src/store/hooks';
-import { Tag } from '@/src/lib/types';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { Tag } from '@/lib/types';
 import { 
   addOrUpdateTag, 
   removeTag, 
@@ -12,8 +12,8 @@ import {
   selectTag as selectTagAction,
   clearSelectedTag,
   updateTag
-} from '@/src/store/slices/tagsSlice';
-import { useGetTagsQuery, useCreateTagMutation, useUpdateTagMutation, useDeleteTagMutation } from '@/src/lib/api';
+} from '@/store/slices/tagsSlice';
+import { useGetTagsQuery, useCreateTagMutation, useUpdateTagMutation, useDeleteTagMutation } from '@/lib/api';
 
 // Define the page component
 export default function TagsPage() {

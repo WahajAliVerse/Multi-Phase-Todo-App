@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Reminder } from '@/src/lib/types';
+import { Reminder } from '@/lib/types';
 import { createNotification, scheduleNotification, cancelScheduledNotification } from '../lib/notifications';
 
 // Custom hook for managing reminders

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Tag } from '@/src/lib/types';
+import { Tag } from '@/lib/types';
 
 // Custom hook for managing tags
 export const useTags = () => {

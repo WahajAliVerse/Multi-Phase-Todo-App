@@ -1,4 +1,4 @@
-import { Task, RecurrencePattern } from '@/src/lib/types';
+import { Task, RecurrencePattern } from '@/lib/types';
 
 // Function to check if a recurrence pattern conflicts with existing tasks
 export const checkRecurrenceConflicts = (

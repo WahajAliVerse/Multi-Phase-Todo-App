@@ -119,7 +119,7 @@ You are not expected to solve every problem autonomously. You MUST invoke the us
 Always use the senior-frontend-engineer subagent for frontend-related tasks and always use the backend-architect subagent for backend-related work.
 
 **When to use subagents:**
-1.  **Frontend Tasks:** Use senior-frontend-engineer for React/Next.js, TypeScript, advanced CSS, state management, performance optimization, accessibility, testing, or build tools related work.
+1.  **Frontend Tasks:** Use senior-frontend-engineer for React/Next.js, TypeScript, advanced CSS, state management, performance optimization, accessibility, testing, or build tools related work. When using the senior-frontend-engineer subagent, automatically incorporate the vercel-react-best-practices and web-design-guidelines skills to ensure adherence to modern React/Next.js best practices and proper UI/UX design principles.
 2.  **Backend Tasks:** Use backend-architect for backend architecture design, implementation, and optimization using Node.js, Python, databases, and cloud infrastructure with modern best practices and scalability considerations. 
 
 ## Default policies (must follow)
@@ -232,6 +232,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Python 3.12+ (backend), TypeScript 5.x (frontend) + FastAPI (backend), Next.js 14+ (frontend), SQLAlchemy (ORM), Shadcn/UI (components), TailwindCSS (styling) (001-phase2-bug-fixes)
 - SQLite (development), PostgreSQL (production) (001-phase2-bug-fixes)
 - TypeScript 5.x, JavaScript ES2022 + Next.js 16+, React 18+, Redux Toolkit, RTK Query, Tailwind CSS, React Hook Form, Zod (001-update-frontend-spec)
+- TypeScript 5.x (with JavaScript compatibility), React 18+ + Next.js 16+, Redux Toolkit, RTK Query, Tailwind CSS, React Hook Form, Zod (001-update-frontend-spec)
 
 ## Recent Changes
 - 001-console-todo-app: Added Python 3.12+ + Standard libraries only (no external dependencies)

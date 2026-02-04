@@ -1,17 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { TaskForm } from '@/src/components/TaskForm';
-import { Button } from '@/src/components/ui/Button';
-import { Task, Tag } from '@/src/lib/types';
-import { useAppDispatch } from '@/src/store/hooks';
-import { addOrUpdateTask } from '@/src/store/slices/tasksSlice';
+import { TaskForm } from '@/components/TaskForm';
+import { Button } from '@/components/ui/Button';
+import { Task, Tag } from '@/lib/types';
+import { useAppDispatch } from '@/store/hooks';
+import { addOrUpdateTask } from '@/store/slices/tasksSlice';
 import { 
   useGetTagsQuery, 
   useCreateTaskMutation,
   useGetAllRecurrencePatternsQuery,
   useGetAllRemindersQuery
-} from '@/src/lib/api';
+} from '@/lib/api';
 
 // Define the page component
 export default function CreateTaskPage() {
@@ -30,13 +30,16 @@ export default function CreateTaskPage() {
       // The API expects tag IDs, recurrence pattern ID, and reminder IDs
       const taskData = {
         ...task,
-        tags: task.tags?.map(tag => tag.id) || [],
+        tagIds: task.tags?.map(tag => tag.id) || [],
         recurrencePatternId: task.recurrencePattern?.id,
         reminderIds: task.reminders?.map(reminder => reminder.id) || [],
       };
 
+      // Remove the full objects since the API expects IDs only
+      const { tags, recurrencePattern, reminders, ...apiTaskData } = taskData;
+
       // Call the API to create the task
-      const result = await createTask(taskData).unwrap();
+      const result = await createTask(apiTaskData).unwrap();
       
       // Update local state
       dispatch(addOrUpdateTask(result));

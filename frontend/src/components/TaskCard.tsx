@@ -1,20 +1,22 @@
 import React from 'react';
 import { Button } from './ui/Button';
-import { Task } from '@/src/lib/types';
-import { formatForDisplay } from '@/src/lib/timezone-utils';
+import { Task } from '@/lib/types';
+import { formatForDisplay } from '@/lib/timezone-utils';
 
 interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
   onCompleteToggle: (id: number, completed: boolean) => void;
+  role?: string;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
   onEdit,
   onDelete,
-  onCompleteToggle
+  onCompleteToggle,
+  role = 'article'
 }) => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -26,15 +28,23 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <div className={`border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
-      task.status === 'completed' ? 'bg-green-50 opacity-80' : 'bg-white'
-    }`}>
+    <div
+      className={`border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
+        task.status === 'completed' ? 'bg-green-50 opacity-80' : 'bg-white'
+      }`}
+      role={role}
+      aria-label={`Task: ${task.title}`}
+      aria-describedby={`task-${task.id}-description`}
+    >
       <div className="flex justify-between items-start">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className={`text-lg font-semibold truncate ${
-              task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-800'
-            }`}>
+            <h3
+              className={`text-lg font-semibold truncate ${
+                task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-800'
+              }`}
+              id={`task-${task.id}-title`}
+            >
               {task.title}
             </h3>
 
@@ -138,7 +148,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               task.recurrencePattern.endCondition === 'never' ? 'Never' :
               task.recurrencePattern.endCondition === 'after_occurrences' ?
                 `After ${task.recurrencePattern.occurrenceCount} occurrence${task.recurrencePattern.occurrenceCount !== 1 ? 's' : ''}` :
-              `On ${formatForDisplay(task.recurrencePattern.endDate)}`
+              task.recurrencePattern.endDate ? `On ${formatForDisplay(task.recurrencePattern.endDate)}` : 'No end date'
             }
           </p>
         </div>

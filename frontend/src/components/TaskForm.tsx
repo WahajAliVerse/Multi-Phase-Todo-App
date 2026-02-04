@@ -5,8 +5,8 @@ import { Button } from './ui/Button';
 import { RecurrenceEditor } from './RecurrenceEditor';
 import { TagSelector } from './TagSelector';
 import { ReminderSetter } from './ReminderSetter';
-import { Task, Tag, RecurrencePattern, Reminder } from '@/src/lib/types';
-import { formatForDisplay } from '@/src/lib/timezone-utils';
+import { Task, Tag, RecurrencePattern, Reminder } from '@/lib/types';
+import { formatForDisplay } from '@/lib/timezone-utils';
 
 interface TaskFormProps {
   initialTask?: Task;
@@ -75,8 +75,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white rounded-lg shadow">
-      <h3 className="text-lg font-semibold">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 p-4 bg-white rounded-lg shadow"
+      role="form"
+      aria-label={initialTask ? 'Edit Task Form' : 'Create Task Form'}
+    >
+      <h3 className="text-lg font-semibold" id="task-form-heading">
         {initialTask ? 'Edit Task' : 'Create New Task'}
       </h3>
       

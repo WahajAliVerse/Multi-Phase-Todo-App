@@ -152,7 +152,7 @@ Retrieve tasks with optional filtering by tags, recurrence, and reminders
 
 **Request**:
 - Headers: Authorization: Bearer {token}
-- Query params: 
+- Query params:
   - tagIds: comma-separated list of tag IDs
   - includeRecurrence: boolean
   - includeReminders: boolean

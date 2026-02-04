@@ -2,8 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { Input } from './ui/Input';
 import { Select } from './ui/Select';
 import { Button } from './ui/Button';
-import { RecurrencePattern } from '@/src/lib/types';
-import { formatForDisplay } from '@/src/lib/timezone-utils';
+import { RecurrencePattern } from '@/lib/types';
+import { formatForDisplay } from '@/lib/timezone-utils';
 
 interface RecurrenceEditorProps {
   initialValue?: RecurrencePattern;
@@ -202,8 +202,8 @@ export const RecurrenceEditor: React.FC<RecurrenceEditorProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white rounded-lg shadow">
-      <h3 className="text-lg font-semibold">Recurrence Pattern</h3>
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white rounded-lg shadow" role="form" aria-label="Recurrence Pattern Editor">
+      <h3 className="text-lg font-semibold" id="recurrence-editor-heading">Recurrence Pattern</h3>
 
       {error && (
         <div className="p-2 bg-red-100 text-red-700 rounded">

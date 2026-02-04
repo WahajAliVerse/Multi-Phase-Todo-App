@@ -81,8 +81,7 @@ As a user, I want to create recurring tasks that repeat on a schedule (daily, we
 1. **Given** I am creating or editing a task, **When** I configure recurrence options (daily, weekly, monthly, yearly) with custom intervals and end conditions, **Then** the task is saved with the recurrence pattern and future instances are generated accordingly
 2. **Given** I have a recurring task, **When** I view the task details, **Then** I can see the recurrence pattern information and manage future instances
 3. **Given** I have recurring tasks, **When** I complete one instance, **Then** the next instance is automatically created according to the pattern
-
----
+4. **Given** I attempt to create a recurrence pattern that conflicts with existing tasks, **When** I save the pattern, **Then** the system detects the conflict and prompts me for resolution
 
 ### User Story 6 - Task Notifications and Reminders (Priority: P2)
 
@@ -120,9 +119,9 @@ As a user, I want to categorize my tasks with tags so that I can organize and fi
 - How does the system handle network failures when syncing task updates?
 - What occurs when a user attempts to access unauthorized resources?
 - How does the interface behave when there are no tasks to display?
-- What happens when a user tries to create a recurrence pattern that conflicts with existing tasks?
 - How does the system handle timezone differences for reminders and recurring tasks?
 - What occurs when a user modifies a recurring task - does it affect only future instances or all instances?
+- How does the system handle conflicts when creating recurrence patterns that would overlap with existing tasks?
 
 ## Requirements *(mandatory)*
 
@@ -130,50 +129,62 @@ As a user, I want to categorize my tasks with tags so that I can organize and fi
 
 - **FR-001**: System MUST provide user registration with username, email, and password validation
 - **FR-002**: System MUST authenticate users via username/password and maintain session state using JWT tokens stored in HTTP-only cookies
-- **FR-003**: Users MUST be able to create tasks with title, description, priority (high/medium/low), due date, and status (active/completed)
-- **FR-004**: System MUST allow users to update task details including title, description, priority, due date, and completion status
-- **FR-005**: System MUST enable users to delete tasks from their list
-- **FR-006**: System MUST provide filtering capabilities for tasks by status, priority, and date range
-- **FR-007**: System MUST include search functionality to find tasks by title or description
-- **FR-008**: System MUST display user profile information and allow updating of account details
-- **FR-009**: System MUST handle authentication errors gracefully and redirect to login when session expires
+- **FR-003**: Users MUST be able to create tasks with title, description, priority (high/medium/low), due date, and status (active/completed) in under 300ms with 98% success rate
+- **FR-004**: System MUST allow users to update task details including title, description, priority, due date, and completion status in under 250ms with 98% success rate
+- **FR-005**: System MUST enable users to delete tasks from their list in under 200ms with 99% success rate
+- **FR-006**: System MUST provide filtering capabilities for tasks by status, priority, and date range in under 200ms with 95% success rate
+- **FR-007**: System MUST include search functionality to find tasks by title or description in under 300ms with 95% success rate
+- **FR-008**: System MUST display user profile information and allow updating of account details in under 500ms with 98% success rate
+- **FR-009**: System MUST handle authentication errors gracefully and redirect to login when session expires with error message displayed within 200ms
 - **FR-010**: System MUST provide responsive design that works on desktop, tablet, and mobile devices
-- **FR-011**: System MUST implement proper loading states and error handling for all API operations
-- **FR-012**: System MUST persist user preferences for UI settings like theme selection
-- **FR-013**: System MUST allow users to create and assign tags to tasks with customizable colors
-- **FR-014**: System MUST provide tag management functionality (create, update, delete, assign to tasks)
-- **FR-015**: System MUST allow users to filter tasks by assigned tags
-- **FR-016**: System MUST support creating recurring tasks with configurable patterns (daily, weekly, monthly, yearly)
-- **FR-017**: System MUST generate future task instances based on recurrence patterns
-- **FR-018**: System MUST allow users to modify recurrence patterns for existing tasks
-- **FR-019**: System MUST provide reminder functionality with configurable notification times
-- **FR-020**: System MUST deliver notifications through browser notifications, in-app alerts, or email
-- **FR-021**: System MUST handle timezone differences for recurring tasks and reminders
-- **FR-022**: System MUST allow users to snooze or dismiss reminders
-- **FR-023**: System MUST provide visual indicators for tasks with upcoming due dates or pending reminders
+- **FR-011**: System MUST implement proper loading states and error handling for all API operations with loading states appearing within 100ms and error messages displayed within 200ms
+- **FR-012**: System MUST persist user preferences for UI settings like theme selection with <200ms save time and 99% success rate
+- **FR-013**: System MUST allow users to create and assign tags to tasks with customizable colors in under 200ms with 95% success rate
+- **FR-014**: System MUST provide tag management functionality (create, update, delete, assign to tasks) with operations completing in under 300ms and 95% success rate
+- **FR-015**: System MUST allow users to filter tasks by assigned tags in under 500ms even with 1000+ tasks and 50+ tags
+- **FR-016**: System MUST support creating recurring tasks with configurable patterns (daily, weekly, monthly, yearly) in under 500ms with 95% success rate
+- **FR-017**: System MUST generate future task instances based on recurrence patterns with 99% accuracy and within 100ms of pattern definition
+- **FR-018**: System MUST allow users to modify recurrence patterns for existing tasks in under 400ms with 95% success rate
+- **FR-019**: System MUST detect and prevent conflicts when creating recurrence patterns that would overlap with existing tasks, prompting user for resolution in under 300ms with 95% success rate
+- **FR-020**: System MUST provide reminder functionality with configurable notification times that schedule notifications within 100ms of user setting them
+- **FR-021**: System MUST deliver notifications through browser notifications, in-app alerts, or email within 1 minute of scheduled time with 95% reliability
+- **FR-022**: System MUST handle timezone differences for recurring tasks and reminders with accurate scheduling regardless of user's location changes
+- **FR-023**: System MUST allow users to snooze or dismiss reminders with changes taking effect within 200ms and 98% success rate
+- **FR-024**: System MUST provide visual indicators for tasks with upcoming due dates or pending reminders that update in real-time with <500ms delay
 
 ### Technical Requirements
 
 - **TR-001**: Frontend MUST be built with Next.js 16+ using TypeScript and the App Router
-- **TR-002**: Styling MUST utilize Tailwind CSS for consistent, responsive design
+- **TR-002**: Styling MUST utilize Tailwind CSS for consistent, responsive design with a blue and purple gradient theme and premium accent colors; all UI components MUST follow the design system with specified animation durations (e.g., 300ms for transitions, 500ms for complex animations) and responsive breakpoints (mobile: 640px, tablet: 768px, desktop: 1024px)
 - **TR-003**: State management MUST use Redux Toolkit with RTK Query for API management and normalized caching
 - **TR-004**: All components MUST follow React best practices including proper hooks usage, error boundaries, and performance optimization
-- **TR-005**: The application MUST implement proper accessibility standards (WCAG 2.1 AA level)
-- **TR-006**: API calls MUST be handled through a centralized service layer with proper error handling and retry mechanisms
-- **TR-007**: Authentication state MUST be managed securely, handling HTTP-only cookies from backend appropriately
+- **TR-005**: The application MUST implement proper accessibility standards (WCAG 2.1 AA level) with specific requirements: keyboard focus indicators clearly visible with 2px border, tab order following logical sequence, ARIA labels for all interactive elements, and color contrast ratios of at least 4.5:1
+- **TR-006**: API calls MUST be handled through a centralized service layer with specific error handling: network errors with 3 retries and exponential backoff (1s, 2s, 4s), validation errors with immediate display to user, authentication errors causing redirect to login page within 200ms
+- **TR-007**: Authentication state MUST be managed securely, handling HTTP-only cookies from backend appropriately with automatic session refresh 5 minutes before expiration
 - **TR-008**: The application MUST implement proper SEO practices including meta tags and structured data
-- **TR-009**: Forms MUST be implemented using React Hook Form with Zod for validation
+- **TR-009**: Forms MUST be implemented using React Hook Form with Zod for validation with specific validation behaviors (real-time validation with 500ms debounce, error messages appearing instantly with 200ms fade-in)
 - **TR-010**: The application MUST implement proper loading states with skeleton screens appearing within 100ms and optimistic updates that revert within 5 seconds if API call fails
 - **TR-011**: The application MUST include comprehensive error boundaries for graceful error handling with user-friendly error messages displayed within 200ms
 - **TR-012**: The application MUST implement proper keyboard navigation and focus management for accessibility with keyboard focus indicators clearly visible and tab order following logical sequence
-- **TR-013**: The application MUST include proper internationalization (i18n) support for future expansion
-- **TR-014**: The application MUST implement proper timezone handling using date-fns-tz or similar library
-- **TR-015**: The application MUST include notification management with browser notification API support
-- **TR-016**: The application MUST implement proper form validation for recurrence pattern configurations
-- **TR-017**: The application MUST include type-safe interfaces for all backend API interactions
-- **TR-018**: The application MUST implement proper caching strategies for tags and recurrence patterns to minimize API calls
-- **TR-019**: The application MUST include proper error handling for timezone-related operations
-- **TR-020**: The application MUST implement proper debouncing/throttling for search and filter operations
+- **TR-013**: The application MUST include proper internationalization (i18n) support for future expansion with RTL language support where applicable
+- **TR-014**: The application MUST implement proper timezone handling using date-fns-tz or similar library with all times stored in UTC and displayed in user's local timezone
+- **TR-015**: The application MUST include notification management with browser notification API support, including permission handling and fallback to in-app alerts
+- **TR-016**: The application MUST implement proper form validation for recurrence pattern configurations with real-time validation and clear error messaging
+- **TR-017**: The application MUST include type-safe interfaces for all backend API interactions with comprehensive error type definitions
+- **TR-018**: The application MUST implement proper caching strategies for tags and recurrence patterns to minimize API calls with TTL values of 5 minutes for frequently accessed data and 1 hour for less frequently accessed data
+- **TR-019**: The application MUST include proper error handling for timezone-related operations with fallback to UTC when local timezone detection fails
+- **TR-020**: The application MUST implement proper debouncing/throttling for search and filter operations with 300ms debounce for search and 100ms throttle for filter updates
+- **TR-021**: The application MUST implement a modern hero section with gradient theme and premium color scheme as specified in the design system with responsive behavior (full height on desktop, 80vh on mobile) and animation that completes within 1000ms
+- **TR-022**: The application MUST include prominent CTA buttons with gradient effect for primary actions with hover, focus, and active states clearly defined (scale transform of 1.03 on hover, 2px focus ring, 0.95 scale on active)
+- **TR-023**: The application MUST include comprehensive navigation with links to all main sections in both navbar and footer with mobile-responsive hamburger menu that opens within 200ms
+- **TR-024**: The application MUST implement fully responsive design that works optimally on all device sizes from mobile to desktop with consistent spacing using Tailwind's spacing scale (spacing units of 4px increments)
+- **TR-025**: The application MUST implement accessibility features compliant with WCAG 2.1 AA standards including skip links, semantic HTML, and screen reader compatibility
+- **TR-026**: The application MUST display a clear warning dialog with options to resolve conflicts when recurrence patterns would overlap with existing tasks with the dialog appearing within 300ms of conflict detection
+- **TR-027**: The application MUST implement comprehensive security validation at multiple levels: authentication with JWT tokens stored in HTTP-only cookies, authorization with role-based access controls, input validation with sanitization libraries (e.g., DOMPurify) to prevent XSS, and output encoding for all dynamic content
+- **TR-028**: The application MUST implement centralized error handling with user-friendly messages, automatic retries for transient failures (3 attempts with exponential backoff of 1s, 2s, 4s), and comprehensive logging with error context and stack traces
+- **TR-029**: The application MUST implement comprehensive data validation at both client and server sides with specific validation rules for each field type using Zod schemas, including length limits, format validation, and sanitization of all user inputs before processing
+- **TR-030**: The application MUST implement intelligent caching with appropriate TTL values (5 minutes for frequently accessed data, 1 hour for less frequently accessed data), cache invalidation strategies (immediate invalidation on mutations), and offline support for critical data using service workers
+- **TR-031**: The application MUST maintain comprehensive test coverage: 90% for unit tests, 85% for integration tests, and 80% for end-to-end tests with automated testing pipelines
 
 ### Key Entities
 
@@ -185,6 +196,20 @@ As a user, I want to categorize my tasks with tags so that I can organize and fi
 - **Reminder**: Represents a scheduled notification for a task at a specific time
 
 ## Clarifications
+
+### Session 2026-02-04
+
+- Q: How should the system handle conflicts when a user tries to create a recurrence pattern that conflicts with existing tasks? → A: System should detect and prevent conflicts by prompting user for resolution.
+- Q: How should security validation be implemented across the application? → A: Implement comprehensive security validation at multiple levels (input sanitization, output encoding, authentication/authorization checks).
+- Q: What specific performance benchmarks should be defined for different operations? → A: Define specific performance benchmarks for different operations (e.g., task creation under 300ms, filtering under 200ms).
+- Q: How should error handling be implemented across the application? → A: Implement centralized error handling with user-friendly messages, automatic retries for transient failures, and proper logging.
+- Q: How should data validation be implemented across the application? → A: Implement comprehensive data validation at both client and server sides with specific validation rules for each field type.
+- Q: How should caching be implemented across the application? → A: Implement intelligent caching with appropriate TTL values, cache invalidation strategies, and offline support for critical data.
+- Q: How should performance requirements be specified for different operations? → A: Specify exact response times for different operations (e.g., task creation under 300ms, filtering under 200ms).
+- Q: How should UI/UX components be specified in terms of design system and behavior? → A: Specify exact design system guidelines and component behaviors (e.g., button states, animation durations, responsive breakpoints).
+- Q: How should error handling be differentiated for different error types? → A: Specify distinct behaviors for different error types (network failures with 3 retries and exponential backoff, validation errors with immediate display, authentication errors with redirect to login).
+- Q: How should security measures be specified for different aspects of the application? → A: Specify exact implementation approaches for different security aspects (authentication with JWT in HTTP-only cookies, authorization with role-based checks, input validation with sanitization libraries, data sanitization with DOMPurify or similar).
+- Q: What testing requirements should be specified for the application? → A: Require comprehensive testing with specific coverage percentages and test types (unit 90%, integration 85%, E2E 80%).
 
 ### Session 2026-02-03
 
@@ -203,6 +228,11 @@ As a user, I want to categorize my tasks with tags so that I can organize and fi
 - Q: Should tag names be unique per user account? → A: Tag names must be unique per user account to prevent confusion and maintain data consistency.
 - Q: How should the system handle timezone changes after recurring tasks and reminders are set? → A: When a user changes timezone, recurring tasks and reminders maintain their original scheduled time in the user's original timezone.
 - Q: How should tags be managed in the UI - through a dedicated interface or only during task creation? → A: Provide a dedicated tag management interface where users can view, edit, and delete their tags separately from task creation.
+- Q: What color scheme should be used for the modern gradient theme? → A: Blue and purple gradient with accent colors
+- Q: What design should the CTA button have? → A: Primary button with gradient effect
+- Q: Which pages should be included in the navigation? → A: Include all main sections
+- Q: How responsive should the design be? → A: Fully responsive design
+- Q: What accessibility standards should be followed? → A: WCAG 2.1 AA compliance
 
 ## Success Criteria *(mandatory)*
 
@@ -223,3 +253,6 @@ As a user, I want to categorize my tasks with tags so that I can organize and fi
 - **SC-013**: Recurring tasks are generated correctly according to specified patterns with 99% accuracy
 - **SC-014**: Notifications are delivered within 1 minute of scheduled time with 95% reliability
 - **SC-015**: Task filtering by tags completes in under 500ms even with 1000+ tasks and 50+ tags
+- **SC-016**: Recurrence pattern conflicts are detected and resolved with 95% success rate
+- **SC-017**: Task creation completes in under 300ms with 98% success rate
+- **SC-018**: Task filtering operations complete in under 200ms with 95% success rate

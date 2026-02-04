@@ -1,34 +1,36 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { TaskCard } from '@/src/components/TaskCard';
-import { Button } from '@/src/components/ui/Button';
-import { Input } from '@/src/components/ui/Input';
-import { Select } from '@/src/components/ui/Select';
-import { Task } from '@/src/lib/types';
-import { useTasks } from '@/src/hooks/useTasks';
-import { useAppDispatch, useAppSelector } from '@/src/store/hooks';
-import { 
-  filterTasksByStatus, 
-  filterTasksByPriority, 
-  filterTasksByTags 
-} from '@/src/store/slices/tasksSlice';
-import { 
-  useGetTasksQuery, 
-  useCreateTaskMutation, 
-  useUpdateTaskMutation, 
-  useDeleteTaskMutation 
-} from '@/src/lib/api';
+import { TaskCard } from '@/components/TaskCard';
+import { TaskFilters } from '@/components/TaskFilters';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Task } from '@/lib/types';
+import { useTasks } from '@/hooks/useTasks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  filterTasksByStatus,
+  filterTasksByPriority,
+  filterTasksByTags
+} from '@/store/slices/tasksSlice';
+import {
+  useGetTasksQuery,
+  useCreateTaskMutation,
+  useUpdateTaskMutation,
+  useDeleteTaskMutation
+} from '@/lib/api';
 
 // Define the page component
 export default function TasksPage() {
   const dispatch = useAppDispatch();
   const { tasks, loading, error } = useAppSelector(state => state.tasks);
-  const { 
-    filterTasksAdvanced, 
+  const { tags } = useAppSelector(state => state.tags); // Get tags from the store
+  const {
+    filterTasksAdvanced,
     getTaskStats,
     getOverdueTasks,
-    getTasksWithPendingReminders 
+    getTasksWithPendingReminders
   } = useTasks();
   
   const [statusFilter, setStatusFilter] = useState<'active' | 'completed' | 'all'>('all');
@@ -56,26 +58,26 @@ export default function TasksPage() {
   // Apply filters when any filter changes
   useEffect(() => {
     let result = [...tasks];
-    
+
     // Apply advanced filtering
     result = filterTasksAdvanced({
-      status: statusFilter,
-      priority: priorityFilter,
-      tagIds: tagFilter,
-      hasRecurrence: hasRecurrenceFilter === 'all' ? undefined : hasRecurrenceFilter,
-      hasReminders: hasRemindersFilter === 'all' ? undefined : hasRemindersFilter,
-      searchQuery: searchQuery,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      priority: priorityFilter !== 'all' ? priorityFilter : undefined,
+      tagIds: tagFilter.length > 0 ? tagFilter : undefined,
+      hasRecurrence: hasRecurrenceFilter !== 'all' ? hasRecurrenceFilter : undefined,
+      hasReminders: hasRemindersFilter !== 'all' ? hasRemindersFilter : undefined,
+      searchQuery: searchQuery || undefined,
     });
-    
+
     setFilteredTasks(result);
   }, [
-    tasks, 
-    statusFilter, 
-    priorityFilter, 
-    tagFilter, 
-    hasRecurrenceFilter, 
-    hasRemindersFilter, 
-    searchQuery, 
+    tasks,
+    statusFilter,
+    priorityFilter,
+    tagFilter,
+    hasRecurrenceFilter,
+    hasRemindersFilter,
+    searchQuery,
     filterTasksAdvanced
   ]);
 
@@ -89,8 +91,8 @@ export default function TasksPage() {
         ...taskToUpdate,
         status: completed ? 'completed' : 'active',
         completedAt: completed ? new Date() : undefined
-      };
-      
+      } as Partial<Task>;
+
       await updateTask({ id, task: updatedTask }).unwrap();
       // Update local state
       // In a real app, this would be handled by the RTK Query cache
@@ -118,6 +120,16 @@ export default function TasksPage() {
     } catch (err) {
       console.error('Error deleting task:', err);
     }
+  };
+
+  // Handle reset filters
+  const handleResetFilters = () => {
+    setStatusFilter('all');
+    setPriorityFilter('all');
+    setTagFilter([]);
+    setHasRecurrenceFilter('all');
+    setHasRemindersFilter('all');
+    setSearchQuery('');
   };
 
   // Get task statistics
@@ -148,72 +160,22 @@ export default function TasksPage() {
       </div>
       
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Status</label>
-            <Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              options={[
-                { value: 'all', label: 'All Statuses' },
-                { value: 'active', label: 'Active' },
-                { value: 'completed', label: 'Completed' },
-              ]}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Priority</label>
-            <Select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value as any)}
-              options={[
-                { value: 'all', label: 'All Priorities' },
-                { value: 'low', label: 'Low' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'high', label: 'High' },
-              ]}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Recurrence</label>
-            <Select
-              value={hasRecurrenceFilter === 'all' ? 'all' : hasRecurrenceFilter.toString()}
-              onChange={(e) => setHasRecurrenceFilter(e.target.value === 'all' ? 'all' : e.target.value === 'true')}
-              options={[
-                { value: 'all', label: 'All' },
-                { value: 'true', label: 'Has Recurrence' },
-                { value: 'false', label: 'No Recurrence' },
-              ]}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Reminders</label>
-            <Select
-              value={hasRemindersFilter === 'all' ? 'all' : hasRemindersFilter.toString()}
-              onChange={(e) => setHasRemindersFilter(e.target.value === 'all' ? 'all' : e.target.value === 'true')}
-              options={[
-                { value: 'all', label: 'All' },
-                { value: 'true', label: 'Has Reminders' },
-                { value: 'false', label: 'No Reminders' },
-              ]}
-            />
-          </div>
-        </div>
-        
-        <div className="mt-4">
-          <label className="block text-sm font-medium mb-1">Search</label>
-          <Input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search tasks by title, description, or tags..."
-          />
-        </div>
-      </div>
+      <TaskFilters
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+        priorityFilter={priorityFilter}
+        onPriorityChange={setPriorityFilter}
+        recurrenceFilter={hasRecurrenceFilter}
+        onRecurrenceChange={setHasRecurrenceFilter}
+        reminderFilter={hasRemindersFilter}
+        onReminderChange={setHasRemindersFilter}
+        tagFilter={tagFilter}
+        onTagChange={setTagFilter}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onReset={handleResetFilters}
+        availableTags={tags || []} // Use actual tags from the store
+      />
       
       {/* Tasks List */}
       <div className="space-y-4">
