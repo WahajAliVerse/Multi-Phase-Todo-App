@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from './ui/Button';
 import { Task } from '@/lib/types';
 import { formatForDisplay } from '@/lib/timezone-utils';
+import { getPriorityColors, getCategoryColors, getStatusColors, getTagsColors } from '@/lib/themeColors';
 
 interface TaskCardProps {
   task: Task;
@@ -19,18 +20,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   role = 'article'
 }) => {
   const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+    const colors = getPriorityColors(priority as 'high' | 'medium' | 'low');
+    return `${colors.bg} ${colors.text} border ${colors.border}`;
   };
 
   return (
     <div
       className={`border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
-        task.status === 'completed' ? 'bg-green-50 opacity-80' : 'bg-white'
+        task.status === 'completed'
+          ? `${getStatusColors('completed').bg} opacity-80 border ${getStatusColors('completed').border}`
+          : 'bg-white border-gray-200'
       }`}
       role={role}
       aria-label={`Task: ${task.title}`}
@@ -41,7 +40,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="flex items-center gap-2">
             <h3
               className={`text-lg font-semibold truncate ${
-                task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-800'
+                task.status === 'completed'
+                  ? `line-through ${getStatusColors('completed').text}`
+                  : 'text-gray-800'
               }`}
               id={`task-${task.id}-title`}
             >
@@ -55,14 +56,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
             {/* Recurrence Indicator */}
             {task.recurrencePattern && (
-              <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+              <span className={`text-xs px-2 py-1 rounded-full ${getCategoryColors('recurrence').bg} ${getCategoryColors('recurrence').text} border ${getCategoryColors('recurrence').border}`}>
                 🔁 Recurring
               </span>
             )}
 
             {/* Reminder Indicator */}
             {task.reminders && task.reminders.length > 0 && (
-              <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800">
+              <span className={`text-xs px-2 py-1 rounded-full ${getCategoryColors('reminder').bg} ${getCategoryColors('reminder').text} border ${getCategoryColors('reminder').border}`}>
                 🔔 {task.reminders.length} reminder{task.reminders.length !== 1 ? 's' : ''}
               </span>
             )}
@@ -79,8 +80,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 {task.tags.map(tag => (
                   <span
                     key={tag.id}
-                    className="text-xs px-2 py-1 rounded-full"
-                    style={{ backgroundColor: `${tag.color}20`, color: tag.color }} // Add transparency to background
+                    className={`text-xs px-2 py-1 rounded-full ${getTagsColors().bg(tag.color)} ${getTagsColors().text(tag.color)}`}
                   >
                     {tag.name}
                   </span>

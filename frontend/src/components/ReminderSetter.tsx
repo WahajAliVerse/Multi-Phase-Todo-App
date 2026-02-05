@@ -3,6 +3,7 @@ import { Input } from './ui/Input';
 import { Button } from './ui/Button';
 import { Reminder } from '@/lib/types';
 import { formatForDisplay } from '@/lib/timezone-utils';
+import { getStandardColor } from '@/lib/themeColors';
 
 interface ReminderSetterProps {
   onAddReminder: (reminder: Reminder) => void;
@@ -54,7 +55,7 @@ export const ReminderSetter: React.FC<ReminderSetterProps> = ({
         <h3 id="reminder-setter-heading" className="sr-only">Reminder Settings</h3>
         {error && (
           <div
-            className="p-2 bg-red-100 text-red-700 rounded text-sm"
+            className={`p-2 ${getStandardColor('red', 100)} rounded text-sm`}
             role="alert"
             aria-live="assertive"
           >
@@ -94,10 +95,10 @@ export const ReminderSetter: React.FC<ReminderSetterProps> = ({
                   {formatForDisplay(reminder.scheduledTime)}
                 </span>
                 <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                  reminder.deliveryStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  reminder.deliveryStatus === 'sent' ? 'bg-blue-100 text-blue-800' :
-                  reminder.deliveryStatus === 'delivered' ? 'bg-green-100 text-green-800' :
-                  'bg-red-100 text-red-800'
+                  reminder.deliveryStatus === 'pending' ? getStandardColor('yellow', 100) :
+                  reminder.deliveryStatus === 'sent' ? getStandardColor('blue', 100) :
+                  reminder.deliveryStatus === 'delivered' ? getStandardColor('green', 100) :
+                  getStandardColor('red', 100)
                 }`}>
                   {reminder.deliveryStatus}
                 </span>

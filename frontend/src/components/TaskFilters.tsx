@@ -3,6 +3,7 @@ import { Select } from './ui/Select';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Tag } from '@/lib/types';
+import { getStandardColor } from '@/lib/themeColors';
 
 interface TaskFiltersProps {
   statusFilter: 'active' | 'completed' | 'all';
@@ -131,7 +132,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             
             <div>
               <label className="block text-sm font-medium mb-1">Filter by Tags</label>
-              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border rounded">
+              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border rounded border-gray-200 bg-gray-50">
                 {availableTags.map(tag => (
                   <button
                     key={tag.id}
@@ -139,13 +140,9 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
                     onClick={() => handleTagToggle(tag.id)}
                     className={`px-3 py-1 rounded-full text-sm ${
                       tagFilter.includes(tag.id)
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-800'
+                        ? `${getStandardColor('indigo', 500)}`
+                        : 'bg-gray-100 text-gray-800 border border-gray-200'
                     }`}
-                    style={{
-                      backgroundColor: tagFilter.includes(tag.id) ? tag.color : `${tag.color}20`,
-                      color: tagFilter.includes(tag.id) ? getContrastColor(tag.color) : tag.color
-                    }}
                   >
                     {tag.name}
                   </button>
@@ -169,16 +166,3 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
   );
 };
 
-// Helper function to get contrasting text color
-const getContrastColor = (hexColor: string): string => {
-  // Convert hex to RGB
-  const r = parseInt(hexColor.substr(1, 2), 16);
-  const g = parseInt(hexColor.substr(3, 2), 16);
-  const b = parseInt(hexColor.substr(5, 2), 16);
-  
-  // Calculate luminance
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  
-  // Return black for light backgrounds, white for dark backgrounds
-  return luminance > 0.5 ? '#000000' : '#FFFFFF';
-};

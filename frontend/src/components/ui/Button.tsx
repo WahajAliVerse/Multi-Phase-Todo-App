@@ -1,22 +1,25 @@
 import React from 'react';
+import { getButtonColors } from '@/lib/themeColors';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'outline';
+  variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'success' | 'warning';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ children, variant = 'primary', size = 'md', isLoading, className, ...props }, ref) => {
-    const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background';
-    
+    const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
+
     const variantClasses = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700',
-      secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
-      danger: 'bg-red-600 text-white hover:bg-red-700',
-      outline: 'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground',
+      primary: getButtonColors('primary'),
+      secondary: getButtonColors('secondary'),
+      danger: getButtonColors('danger'),
+      success: getButtonColors('success'),
+      warning: getButtonColors('warning'),
+      outline: 'border border-gray-300 bg-transparent hover:bg-gray-50 text-gray-700',
     };
-    
+
     const sizeClasses = {
       sm: 'h-9 px-3 text-sm',
       md: 'h-10 py-2 px-4 text-base',

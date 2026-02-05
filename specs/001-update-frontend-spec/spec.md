@@ -113,6 +113,21 @@ As a user, I want to categorize my tasks with tags so that I can organize and fi
 2. **Given** I have tasks with assigned tags, **When** I filter by a specific tag, **Then** only tasks with that tag are displayed
 3. **Given** I am creating or editing a task, **When** I assign one or more tags to the task, **Then** the tags are visually represented on the task card and can be used for filtering
 
+### User Story 8 - UI/UX for Advanced Task Features (Priority: P2)
+
+As a user, I want intuitive UI controls for managing task recurrence, notifications, and tags so that I can efficiently configure these advanced features without confusion.
+
+**Why this priority**: Essential for usability of the new features. Without intuitive UI, users won't effectively leverage recurrence, notifications, and tagging capabilities.
+
+**Independent Test**: Can be tested by evaluating user task completion rates for configuring recurrence, notifications, and tags, and measuring user satisfaction scores.
+
+**Acceptance Scenarios**:
+
+1. **Given** I am creating or editing a task, **When** I access the recurrence configuration panel, **Then** I see clear, intuitive controls for setting frequency, intervals, and end conditions
+2. **Given** I am configuring notifications for a task, **When** I open the reminder settings, **Then** I can easily set multiple reminder times and select delivery methods
+3. **Given** I am managing tags, **When** I access the tag management interface, **Then** I can create, edit, and delete tags with an accessible color picker
+4. **Given** I am viewing my task list, **When** I look for tasks with special attributes, **Then** I can quickly identify recurring tasks, tasks with reminders, and tagged tasks through clear visual indicators
+
 ### Edge Cases
 
 - What happens when the user's session expires during a task operation?
@@ -142,8 +157,7 @@ As a user, I want to categorize my tasks with tags so that I can organize and fi
 - **FR-013**: System MUST allow users to create and assign tags to tasks with customizable colors in under 200ms with 95% success rate
 - **FR-014**: System MUST provide tag management functionality (create, update, delete, assign to tasks) with operations completing in under 300ms and 95% success rate
 - **FR-015**: System MUST allow users to filter tasks by assigned tags in under 500ms even with 1000+ tasks and 50+ tags
-- **FR-016**: System MUST support creating recurring tasks with configurable patterns (daily, weekly, monthly, yearly) in under 500ms with 95% success rate
-- **FR-017**: System MUST generate future task instances based on recurrence patterns with 99% accuracy and within 100ms of pattern definition
+- **FR-016**: System MUST support creating recurring tasks with configurable patterns (daily, weekly, monthly, yearly) and automatically generate future task instances based on these patterns with 99% accuracy and within 100ms of pattern definition, completing the entire operation in under 500ms with 95% success rate
 - **FR-018**: System MUST allow users to modify recurrence patterns for existing tasks in under 400ms with 95% success rate
 - **FR-019**: System MUST detect and prevent conflicts when creating recurrence patterns that would overlap with existing tasks, prompting user for resolution in under 300ms with 95% success rate
 - **FR-020**: System MUST provide reminder functionality with configurable notification times that schedule notifications within 100ms of user setting them
@@ -151,6 +165,17 @@ As a user, I want to categorize my tasks with tags so that I can organize and fi
 - **FR-022**: System MUST handle timezone differences for recurring tasks and reminders with accurate scheduling regardless of user's location changes
 - **FR-023**: System MUST allow users to snooze or dismiss reminders with changes taking effect within 200ms and 98% success rate
 - **FR-024**: System MUST provide visual indicators for tasks with upcoming due dates or pending reminders that update in real-time with <500ms delay
+
+### UI/UX Requirements
+
+- **UX-001**: Recurrence pattern configuration interface MUST include intuitive controls for frequency (daily, weekly, monthly, yearly), custom intervals, and end conditions with real-time validation feedback
+- **UX-002**: Notification settings interface MUST allow users to configure multiple reminder times per task with options for browser, email, and in-app delivery methods
+- **UX-003**: Tag management interface MUST provide a dedicated section for creating, editing, and deleting tags with color picker from accessible palette
+- **UX-004**: Task creation/editing form MUST integrate recurrence, notification, and tagging controls seamlessly without overwhelming the user
+- **UX-005**: Task list view MUST visually distinguish recurring tasks, tasks with reminders, and tagged tasks with clear indicators
+- **UX-006**: Filtering controls MUST include dedicated sections for filtering by tags, recurrence status, and reminder status
+- **UX-007**: Conflict resolution interface MUST clearly display overlapping recurrence patterns and provide intuitive options to resolve conflicts
+- **UX-008**: All new UI components MUST follow WCAG 2.1 AA accessibility standards with proper ARIA labels, keyboard navigation, and color contrast ratios
 
 ### Technical Requirements
 
@@ -210,6 +235,7 @@ As a user, I want to categorize my tasks with tags so that I can organize and fi
 - Q: How should error handling be differentiated for different error types? → A: Specify distinct behaviors for different error types (network failures with 3 retries and exponential backoff, validation errors with immediate display, authentication errors with redirect to login).
 - Q: How should security measures be specified for different aspects of the application? → A: Specify exact implementation approaches for different security aspects (authentication with JWT in HTTP-only cookies, authorization with role-based checks, input validation with sanitization libraries, data sanitization with DOMPurify or similar).
 - Q: What testing requirements should be specified for the application? → A: Require comprehensive testing with specific coverage percentages and test types (unit 90%, integration 85%, E2E 80%).
+- Q: Should the frontend spec include detailed UI/UX specifications for recurrence, notifications, and tags features? → A: Yes, detailed UI/UX specifications have been added to ensure comprehensive frontend coverage of all features.
 
 ### Session 2026-02-03
 

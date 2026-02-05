@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
 import { Tag } from '@/lib/types';
+import { getTagsColors } from '@/lib/themeColors';
 
 interface TagSelectorProps {
   allTags: Tag[];
@@ -138,13 +139,9 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
         role="presentation"
       >
         {selectedTags.map(tag => (
-          <div 
-            key={tag.id} 
-            className="flex items-center px-3 py-1 rounded-full text-sm"
-            style={{ 
-              backgroundColor: `${tag.color}20`, // Add transparency to background
-              color: tag.color 
-            }}
+          <div
+            key={tag.id}
+            className={`flex items-center px-3 py-1 rounded-full text-sm ${getTagsColors().bg(tag.color)} ${getTagsColors().text(tag.color)}`}
           >
             {tag.name}
             <button

@@ -11,21 +11,15 @@
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
-
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: TypeScript 5.x (with JavaScript compatibility), React 18+ | Next.js 16+
+**Primary Dependencies**: Next.js 16+, React 18+, Redux Toolkit, RTK Query, Tailwind CSS, React Hook Form, Zod
+**Storage**: N/A (updating frontend specification only)
+**Testing**: Jest, React Testing Library, Cypress for end-to-end tests
+**Target Platform**: Web browsers (Chrome, Firefox, Safari, Edge) with responsive design for mobile/tablet
+**Project Type**: Web application (frontend)
+**Performance Goals**: Page load time <2s, API response time <500ms, 60fps animations
+**Constraints**: WCAG 2.1 AA compliance, responsive design for mobile/desktop, <500ms task operations
+**Scale/Scope**: Individual user accounts with personal task management, up to 1000 tasks per user
 
 ## Constitution Check
 
@@ -38,7 +32,7 @@
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
+specs/001-update-frontend-spec/
 ├── plan.md              # This file (/sp.plan command output)
 ├── research.md          # Phase 0 output (/sp.plan command)
 ├── data-model.md        # Phase 1 output (/sp.plan command)
@@ -48,51 +42,28 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
 frontend/
 ├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
+│   ├── app/
+│   │   ├── components/
+│   │   ├── tasks/
+│   │   ├── tags/
+│   │   ├── recurrence/
+│   │   ├── notifications/
+│   │   └── lib/
+│   ├── services/
+│   ├── store/
+│   └── styles/
+├── public/
 └── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: This is a frontend update to an existing web application. The structure follows Next.js 16+ conventions with App Router, placing new features (recurrence, notifications, tags) in dedicated directories under src/app/. State management uses Redux Toolkit with RTK Query for API interactions.
 
 ## Complexity Tracking
 
@@ -100,5 +71,4 @@ directories captured above]
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| [None] | [No violations identified] | [Compliant with constitution] |

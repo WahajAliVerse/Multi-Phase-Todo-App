@@ -14,6 +14,7 @@ import {
   filterTasksByPriority,
   filterTasksByTags
 } from '@/store/slices/tasksSlice';
+import { getStatusColors } from '@/lib/themeColors';
 import {
   useGetTasksQuery,
   useCreateTaskMutation,
@@ -141,21 +142,21 @@ export default function TasksPage() {
       
       {/* Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold">Total Tasks</h3>
-          <p className="text-2xl">{stats.total}</p>
+        <div className="bg-primary-50 p-4 rounded-lg border border-primary-100">
+          <h3 className="text-lg font-semibold text-primary-700">Total Tasks</h3>
+          <p className="text-2xl text-primary-800">{stats.total}</p>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold">Completed</h3>
-          <p className="text-2xl">{stats.completed}</p>
+        <div className={`${getStatusColors('completed').lightBg} p-4 rounded-lg border ${getStatusColors('completed').border}`}>
+          <h3 className="text-lg font-semibold text-primary-700">Completed</h3>
+          <p className="text-2xl text-primary-800">{stats.completed}</p>
         </div>
-        <div className="bg-yellow-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold">Active</h3>
-          <p className="text-2xl">{stats.active}</p>
+        <div className={`${getStatusColors('active').bg} p-4 rounded-lg border ${getStatusColors('active').border}`}>
+          <h3 className="text-lg font-semibold text-secondary-700">Active</h3>
+          <p className="text-2xl text-secondary-800">{stats.active}</p>
         </div>
-        <div className="bg-red-50 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold">Overdue</h3>
-          <p className="text-2xl">{stats.overdue}</p>
+        <div className={`${getStatusColors('overdue').lightBg} p-4 rounded-lg border ${getStatusColors('overdue').border}`}>
+          <h3 className="text-lg font-semibold text-red-700">Overdue</h3>
+          <p className="text-2xl text-red-800">{stats.overdue}</p>
         </div>
       </div>
       
