@@ -119,7 +119,7 @@ You are not expected to solve every problem autonomously. You MUST invoke the us
 Always use the senior-frontend-engineer subagent for frontend-related tasks and always use the backend-architect subagent for backend-related work.
 
 **When to use subagents:**
-1.  **Frontend Tasks:** Use senior-frontend-engineer for React/Next.js, TypeScript, advanced CSS, state management, performance optimization, accessibility, testing, or build tools related work.
+1.  **Frontend Tasks:** Use senior-frontend-engineer for React/Next.js, TypeScript, advanced CSS, state management, performance optimization, accessibility, testing, or build tools related work. When using the senior-frontend-engineer subagent, automatically incorporate the vercel-react-best-practices and web-design-guidelines skills to ensure adherence to modern React/Next.js best practices and proper UI/UX design principles.
 2.  **Backend Tasks:** Use backend-architect for backend architecture design, implementation, and optimization using Node.js, Python, databases, and cloud infrastructure with modern best practices and scalability considerations. 
 
 ## Default policies (must follow)
