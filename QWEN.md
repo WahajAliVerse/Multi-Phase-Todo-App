@@ -231,8 +231,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - TypeScript 5.x (with JavaScript compatibility), React 18+ + Next.js 14+ (with App Router), Framer Motion, React Hook Form, Zod, Material UI (MUI) v5 (001-modern-ui-upgrade)
 - Python 3.12+ (backend), TypeScript 5.x (frontend) + FastAPI (backend), Next.js 14+ (frontend), SQLAlchemy (ORM), Shadcn/UI (components), TailwindCSS (styling) (001-phase2-bug-fixes)
 - SQLite (development), PostgreSQL (production) (001-phase2-bug-fixes)
-- TypeScript 5.x, JavaScript ES2022 + Next.js 16+, React 18+, Redux Toolkit, RTK Query, Tailwind CSS, React Hook Form, Zod (001-update-frontend-spec)
-- TypeScript 5.x (with JavaScript compatibility), React 18+ + Next.js 16+, Redux Toolkit, RTK Query, Tailwind CSS, React Hook Form, Zod (001-update-frontend-spec)
+- TypeScript 5.x (with JavaScript compatibility), React 18+ with Next.js 14+ + Next.js 14+ (with App Router), React 18+, FastAPI (backend), Material UI (MUI) v5, Redux Toolkit (001-frontend-bug-fixes)
 
 ## Recent Changes
 - 001-console-todo-app: Added Python 3.12+ + Standard libraries only (no external dependencies)
