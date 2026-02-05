@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Production
+dist/
+build/
+.next/
+out/
+
+# Logs
+*.log
+
+# Environment variables
+.env*
+
+# Configuration
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

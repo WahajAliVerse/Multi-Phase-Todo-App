@@ -1,0 +1,91 @@
+# Dependencies
+node_modules/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Production
+dist/
+build/
+.next/
+out/
+
+# Environment variables
+.env*
+!.env.example
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Next.js
+.next/
+server/
+.svelte-kit/
+.craftsman/
+
+# TypeScript
+*.tsbuildinfo
+*.bak
+
+# Package manager
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+.cache/
+
+# Database
+*.db
+*.db.*
+
+# Sensitive files
+config/
+secrets/
+.env.local
+.env.production
+.env.staging
+.env.development
+.env.test
+.env.secret
+.env.local.example
+.env.dev
+.env.prod
+.env.backup
+.env.save
+.env.tmp
+.env.temp
+.env.copy
+.env.bak
+.env.old
+.env.orig
+.env.swp
+.env.swo
+.env~
+.env.save.*
+.env.backup.*
+.env.bak.*
+.env.old.*
+.env.orig.*
+.env.swp.*
+.env.swo.*
+*.env
+*.env.*
+!*.env.example
+!*.env.defaults
+!*.env.defaults.*
