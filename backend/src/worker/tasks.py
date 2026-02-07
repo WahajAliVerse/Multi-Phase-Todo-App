@@ -1,9 +1,9 @@
 from celery import current_task
-from backend.src.worker.celery_app import celery_app
-from backend.src.core.database import get_session
-from backend.src.services.task_service import TaskService
-from backend.src.services.recurrence_service import RecurrenceService
-from backend.src.models.task import Task
+from src.worker.celery_app import celery_app
+from src.core.database import get_session
+from src.services.task_service import TaskService
+from src.services.recurrence_service import RecurrenceService
+from src.models.task import Task
 from sqlmodel import Session
 from datetime import datetime
 import logging

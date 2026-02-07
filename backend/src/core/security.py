@@ -6,12 +6,12 @@ from fastapi import HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlmodel import Session
 import os
-from backend.src.models.user import User
-from backend.src.services.user_service import UserService
+from src.models.user import User
+from src.services.user_service import UserService
 
 
 # Initialize password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256", "argon2", "bcrypt"], deprecated="auto")
 
 # Initialize JWT token scheme
 security = HTTPBearer()

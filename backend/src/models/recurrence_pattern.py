@@ -1,13 +1,17 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 from sqlmodel import Field, SQLModel, Relationship
+from sqlalchemy import JSON
 import uuid
+
+if TYPE_CHECKING:
+    from src.models.task import Task
 
 
 class RecurrencePatternBase(SQLModel):
     frequency: str = Field(regex=r"^(daily|weekly|monthly|yearly)$")  # Enum: daily, weekly, monthly, yearly
     interval: int = Field(default=1, ge=1)  # How often the pattern repeats (every N days/weeks/etc)
-    days_of_week: Optional[List[str]] = Field(default=None)  # For weekly: ['mon', 'wed', 'fri'] etc
+    days_of_week: Optional[List[str]] = Field(default=None, sa_type=JSON)  # For weekly: ['mon', 'wed', 'fri'] etc
     day_of_month: Optional[int] = Field(default=None, ge=1, le=31)  # For monthly: 1-31
     end_condition: str = Field(default="never", regex=r"^(never|after|on_date)$")  # Enum: never, after, on_date
     end_after_occurrences: Optional[int] = Field(default=None, ge=1)  # Number of occurrences before stopping
@@ -29,7 +33,7 @@ class RecurrencePatternCreate(RecurrencePatternBase):
 class RecurrencePatternUpdate(SQLModel):
     frequency: Optional[str] = Field(default=None, regex=r"^(daily|weekly|monthly|yearly)$")
     interval: Optional[int] = Field(default=None, ge=1)
-    days_of_week: Optional[List[str]] = Field(default=None)
+    days_of_week: Optional[List[str]] = Field(default=None, sa_type=JSON)
     day_of_month: Optional[int] = Field(default=None, ge=1, le=31)
     end_condition: Optional[str] = Field(default=None, regex=r"^(never|after|on_date)$")
     end_after_occurrences: Optional[int] = Field(default=None, ge=1)

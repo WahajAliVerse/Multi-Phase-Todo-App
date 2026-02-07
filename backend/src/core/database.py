@@ -56,10 +56,10 @@ def init_db():
     Initialize the database by creating all tables
     """
     from sqlmodel import SQLModel
-    from backend.src.models.user import User
-    from backend.src.models.task import Task
-    from backend.src.models.tag import Tag
-    from backend.src.models.notification import Notification
+    from src.models.user import User
+    from src.models.task import Task
+    from src.models.tag import Tag
+    from src.models.notification import Notification
     
     # Create all tables
     SQLModel.metadata.create_all(engine)

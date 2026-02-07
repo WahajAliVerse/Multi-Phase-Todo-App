@@ -1,11 +1,15 @@
 from datetime import datetime
-from typing import Optional
-from sqlmodel import Field, SQLModel
+from typing import TYPE_CHECKING, Optional
+from sqlmodel import Field, SQLModel, Relationship
+from sqlalchemy import JSON
 from passlib.context import CryptContext
 import uuid
 
+if TYPE_CHECKING:
+    from src.models.notification import Notification
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+pwd_context = CryptContext(schemes=["pbkdf2_sha256", "argon2", "bcrypt"], deprecated="auto")
 
 
 class UserBase(SQLModel):
@@ -14,7 +18,7 @@ class UserBase(SQLModel):
     last_name: Optional[str] = None
     is_active: bool = Field(default=True)
     theme_preference: str = Field(default="light")  # Enum: 'light', 'dark'
-    notification_settings: dict = Field(default={"email": True, "browser": True})
+    notification_settings: dict = Field(default={"email": True, "browser": True}, sa_type=JSON)
 
 
 class User(UserBase, table=True):
@@ -23,9 +27,12 @@ class User(UserBase, table=True):
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
+    # Relationship with notifications
+    notifications: list["Notification"] = Relationship(back_populates="user")
+
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(min_length=8, max_length=72)
 
 
 class UserUpdate(SQLModel):
@@ -47,4 +54,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    # Truncate password to 72 characters to comply with bcrypt limitations
+    truncated_password = password[:72] if len(password) > 72 else password
+    # Use the password context which has fallback schemes
+    return pwd_context.hash(truncated_password)

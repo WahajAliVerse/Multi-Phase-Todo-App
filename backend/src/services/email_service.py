@@ -1,10 +1,13 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 from typing import Dict, Any
 import asyncio
-import aiosmtplib
-from backend.src.core.config import settings
+# import aiosmtplib  # Temporarily commented out due to missing dependency
+import os
+from src.core.config import settings
 
 
 class EmailService:
@@ -35,7 +38,7 @@ class EmailService:
 
             # Add body to email
             msg.attach(MIMEText(body, 'plain'))
-            
+
             if html_body:
                 msg.attach(MIMEText(html_body, 'html'))
 
@@ -53,16 +56,12 @@ class EmailService:
                     )
                     msg.attach(part)
 
-            # Send email using aiosmtplib for async operation
-            await aiosmtplib.send(
-                msg,
-                hostname=self.smtp_host,
-                port=self.smtp_port,
-                start_tls=True,
-                username=self.smtp_username,
-                password=self.smtp_password
-            )
-            
+            # Send email using smtplib for sync operation (converted for async compatibility)
+            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+                server.starttls()
+                server.login(self.smtp_username, self.smtp_password)
+                server.send_message(msg)
+
             return True
         except Exception as e:
             print(f"Error sending email: {str(e)}")

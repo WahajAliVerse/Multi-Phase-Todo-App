@@ -2,15 +2,15 @@ from datetime import timedelta
 from fastapi import Depends, HTTPException, status, Request, Response
 from fastapi.security import HTTPBearer
 from sqlmodel import Session
-from backend.src.core.database import get_session
-from backend.src.core.security import (
+from src.core.database import get_session
+from src.core.security import (
     authenticate_user,
     create_access_token,
     verify_token,
     create_session_cookie
 )
-from backend.src.models.user import User
-from backend.src.services.user_service import UserService
+from src.models.user import User
+from src.services.user_service import UserService
 
 
 security = HTTPBearer(auto_error=False)

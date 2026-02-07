@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlmodel import Session
 from typing import List, Optional
 import uuid
-from backend.src.core.database import get_session
-from backend.src.core.auth import get_current_active_user
-from backend.src.core.rate_limiter import rate_limit_api
-from backend.src.models.user import User
-from backend.src.models.notification import Notification, NotificationCreate, NotificationUpdate
-from backend.src.services.notification_service import NotificationService
+from src.core.database import get_session
+from src.core.auth import get_current_active_user
+from src.core.rate_limiter import rate_limit_api
+from src.models.user import User
+from src.models.notification import Notification, NotificationCreate, NotificationUpdate
+from src.services.notification_service import NotificationService
 
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
@@ -16,6 +16,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 @router.post("/", response_model=Notification)
 @rate_limit_api
 def create_notification(
+    request: Request,
     notification_create: NotificationCreate,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -38,6 +39,7 @@ def create_notification(
 @router.get("/", response_model=List[Notification])
 @rate_limit_api
 def read_notifications(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session),
     skip: int = Query(default=0, ge=0),
@@ -65,6 +67,7 @@ def read_notifications(
 @router.get("/pending", response_model=List[Notification])
 @rate_limit_api
 def read_pending_notifications(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
 ):
@@ -82,6 +85,7 @@ def read_pending_notifications(
 @router.get("/{notification_id}", response_model=Notification)
 @rate_limit_api
 def read_notification(
+    request: Request,
     notification_id: uuid.UUID,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -108,6 +112,7 @@ def read_notification(
 @router.put("/{notification_id}", response_model=Notification)
 @rate_limit_api
 def update_notification(
+    request: Request,
     notification_id: uuid.UUID,
     notification_update: NotificationUpdate,
     current_user: User = Depends(get_current_active_user),
@@ -136,6 +141,7 @@ def update_notification(
 @router.patch("/{notification_id}/read", response_model=Notification)
 @rate_limit_api
 def mark_notification_as_read(
+    request: Request,
     notification_id: uuid.UUID,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -162,6 +168,7 @@ def mark_notification_as_read(
 @router.delete("/{notification_id}")
 @rate_limit_api
 def delete_notification(
+    request: Request,
     notification_id: uuid.UUID,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -188,6 +195,7 @@ def delete_notification(
 @router.post("/settings")
 @rate_limit_api
 def update_notification_settings(
+    request: Request,
     settings: dict,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -195,8 +203,8 @@ def update_notification_settings(
     """
     Update user's notification preferences
     """
-    from backend.src.services.user_service import UserService
-    
+    from src.services.user_service import UserService
+
     user_service = UserService()
     updated_user = user_service.update_notification_settings(
         session=session,
@@ -216,17 +224,18 @@ def update_notification_settings(
 @router.get("/settings")
 @rate_limit_api
 def get_notification_settings(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
 ):
     """
     Get user's notification preferences
     """
-    from backend.src.services.user_service import UserService
-    
+    from src.services.user_service import UserService
+
     user_service = UserService()
     user = user_service.get_user_by_id(session, current_user.id)
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

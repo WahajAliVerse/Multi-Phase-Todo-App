@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlmodel import Session
-from backend.src.core.database import get_session
-from backend.src.core.auth import login_user, logout_user, get_current_active_user
-from backend.src.models.user import User, UserCreate, UserUpdate
-from backend.src.schemas.user import UserLogin, UserPublicProfile
-from backend.src.services.user_service import UserService
-from backend.src.core.rate_limiter import rate_limit_auth
+from src.core.database import get_session
+from src.core.auth import login_user, logout_user, get_current_active_user
+from src.models.user import User, UserCreate, UserUpdate
+from src.schemas.user import UserLogin, UserPublicProfile
+from src.services.user_service import UserService
+from src.core.rate_limiter import rate_limit_auth
 
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 @router.post("/register")
 @rate_limit_auth
 def register_user(
+    request: Request,
     user_data: UserCreate,
     response: Response,
     session: Session = Depends(get_session)
@@ -57,17 +58,18 @@ def register_user(
 def login(
     request: Request,
     response: Response,
-    user_credentials: UserLogin
+    user_credentials: UserLogin,
+    session: Session = Depends(get_session)
 ):
     """
     Authenticate user and create session
     """
     # The login_user function handles authentication and sets the session cookie
     result = login_user(
-        response, 
-        user_credentials.email, 
-        user_credentials.password, 
-        request.state.session  # Assuming session is available in request state
+        response,
+        user_credentials.email,
+        user_credentials.password,
+        session
     )
     return result
 

@@ -1,6 +1,7 @@
 from typing import Optional, List
+import uuid
 from sqlmodel import Session, select, and_
-from backend.src.models.tag import Tag, TagCreate, TagUpdate
+from src.models.tag import Tag, TagCreate, TagUpdate
 
 
 class TagRepository:

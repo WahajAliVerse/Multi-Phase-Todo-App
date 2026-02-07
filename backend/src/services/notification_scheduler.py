@@ -2,11 +2,11 @@ import asyncio
 import uuid
 from datetime import datetime, timedelta
 from sqlmodel import Session
-from backend.src.models.task import Task
-from backend.src.models.notification import Notification, NotificationType
-from backend.src.services.notification_service import NotificationService
-from backend.src.services.email_service import EmailService
-from backend.src.core.config import settings
+from src.models.task import Task
+from src.models.notification import Notification, NotificationType
+from src.services.notification_service import NotificationService
+from src.services.email_service import EmailService
+from src.core.config import settings
 
 
 class NotificationScheduler:
@@ -71,7 +71,7 @@ class NotificationScheduler:
         """
         Internal method to create and send a browser notification
         """
-        from backend.src.models.notification import NotificationCreate
+        from src.models.notification import NotificationCreate
         
         notification_create = NotificationCreate(**notification_data)
         self.notification_service.create_notification(session, notification_create)
@@ -92,7 +92,7 @@ class NotificationScheduler:
         Internal method to get a user by ID
         This would typically be implemented in a UserService
         """
-        from backend.src.models.user import User
+        from src.models.user import User
         from sqlmodel import select
         
         statement = select(User).where(User.id == user_id)
@@ -104,8 +104,8 @@ class NotificationScheduler:
         Schedule notifications for recurring tasks
         This method should be called periodically to generate new instances of recurring tasks
         """
-        from backend.src.models.task import Task
-        from backend.src.models.recurrence_pattern import RecurrencePattern
+        from src.models.task import Task
+        from src.models.recurrence_pattern import RecurrencePattern
         from sqlmodel import select
         from sqlalchemy import and_
         

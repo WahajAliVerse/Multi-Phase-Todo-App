@@ -1,9 +1,10 @@
 from typing import Optional, List
+import uuid
 from sqlmodel import Session
-from backend.src.models.notification import Notification, NotificationCreate, NotificationUpdate
-from backend.src.schemas.notification import NotificationRead
-from backend.src.repositories.notification_repository import NotificationRepository
-from backend.src.core.email_service import EmailService
+from src.models.notification import Notification, NotificationCreate, NotificationUpdate
+from src.schemas.notification import NotificationRead
+from src.repositories.notification_repository import NotificationRepository
+from src.services.email_service import EmailService
 from datetime import datetime
 
 
@@ -69,7 +70,7 @@ class NotificationService:
         """
         Send a reminder notification for a task
         """
-        from backend.src.models.task import Task
+        from src.models.task import Task
         from sqlmodel import select
         
         # Get the task
@@ -139,7 +140,7 @@ class NotificationService:
         """
         Send an email notification to a user
         """
-        from backend.src.services.user_service import UserService
+        from src.services.user_service import UserService
         
         user_service = UserService()
         user = user_service.get_user_by_id(session, user_id)

@@ -1,7 +1,9 @@
 from typing import Optional
+import uuid
+from datetime import datetime
 from sqlmodel import Session
-from backend.src.models.recurrence_pattern import RecurrencePattern, RecurrencePatternCreate, RecurrencePatternUpdate
-from backend.src.repositories.recurrence_repository import RecurrenceRepository
+from src.models.recurrence_pattern import RecurrencePattern, RecurrencePatternCreate, RecurrencePatternUpdate
+from src.repositories.recurrence_repository import RecurrenceRepository
 
 
 class RecurrenceService:
