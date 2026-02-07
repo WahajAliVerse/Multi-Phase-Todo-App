@@ -1,13 +1,13 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlmodel import Session
 from typing import List, Optional
-from backend.src.core.database import get_session
-from backend.src.core.auth import get_current_active_user
-from backend.src.core.rate_limiter import rate_limit_api
-from backend.src.models.user import User
-from backend.src.models.task import Task, TaskCreate, TaskUpdate
-from backend.src.services.task_service import TaskService
+from src.core.database import get_session
+from src.core.auth import get_current_active_user
+from src.core.rate_limiter import rate_limit_api
+from src.models.user import User
+from src.models.task import Task, TaskCreate, TaskUpdate
+from src.services.task_service import TaskService
 
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -16,6 +16,7 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 @router.post("/", response_model=Task)
 @rate_limit_api
 def create_task(
+    request: Request,
     task: TaskCreate,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -43,6 +44,7 @@ def create_task(
 @router.get("/{task_id}", response_model=Task)
 @rate_limit_api
 def read_task(
+    request: Request,
     task_id: uuid.UUID,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -65,6 +67,7 @@ def read_task(
 @router.get("/", response_model=List[Task])
 @rate_limit_api
 def read_tasks(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session),
     skip: int = Query(default=0, ge=0),
@@ -112,6 +115,7 @@ def read_tasks(
 @router.put("/{task_id}", response_model=Task)
 @rate_limit_api
 def update_task(
+    request: Request,
     task_id: uuid.UUID,
     task_update: TaskUpdate,
     current_user: User = Depends(get_current_active_user),
@@ -140,6 +144,7 @@ def update_task(
 @router.delete("/{task_id}")
 @rate_limit_api
 def delete_task(
+    request: Request,
     task_id: uuid.UUID,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -166,6 +171,7 @@ def delete_task(
 @router.patch("/{task_id}/complete", response_model=Task)
 @rate_limit_api
 def mark_task_complete(
+    request: Request,
     task_id: uuid.UUID,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -192,6 +198,7 @@ def mark_task_complete(
 @router.patch("/{task_id}/incomplete", response_model=Task)
 @rate_limit_api
 def mark_task_incomplete(
+    request: Request,
     task_id: uuid.UUID,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)

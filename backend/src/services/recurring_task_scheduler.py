@@ -2,11 +2,11 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 import uuid
 from sqlmodel import Session
-from backend.src.models.task import Task
-from backend.src.models.recurrence_pattern import RecurrencePattern
-from backend.src.services.task_service import TaskService
-from backend.src.services.recurrence_service import RecurrenceService
-from backend.src.core.redis import redis_client
+from src.models.task import Task
+from src.models.recurrence_pattern import RecurrencePattern
+from src.services.task_service import TaskService
+from src.services.recurrence_service import RecurrenceService
+from src.core.redis import redis_client
 import json
 import logging
 

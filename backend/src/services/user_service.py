@@ -1,8 +1,9 @@
 from typing import Optional
+import uuid
 from sqlmodel import Session
-from backend.src.models.user import User, UserCreate
-from backend.src.schemas.user import UserUpdate
-from backend.src.repositories.user_repository import UserRepository
+from src.models.user import User, UserCreate
+from src.schemas.user import UserUpdate
+from src.repositories.user_repository import UserRepository
 
 
 class UserService:
@@ -21,19 +22,19 @@ class UserService:
         """
         return self.repository.get_user_by_email(session, email)
 
-    def get_user_by_id(self, session: Session, user_id: int) -> Optional[User]:
+    def get_user_by_id(self, session: Session, user_id: uuid.UUID) -> Optional[User]:
         """
         Get a user by ID
         """
         return self.repository.get_user_by_id(session, user_id)
 
-    def update_user(self, session: Session, user_id: int, user_update: UserUpdate) -> Optional[User]:
+    def update_user(self, session: Session, user_id: uuid.UUID, user_update: UserUpdate) -> Optional[User]:
         """
         Update a user's information
         """
         return self.repository.update_user(session, user_id, user_update)
 
-    def delete_user(self, session: Session, user_id: int) -> bool:
+    def delete_user(self, session: Session, user_id: uuid.UUID) -> bool:
         """
         Delete a user
         """
@@ -45,14 +46,14 @@ class UserService:
         """
         return self.repository.authenticate_user(session, email, password)
 
-    def activate_user(self, session: Session, user_id: int) -> Optional[User]:
+    def activate_user(self, session: Session, user_id: uuid.UUID) -> Optional[User]:
         """
         Activate a user account
         """
         user_update = UserUpdate(is_active=True)
         return self.repository.update_user(session, user_id, user_update)
 
-    def deactivate_user(self, session: Session, user_id: int) -> Optional[User]:
+    def deactivate_user(self, session: Session, user_id: uuid.UUID) -> Optional[User]:
         """
         Deactivate a user account
         """

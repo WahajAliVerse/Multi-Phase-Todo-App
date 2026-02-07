@@ -1,10 +1,11 @@
 from typing import Optional, List
+import uuid
 from sqlmodel import Session
-from backend.src.models.task import Task, TaskCreate, TaskUpdate
-from backend.src.models.recurrence_pattern import RecurrencePattern
-from backend.src.schemas.task import TaskRead
-from backend.src.repositories.task_repository import TaskRepository
-from backend.src.services.recurrence_service import RecurrenceService
+from src.models.task import Task, TaskCreate, TaskUpdate
+from src.models.recurrence_pattern import RecurrencePattern
+from src.schemas.task import TaskRead
+from src.repositories.task_repository import TaskRepository
+from src.services.recurrence_service import RecurrenceService
 from datetime import datetime
 
 
@@ -141,7 +142,7 @@ class TaskService:
         Returns the number of tasks generated
         """
         from datetime import datetime
-        from backend.src.models.task import TaskStatus
+        from src.models.task import TaskStatus
         
         # Get all recurring tasks that have instances due to be created
         # Note: This method would need to be implemented in the repository

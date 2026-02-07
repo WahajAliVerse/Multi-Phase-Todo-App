@@ -1,7 +1,8 @@
 from typing import Optional, List
+import uuid
 from sqlmodel import Session, select, and_, or_, case
-from backend.src.models.task import Task, TaskCreate, TaskUpdate
-from backend.src.models.tag import Tag
+from src.models.task import Task, TaskCreate, TaskUpdate
+from src.models.tag import Tag
 
 
 class TaskRepository:

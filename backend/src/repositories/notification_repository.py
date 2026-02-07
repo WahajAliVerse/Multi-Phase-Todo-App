@@ -1,6 +1,7 @@
 from typing import Optional, List
+import uuid
 from sqlmodel import Session, select, and_
-from backend.src.models.notification import Notification, NotificationCreate, NotificationUpdate
+from src.models.notification import Notification, NotificationCreate, NotificationUpdate
 
 
 class NotificationRepository:

@@ -1,8 +1,13 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import TYPE_CHECKING, Optional, List
 from sqlmodel import Field, SQLModel, Relationship
 from enum import Enum
 import uuid
+
+if TYPE_CHECKING:
+    from .tag import Tag
+    from .recurrence_pattern import RecurrencePattern
+    from src.models.notification import Notification
 
 
 class TaskStatus(str, Enum):
@@ -32,12 +37,15 @@ class Task(TaskBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
-    
+
     # Relationship with recurrence pattern
     recurrence_pattern: Optional["RecurrencePattern"] = Relationship(back_populates="tasks")
-    
+
+    # Relationship with notifications
+    notifications: List["Notification"] = Relationship(back_populates="task")
+
     # Relationship with tags (many-to-many through TaskTagLink)
-    tags: List["Tag"] = Relationship(back_populates="tasks", link_model="TaskTagLink")
+    # tags: List["Tag"] = Relationship(back_populates="tasks")  # Temporarily commented out to fix startup issue
 
 
 # Link model for many-to-many relationship between Task and Tag

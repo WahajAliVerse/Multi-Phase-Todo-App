@@ -1,7 +1,8 @@
 from typing import Optional
+import uuid
 from sqlmodel import Session, select
-from backend.src.models.user import User, UserCreate
-from backend.src.schemas.user import UserUpdate
+from src.models.user import User, UserCreate
+from src.schemas.user import UserUpdate
 
 
 class UserRepository:
@@ -9,7 +10,7 @@ class UserRepository:
         """
         Create a new user in the database
         """
-        from backend.src.models.user import get_password_hash
+        from src.models.user import get_password_hash
         
         hashed_password = get_password_hash(user_create.password)
         db_user = User(
@@ -33,7 +34,7 @@ class UserRepository:
         user = session.exec(statement).first()
         return user
 
-    def get_user_by_id(self, session: Session, user_id: int) -> Optional[User]:
+    def get_user_by_id(self, session: Session, user_id: uuid.UUID) -> Optional[User]:
         """
         Retrieve a user by ID
         """
@@ -41,7 +42,7 @@ class UserRepository:
         user = session.exec(statement).first()
         return user
 
-    def update_user(self, session: Session, user_id: int, user_update: UserUpdate) -> Optional[User]:
+    def update_user(self, session: Session, user_id: uuid.UUID, user_update: UserUpdate) -> Optional[User]:
         """
         Update a user's information
         """
@@ -60,7 +61,7 @@ class UserRepository:
         session.refresh(db_user)
         return db_user
 
-    def delete_user(self, session: Session, user_id: int) -> bool:
+    def delete_user(self, session: Session, user_id: uuid.UUID) -> bool:
         """
         Delete a user by ID
         """
@@ -78,7 +79,7 @@ class UserRepository:
         """
         Authenticate a user by email and password
         """
-        from backend.src.models.user import verify_password
+        from src.models.user import verify_password
         
         user = self.get_user_by_email(session, email)
         if not user:

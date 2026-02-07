@@ -1,13 +1,13 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlmodel import Session
 from typing import List, Optional
-from backend.src.core.database import get_session
-from backend.src.core.auth import get_current_active_user
-from backend.src.core.rate_limiter import rate_limit_api
-from backend.src.models.user import User
-from backend.src.models.tag import Tag, TagCreate, TagUpdate
-from backend.src.services.tag_service import TagService
+from src.core.database import get_session
+from src.core.auth import get_current_active_user
+from src.core.rate_limiter import rate_limit_api
+from src.models.user import User
+from src.models.tag import Tag, TagCreate, TagUpdate
+from src.services.tag_service import TagService
 
 
 router = APIRouter(prefix="/tags", tags=["tags"])
@@ -16,6 +16,7 @@ router = APIRouter(prefix="/tags", tags=["tags"])
 @router.post("/", response_model=Tag)
 @rate_limit_api
 def create_tag(
+    request: Request,
     tag: TagCreate,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -38,6 +39,7 @@ def create_tag(
 @router.get("/{tag_id}", response_model=Tag)
 @rate_limit_api
 def read_tag(
+    request: Request,
     tag_id: uuid.UUID,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)
@@ -60,6 +62,7 @@ def read_tag(
 @router.get("/", response_model=List[Tag])
 @rate_limit_api
 def read_tags(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session),
     skip: int = Query(default=0, ge=0),
@@ -81,6 +84,7 @@ def read_tags(
 @router.put("/{tag_id}", response_model=Tag)
 @rate_limit_api
 def update_tag(
+    request: Request,
     tag_id: uuid.UUID,
     tag_update: TagUpdate,
     current_user: User = Depends(get_current_active_user),
@@ -109,6 +113,7 @@ def update_tag(
 @router.delete("/{tag_id}")
 @rate_limit_api
 def delete_tag(
+    request: Request,
     tag_id: uuid.UUID,
     current_user: User = Depends(get_current_active_user),
     session: Session = Depends(get_session)

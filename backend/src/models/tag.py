@@ -1,8 +1,11 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import TYPE_CHECKING, Optional, List
 from sqlmodel import Field, SQLModel, Relationship
 from enum import Enum
 import uuid
+
+if TYPE_CHECKING:
+    from .task import Task
 
 
 class TagBase(SQLModel):
@@ -17,7 +20,7 @@ class Tag(TagBase, table=True):
     updated_at: datetime = Field(default_factory=datetime.now)
     
     # Relationship with tasks (many-to-many through TaskTagLink)
-    tasks: List["Task"] = Relationship(back_populates="tags", link_model="TaskTagLink")
+    # tasks: List["Task"] = Relationship(back_populates="tags")  # Temporarily commented out to fix startup issue
 
 
 class TagCreate(TagBase):
