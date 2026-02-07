@@ -12,45 +12,39 @@ jobs:
     strategy:
       matrix:
         python-version: [3.12]
-
-    steps:
-    - uses: actions/checkout@v3
     
+    steps:
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     
-    - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-    
     - name: Install dependencies
       run: |
         cd backend
-        poetry install
+        pip install uv
+        uv sync
     
     - name: Run tests
       run: |
         cd backend
-        poetry run pytest
+        uv run pytest
     
-    - name: Run linters
+    - name: Run linting
       run: |
         cd backend
-        poetry run ruff check .
-        poetry run black --check .
+        uv run flake8 src/
+        uv run black --check src/
 
   test-frontend:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [18.x]
-
+        
     steps:
-    - uses: actions/checkout@v3
-    
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
@@ -59,14 +53,19 @@ jobs:
     - name: Install dependencies
       run: |
         cd frontend
-        npm ci
+        bun install
+    
+    - name: Run linting
+      run: |
+        cd frontend
+        npm run lint
     
     - name: Run tests
       run: |
         cd frontend
-        npm test -- --passWithNoTests
+        npm run test
     
-    - name: Run linters
+    - name: Build
       run: |
         cd frontend
-        npm run lint
+        npm run build
