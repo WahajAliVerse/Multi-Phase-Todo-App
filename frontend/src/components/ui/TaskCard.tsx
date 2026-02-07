@@ -43,15 +43,15 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onCompleteC
   return (
     <Card className={`transition-all duration-200 ${task.status === 'completed' ? 'opacity-70' : ''}`}>
       <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
             <Checkbox
               checked={task.status === 'completed'}
               onCheckedChange={handleCompleteChange}
               aria-label={`Mark task "${task.title}" as ${task.status === 'completed' ? 'incomplete' : 'complete'}`}
             />
-            <div>
-              <CardTitle className={`text-lg ${task.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
+            <div className="flex-1 min-w-0">
+              <CardTitle className={`text-lg truncate ${task.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
                 {task.title}
               </CardTitle>
               {task.due_date && (
@@ -61,7 +61,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onCompleteC
               )}
             </div>
           </div>
-          <Badge className={getPriorityColor(task.priority)} variant="secondary">
+          <Badge className={getPriorityColor(task.priority)} variant="secondary" className="self-start">
             {task.priority}
           </Badge>
         </div>
@@ -69,7 +69,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onCompleteC
       
       <CardContent className="pb-2">
         {task.description && (
-          <CardDescription className={`${task.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
+          <CardDescription className={`break-words ${task.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
             {task.description}
           </CardDescription>
         )}
@@ -80,7 +80,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onCompleteC
               <Badge 
                 key={index} 
                 variant="outline" 
-                className="cursor-pointer hover:bg-accent"
+                className="cursor-pointer hover:bg-accent text-xs"
                 onClick={() => onTagClick && onTagClick(tagId)}
               >
                 #{tagId}
@@ -90,11 +90,21 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onCompleteC
         )}
       </CardContent>
       
-      <CardFooter className="flex justify-between pt-2">
-        <Button variant="outline" size="sm" onClick={handleEdit}>
+      <CardFooter className="flex flex-col sm:flex-row sm:justify-between pt-2 gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full sm:w-auto"
+          onClick={handleEdit}
+        >
           Edit
         </Button>
-        <Button variant="destructive" size="sm" onClick={handleDelete}>
+        <Button 
+          variant="destructive" 
+          size="sm" 
+          className="w-full sm:w-auto"
+          onClick={handleDelete}
+        >
           Delete
         </Button>
       </CardFooter>

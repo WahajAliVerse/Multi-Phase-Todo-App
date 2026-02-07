@@ -250,7 +250,7 @@ Implement modern UI with theme options and responsive design.
 - [x] T092 [US7] Create ThemeToggle component in frontend/src/components/ui/ThemeToggle.tsx
 - [x] T093 [US7] Implement theme context and state management in frontend
 - [x] T094 [US7] Create light and dark theme CSS files in frontend/src/styles/themes/
-- [ ] T095 [US7] Implement responsive design for all components
+- [x] T095 [US7] Implement responsive design for all components
 - [x] T096 [US7] Create dashboard page in frontend/src/app/dashboard/page.tsx
 - [x] T097 [US7] Create home page in frontend/src/app/page.tsx
 - [x] T098 [US7] Implement consistent UI/UX for task modal
@@ -283,7 +283,7 @@ Complete the application with final touches, testing, and documentation.
 - [x] T111 Implement proper logging throughout the application
 - [x] T112 Set up monitoring and alerting for production deployment
 - [x] T113 Conduct security review and penetration testing
-- [ ] T114 Perform final end-to-end testing of all features
+- [x] T114 Perform final end-to-end testing of all features
 - [x] T115 Prepare production deployment configuration
 - [x] T116 Implement bulk edit functionality for tasks (update priority, tags, etc.)
 - [x] T117 Implement timezone handling for due dates and reminders

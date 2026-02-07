@@ -137,11 +137,11 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Task' : 'Create New Task'}</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Title *</Label>
@@ -154,7 +154,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
               placeholder="Enter task title"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <Textarea
@@ -166,8 +166,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
               rows={3}
             />
           </div>
-          
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
               <Select
@@ -184,7 +184,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="due_date">Due Date</Label>
               <Input
@@ -197,7 +197,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
               />
             </div>
           </div>
-          
+
           {isEditing && (
             <div className="space-y-2">
               <Label>Status</Label>
@@ -211,37 +211,49 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
               </div>
             </div>
           )}
-          
+
           <div className="space-y-2">
             <Label>Tags</Label>
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag, index) => (
+            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border rounded">
+              {availableTags.map((tag, index) => (
                 <Badge
-                  key={index}
-                  variant={(formData.tag_ids as string[]).includes(tag) ? "default" : "outline"}
+                  key={tag.id}
+                  variant={formData.tag_ids.includes(tag.id) ? "default" : "outline"}
                   className="cursor-pointer"
-                  onClick={() => handleTagToggle(tag)}
+                  onClick={() => handleTagToggle(tag.id)}
                 >
-                  {tag}
+                  {tag.name}
                 </Badge>
               ))}
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label>Recurrence</Label>
-            <RecurrenceEditor 
-              recurrencePattern={formData.recurrence_pattern} 
-              onChange={handleRecurrenceChange} 
+            <RecurrenceEditor
+              recurrencePattern={formData.recurrence_pattern}
+              onChange={handleRecurrenceChange}
             />
           </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
-            <Button type="submit">
-              {isEditing ? 'Update Task' : 'Create Task'}
+            <Button 
+              type="submit" 
+              className="w-full sm:w-auto"
+              disabled={isSubmitting}
+            >
+              {isSubmitting 
+                ? (isEditing ? 'Updating...' : 'Creating...') 
+                : (isEditing ? 'Update Task' : 'Create Task')
+              }
             </Button>
           </DialogFooter>
         </form>
