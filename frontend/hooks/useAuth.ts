@@ -1,15 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { RootState } from '../store';
-import { loginStart, loginSuccess, loginFailure, logout, setError } from '../store/slices/authSlice';
-import authApi from '../api/authApi';
-import { UserLogin, UserPublicProfile } from '../types';
+import { RootState } from '@/store';
+import { setLoading, setError, setUser, clearUser } from '@/store/slices/authSlice';
+import { authApi } from '@/api/authApi';
+import { User } from '@/lib/types';
+
+interface UserLogin {
+  email: string;
+  password: string;
+}
+
+interface UserCreate {
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+  theme_preference?: string;
+  notification_settings?: Record<string, any>;
+}
 
 const useAuth = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, error } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated, loading, error } = useSelector((state: RootState) => state.auth);
   const [token, setToken] = useState<string | null>(null);
 
   // Check if user is authenticated on mount
@@ -25,11 +39,12 @@ const useAuth = () => {
   // Fetch user profile if token exists
   const fetchUserProfile = async () => {
     try {
-      dispatch(loginStart());
+      dispatch(setLoading(true));
       const userProfile = await authApi.getMe();
-      dispatch(loginSuccess(userProfile));
+      dispatch(setUser(userProfile));
+      dispatch(setLoading(false));
     } catch (err) {
-      dispatch(loginFailure('Failed to fetch user profile'));
+      dispatch(setError('Failed to fetch user profile'));
       handleLogout();
     }
   };
@@ -37,36 +52,43 @@ const useAuth = () => {
   // Handle login
   const handleLogin = async (credentials: UserLogin) => {
     try {
-      dispatch(loginStart());
-      const response = await authApi.login(credentials);
-      
+      dispatch(setLoading(true));
+      const response = await authApi.login(credentials.email, credentials.password);
+
       // Store token in localStorage
       localStorage.setItem('access_token', response.access_token);
       setToken(response.access_token);
+
+      // Fetch user profile after login
+      const userProfile = await authApi.getMe();
+      dispatch(setUser(userProfile));
+      dispatch(setLoading(false));
       
-      dispatch(loginSuccess(response.user));
       router.push('/dashboard'); // Redirect to dashboard after login
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      dispatch(loginFailure(errorMessage));
+      dispatch(setError(errorMessage));
+      dispatch(setLoading(false));
     }
   };
 
   // Handle register
   const handleRegister = async (userData: UserCreate) => {
     try {
-      dispatch(loginStart());
+      dispatch(setLoading(true));
       const response = await authApi.register(userData);
-      
+
       // Store token in localStorage
       localStorage.setItem('access_token', response.access_token);
       setToken(response.access_token);
-      
-      dispatch(loginSuccess(response.user));
+
+      dispatch(setUser(response.user));
+      dispatch(setLoading(false));
       router.push('/dashboard'); // Redirect to dashboard after registration
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed';
-      dispatch(loginFailure(errorMessage));
+      dispatch(setError(errorMessage));
+      dispatch(setLoading(false));
     }
   };
 
@@ -75,8 +97,8 @@ const useAuth = () => {
     // Remove token from localStorage
     localStorage.removeItem('access_token');
     setToken(null);
-    
-    dispatch(logout());
+
+    dispatch(clearUser());
     router.push('/login'); // Redirect to login page after logout
   };
 
@@ -84,7 +106,7 @@ const useAuth = () => {
   const handleUpdateProfile = async (userData: Partial<UserCreate>) => {
     try {
       const updatedUser = await authApi.updateProfile(userData);
-      dispatch(loginSuccess(updatedUser));
+      dispatch(setUser(updatedUser));
       return { success: true, user: updatedUser };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
@@ -107,12 +129,13 @@ const useAuth = () => {
   // Refresh token if expired
   const refreshTokenIfNeeded = async () => {
     if (!token) return false;
-    
+
     if (isTokenExpired(token)) {
       try {
-        const response = await authApi.refreshToken();
-        localStorage.setItem('access_token', response.access_token);
-        setToken(response.access_token);
+        // Note: refreshToken functionality needs to be implemented in authApi
+        // const response = await authApi.refreshToken();
+        // localStorage.setItem('access_token', response.access_token);
+        // setToken(response.access_token);
         return true;
       } catch (err) {
         handleLogout(); // If refresh fails, log out the user
@@ -125,7 +148,7 @@ const useAuth = () => {
   return {
     user,
     isAuthenticated,
-    isLoading,
+    loading,
     error,
     token,
     handleLogin,
