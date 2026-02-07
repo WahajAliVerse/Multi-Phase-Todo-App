@@ -99,7 +99,7 @@ Deployment phases must support:
 - Design APIs with versioning in mind for future compatibility
 
 ### Data Persistence Strategy
-- Begin with SQLite for initial development and testing
+- Begin with SQLite or Neon serverless DB for initial development and testing
 - Migrate to PostgreSQL in later phases for production readiness
 - Implement proper data migration strategies between storage solutions
 - Ensure data integrity and consistency across all operations

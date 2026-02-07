@@ -1,0 +1,887 @@
+openapi: 3.0.3
+info:
+  title: Phase 2 Todo Application API
+  description: API for the Phase 2 Todo Application with authentication, tasks, tags, and notifications
+  version: 1.0.0
+servers:
+  - url: https://api.todoapp.com/v1
+    description: Production server
+  - url: https://staging-api.todoapp.com/v1
+    description: Staging server
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User successfully registered
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: "session_id=abc123; HttpOnly; Secure; SameSite=Strict"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security: []
+  /auth/login:
+    post:
+      summary: Login user
+      description: Authenticates user and returns session cookie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: User successfully logged in
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: "session_id=abc123; HttpOnly; Secure; SameSite=Strict"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security: []
+  /auth/logout:
+    post:
+      summary: Logout user
+      description: Logs out the current user and clears session
+      responses:
+        '200':
+          description: Successfully logged out
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+  /auth/me:
+    get:
+      summary: Get current user
+      description: Retrieves information about the currently authenticated user
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      description: Retrieves information about a specific user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+    put:
+      summary: Update user
+      description: Updates information about the current user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: User successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+  /tasks:
+    get:
+      summary: Get all tasks
+      description: Retrieves all tasks for the current user with optional filtering and sorting
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, in_progress, completed]
+        - name: priority
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [low, medium, high]
+        - name: tag
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sort_by
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [due_date, priority, created_at, title]
+        - name: sort_order
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  total:
+                    type: integer
+                  offset:
+                    type: integer
+                  limit:
+                    type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+    post:
+      summary: Create a new task
+      description: Creates a new task for the current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: Task successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+  /tasks/{id}:
+    get:
+      summary: Get task by ID
+      description: Retrieves a specific task by its ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+    put:
+      summary: Update task
+      description: Updates an existing task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+    delete:
+      summary: Delete task
+      description: Deletes a specific task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Task successfully deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+  /tags:
+    get:
+      summary: Get all tags
+      description: Retrieves all tags for the current user
+      responses:
+        '200':
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+    post:
+      summary: Create a new tag
+      description: Creates a new tag for the current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreate'
+      responses:
+        '201':
+          description: Tag successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+  /tags/{id}:
+    get:
+      summary: Get tag by ID
+      description: Retrieves a specific tag by its ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tag information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Tag not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+    put:
+      summary: Update tag
+      description: Updates an existing tag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagUpdate'
+      responses:
+        '200':
+          description: Tag successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Tag not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+    delete:
+      summary: Delete tag
+      description: Deletes a specific tag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Tag successfully deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Tag not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+  /notifications/settings:
+    post:
+      summary: Update notification settings
+      description: Updates the user's notification preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationSettings'
+      responses:
+        '200':
+          description: Notification settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettings'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+  /notifications/pending:
+    get:
+      summary: Get pending notifications
+      description: Retrieves all pending notifications for the current user
+      responses:
+        '200':
+          description: List of pending notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        is_active:
+          type: boolean
+        theme_preference:
+          type: string
+          enum: [light, dark]
+        notification_settings:
+          type: object
+          properties:
+            email:
+              type: boolean
+            browser:
+              type: boolean
+    UserRegistration:
+      type: object
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+    UserUpdate:
+      type: object
+      properties:
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        theme_preference:
+          type: string
+          enum: [light, dark]
+        notification_settings:
+          type: object
+          properties:
+            email:
+              type: boolean
+            browser:
+              type: boolean
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        due_date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        user_id:
+          type: string
+          format: uuid
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        recurrence_pattern:
+          $ref: '#/components/schemas/RecurrencePattern'
+    TaskCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+          default: medium
+        due_date:
+          type: string
+          format: date-time
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        recurrence_pattern:
+          $ref: '#/components/schemas/RecurrencePattern'
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+        priority:
+          type: string
+          enum: [low, medium, high]
+        due_date:
+          type: string
+          format: date-time
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        recurrence_pattern:
+          $ref: '#/components/schemas/RecurrencePattern'
+    Tag:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 50
+        color:
+          type: string
+          pattern: '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        user_id:
+          type: string
+          format: uuid
+    TagCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 50
+        color:
+          type: string
+          pattern: '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'
+    TagUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 50
+        color:
+          type: string
+          pattern: '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [email, browser, push]
+        title:
+          type: string
+        message:
+          type: string
+        sent_at:
+          type: string
+          format: date-time
+        delivered_at:
+          type: string
+          format: date-time
+        read_at:
+          type: string
+          format: date-time
+        user_id:
+          type: string
+          format: uuid
+        task_id:
+          type: string
+          format: uuid
+    NotificationSettings:
+      type: object
+      properties:
+        email:
+          type: boolean
+        browser:
+          type: boolean
+    RecurrencePattern:
+      type: object
+      properties:
+        frequency:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+        interval:
+          type: integer
+          minimum: 1
+          default: 1
+        days_of_week:
+          type: array
+          items:
+            type: string
+            enum: [mon, tue, wed, thu, fri, sat, sun]
+        day_of_month:
+          type: integer
+          minimum: 1
+          maximum: 31
+        end_condition:
+          type: string
+          enum: [never, after, on_date]
+        end_after_occurrences:
+          type: integer
+          minimum: 1
+        end_date:
+          type: string
+          format: date
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
