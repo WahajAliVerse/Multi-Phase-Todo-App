@@ -235,6 +235,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Python 3.12+ (backend), TypeScript 5.x (frontend) + FastAPI (backend), Next.js 14+ (frontend), SQLModel, Redux Toolkit, Tailwind CSS (001-phase2-todo-app)
 - Neon serverless DB via SQLModel ORM with potential migration path to PostgreSQL (001-phase2-todo-app)
 - TypeScript 5.x, JavaScript ES2022 + Next.js 14+ (with App Router), React 18+, Redux Toolkit, @reduxjs/toolkit, RTK Query (001-frontend-ux-fixes)
+- TypeScript 5.x with JavaScript compatibility + Next.js 14+ (with App Router), React 18+, Redux Toolkit, React Hook Form, Zod, Tailwind CSS, Framer Motion, react-hot-toast (001-frontend-modern-ui)
 
 ## Recent Changes
 - 001-console-todo-app: Added Python 3.12+ + Standard libraries only (no external dependencies)
