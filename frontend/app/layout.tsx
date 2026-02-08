@@ -1,34 +1,24 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { ReactNode } from "react";
-import StoreProvider from '@/components/StoreProvider';
-import AuthInitializer from '@/components/AuthInitializer';
+import './globals.css';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import LayoutWithProvider from '@/components/LayoutWithProvider';
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Multi-Phase Todo App",
-  description: "A comprehensive task management application",
+  title: 'Task Manager',
+  description: 'A Next.js application for managing tasks and tags',
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: ReactNode;
-}>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} antialiased`}
-      >
-        <StoreProvider>
-          <AuthInitializer />
-          {children}
-        </StoreProvider>
+      <body className={inter.className}>
+        <LayoutWithProvider>{children}</LayoutWithProvider>
       </body>
     </html>
   );

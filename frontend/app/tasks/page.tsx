@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/lib/store';
-import { fetchTasks, setFilterStatus, setFilterPriority, setSearchQuery, clearError, setPagination } from '@/lib/store/slices/taskSlice';
+import { fetchTasks, setFilterStatus, setFilterPriority, setSearchQuery, clearError, setPagination, setSortOptions } from '@/lib/store/slices/taskSlice';
 import { openModal } from '@/lib/store/slices/modalSlice';
 import TaskCard from '@/components/ui/TaskCard';
 import { Button } from '@/components/ui/button';
@@ -122,7 +122,7 @@ const TasksPage = () => {
           </div>
           
           <div className="w-full md:w-auto">
-            <SortControls 
+            <SortControls
               onSortChange={(sortBy, sortOrder) => {
                 dispatch(setSortOptions({ sortBy, sortOrder }));
               }}

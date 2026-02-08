@@ -1,28 +1,28 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './slices/authSlice';
-import taskReducer from './slices/taskSlice'; // We'll create this next
-import tagReducer from './slices/tagSlice'; // We'll create this next
-import notificationReducer from './slices/notificationSlice'; // We'll create this next
-import modalReducer from './slices/modalSlice'; // We'll create this next
+import tasksReducer from './tasksSlice';
+import tagsReducer from './tagsSlice';
+import { setupListeners } from '@reduxjs/toolkit/query';
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
-    task: taskReducer,
-    tag: tagReducer,
-    notification: notificationReducer,
-    modal: modalReducer,
+    tasks: tasksReducer,
+    tags: tagsReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
-      },
-    }),
+    getDefaultMiddleware(),
 });
+
+setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
-// Export the store
-export default store;
+// Export the actions separately for use in the hook
+export { 
+  clearTasksError, 
+  clearTasksSuccessMessage 
+} from './tasksSlice';
+export { 
+  clearTagsError as clearTagsErrorAction, 
+  clearTagsSuccessMessage as clearTagsSuccessMessageAction 
+} from './tagsSlice';

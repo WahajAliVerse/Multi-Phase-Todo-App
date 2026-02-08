@@ -8,7 +8,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { TaskRead, TaskCreate, TaskUpdate } from '@/lib/types';
-import { RecurrenceEditor } from './RecurrenceEditor';
+// import { RecurrenceEditor } from './RecurrenceEditor'; // Temporarily removed due to import error
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -27,7 +27,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
     priority: 'medium',
     due_date: '',
     tag_ids: [],
-    recurrence_pattern: null,
+    recurrence_pattern_id: null, // Include this field as per Task type
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +41,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
         priority: task.priority || 'medium',
         due_date: task.due_date ? new Date(task.due_date).toISOString().slice(0, 16) : '',
         tag_ids: task.tag_ids || [],
-        recurrence_pattern: task.recurrence_pattern || null,
+        recurrence_pattern_id: task.recurrence_pattern_id || null,
       });
     } else {
       setFormData({
@@ -51,7 +51,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
         priority: 'medium',
         due_date: '',
         tag_ids: [],
-        recurrence_pattern: null,
+        recurrence_pattern_id: null,
       });
     }
     // Clear errors when modal opens or task changes
@@ -113,25 +113,21 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
     });
   };
 
-  const handleRecurrenceChange = (recurrencePattern: any) => {
-    setFormData(prev => ({
-      ...prev,
-      recurrence_pattern: recurrencePattern
-    }));
-  };
+  // const handleRecurrenceChange = (recurrencePattern: any) => {
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     recurrence_pattern: recurrencePattern
+  //   }));
+  // };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Prepare the task data
     const taskData = {
       ...formData,
-      // If recurrence pattern is set to null (no recurrence), ensure it's properly handled
-      recurrence_pattern: formData.recurrence_pattern && Object.keys(formData.recurrence_pattern).length > 0 
-        ? formData.recurrence_pattern 
-        : null
     };
-    
+
     onSave(taskData);
   };
 
@@ -228,13 +224,14 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
             </div>
           </div>
 
-          <div className="space-y-2">
+          {/* Commenting out recurrence editor until it's fully implemented */}
+          {/* <div className="space-y-2">
             <Label>Recurrence</Label>
             <RecurrenceEditor
               recurrencePattern={formData.recurrence_pattern}
               onChange={handleRecurrenceChange}
             />
-          </div>
+          </div> */}
 
           <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between">
             <Button 
