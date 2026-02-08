@@ -8,17 +8,18 @@ import { openModal } from '@/lib/store/slices/modalSlice';
 import TaskCard from '@/components/ui/TaskCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Select, 
-  SelectTrigger, 
-  SelectValue, 
-  SelectContent, 
-  SelectItem 
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
 } from '@/components/ui/select';
 import { TaskRead, ModalType } from '@/lib/types';
 import SearchBar from '@/components/ui/SearchBar';
 import FilterControls from '@/components/ui/FilterControls';
 import SortControls from '@/components/ui/SortControls';
+import Link from 'next/link';
 
 const TasksPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -91,7 +92,12 @@ const TasksPage = () => {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Tasks</h1>
-        <Button onClick={handleCreateTask}>Create New Task</Button>
+        <div className="flex space-x-4">
+          <Button onClick={handleCreateTask}>Create New Task</Button>
+          <Button asChild>
+            <Link href="/dashboard">Back to Dashboard</Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -150,13 +156,13 @@ const TasksPage = () => {
       )}
 
       {/* Tasks List */}
-      {!loading && tasks.length === 0 ? (
+      {!loading && (tasks || []).length === 0 ? (
         <div className="text-center py-10">
           <p className="text-gray-500 dark:text-gray-400">No tasks found. Create your first task!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tasks.map((task) => (
+          {(tasks || []).map((task) => (
             <TaskCard
               key={task.id}
               task={task}

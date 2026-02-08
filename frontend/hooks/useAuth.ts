@@ -4,50 +4,13 @@ import { useRouter } from 'next/navigation';
 import { RootState } from '@/store';
 import { setLoading, setError, setUser, clearUser } from '@/store/slices/authSlice';
 import { authApi } from '@/api/authApi';
-import { User } from '@/lib/types';
-
-interface UserLogin {
-  email: string;
-  password: string;
-}
-
-interface UserCreate {
-  email: string;
-  password: string;
-  first_name?: string;
-  last_name?: string;
-  theme_preference?: string;
-  notification_settings?: Record<string, any>;
-}
+import { User, UserLogin, UserCreate } from '@/lib/types';
 
 const useAuth = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const { user, isAuthenticated, loading, error } = useSelector((state: RootState) => state.auth);
   const [token, setToken] = useState<string | null>(null);
-
-  // Check if user is authenticated on mount
-  useEffect(() => {
-    const storedToken = localStorage.getItem('access_token');
-    if (storedToken) {
-      setToken(storedToken);
-      // Optionally fetch user profile to verify token validity
-      fetchUserProfile();
-    }
-  }, []);
-
-  // Fetch user profile if token exists
-  const fetchUserProfile = async () => {
-    try {
-      dispatch(setLoading(true));
-      const userProfile = await authApi.getMe();
-      dispatch(setUser(userProfile));
-      dispatch(setLoading(false));
-    } catch (err) {
-      dispatch(setError('Failed to fetch user profile'));
-      handleLogout();
-    }
-  };
 
   // Handle login
   const handleLogin = async (credentials: UserLogin) => {
@@ -57,13 +20,12 @@ const useAuth = () => {
 
       // Store token in localStorage
       localStorage.setItem('access_token', response.access_token);
-      setToken(response.access_token);
 
       // Fetch user profile after login
       const userProfile = await authApi.getMe();
       dispatch(setUser(userProfile));
       dispatch(setLoading(false));
-      
+
       router.push('/dashboard'); // Redirect to dashboard after login
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
@@ -80,7 +42,6 @@ const useAuth = () => {
 
       // Store token in localStorage
       localStorage.setItem('access_token', response.access_token);
-      setToken(response.access_token);
 
       dispatch(setUser(response.user));
       dispatch(setLoading(false));
@@ -93,13 +54,20 @@ const useAuth = () => {
   };
 
   // Handle logout
-  const handleLogout = () => {
-    // Remove token from localStorage
-    localStorage.removeItem('access_token');
-    setToken(null);
+  const handleLogout = async () => {
+    try {
+      // Call the logout API endpoint
+      await authApi.logout();
+    } catch (err) {
+      console.error('Logout API call failed:', err);
+      // Even if the API call fails, we should still clear the local state
+    } finally {
+      // Remove token from localStorage
+      localStorage.removeItem('access_token');
 
-    dispatch(clearUser());
-    router.push('/login'); // Redirect to login page after logout
+      dispatch(clearUser());
+      router.push('/login'); // Redirect to login page after logout
+    }
   };
 
   // Handle update profile
@@ -115,47 +83,15 @@ const useAuth = () => {
     }
   };
 
-  // Check if token is expired (simplified check)
-  const isTokenExpired = (token: string): boolean => {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp < currentTime;
-    } catch (error) {
-      return true; // If we can't parse the token, assume it's expired
-    }
-  };
-
-  // Refresh token if expired
-  const refreshTokenIfNeeded = async () => {
-    if (!token) return false;
-
-    if (isTokenExpired(token)) {
-      try {
-        // Note: refreshToken functionality needs to be implemented in authApi
-        // const response = await authApi.refreshToken();
-        // localStorage.setItem('access_token', response.access_token);
-        // setToken(response.access_token);
-        return true;
-      } catch (err) {
-        handleLogout(); // If refresh fails, log out the user
-        return false;
-      }
-    }
-    return true;
-  };
-
   return {
     user,
     isAuthenticated,
     loading,
     error,
-    token,
     handleLogin,
     handleRegister,
     handleLogout,
     handleUpdateProfile,
-    refreshTokenIfNeeded,
   };
 };
 

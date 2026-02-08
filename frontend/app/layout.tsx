@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ReactNode } from "react";
 import StoreProvider from '@/components/StoreProvider';
+import AuthInitializer from '@/components/AuthInitializer';
 
 const inter = Inter({
   variable: "--font-inter",
@@ -25,6 +26,7 @@ export default function RootLayout({
         className={`${inter.variable} antialiased`}
       >
         <StoreProvider>
+          <AuthInitializer />
           {children}
         </StoreProvider>
       </body>

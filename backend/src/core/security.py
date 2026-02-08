@@ -62,25 +62,35 @@ def verify_token(token: str) -> Optional[dict]:
         return None
 
 
-async def get_current_user(request: Request, session: Session) -> User:
+def get_current_user_from_request(
+    request: Request,
+    session: Session
+) -> User:
     """
-    Get the current user based on the JWT token in the request
+    Get the current user based on the JWT token from either cookie or Authorization header
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
-    # Get token from cookie
+
+    # First, try to get token from cookie
     token = request.cookies.get("access_token")
+    
+    # If not in cookie, try to get from Authorization header
+    if not token:
+        authorization: str = request.headers.get("Authorization")
+        if authorization and authorization.startswith("Bearer "):
+            token = authorization[len("Bearer "):]
+    
     if not token:
         raise credentials_exception
-    
+
     payload = verify_token(token)
     if payload is None:
         raise credentials_exception
-    
+
     email: str = payload.get("sub")
     if email is None:
         raise credentials_exception
@@ -89,7 +99,7 @@ async def get_current_user(request: Request, session: Session) -> User:
     user = user_service.get_user_by_email(session, email=email)
     if user is None:
         raise credentials_exception
-    
+
     return user
 
 

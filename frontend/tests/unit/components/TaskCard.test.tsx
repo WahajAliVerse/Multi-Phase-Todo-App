@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { TaskCard } from '@/components/ui/TaskCard';
+import TaskCard from '@/components/ui/TaskCard';
 import { TaskModal } from '@/components/ui/TaskModal';
 import taskReducer from '@/lib/store/slices/taskSlice';
 import authReducer from '@/lib/store/slices/authSlice';

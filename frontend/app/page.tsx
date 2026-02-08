@@ -24,11 +24,12 @@ const HomePage = () => {
     dispatch(openModal({ type: ModalType.TASK_MODAL, data: null }));
   };
 
-  // Calculate quick stats
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(task => task.status === 'completed').length;
-  const pendingTasks = tasks.filter(task => task.status === 'pending').length;
-  const tasksDueSoon = tasks.filter(task => {
+  // Calculate quick stats - handle case where tasks might be undefined
+  const tasksArray = tasks || [];
+  const totalTasks = tasksArray.length;
+  const completedTasks = tasksArray.filter(task => task.status === 'completed').length;
+  const pendingTasks = tasksArray.filter(task => task.status === 'pending').length;
+  const tasksDueSoon = tasksArray.filter(task => {
     if (!task.due_date) return false;
     const dueDate = new Date(task.due_date);
     const today = new Date();

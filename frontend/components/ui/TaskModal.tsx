@@ -215,14 +215,14 @@ const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, task, onSave, ta
           <div className="space-y-2">
             <Label>Tags</Label>
             <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border rounded">
-              {availableTags.map((tag, index) => (
+              {tags.map((tagId, index) => (
                 <Badge
-                  key={tag.id}
-                  variant={formData.tag_ids.includes(tag.id) ? "default" : "outline"}
+                  key={tagId}
+                  variant={formData.tag_ids.includes(tagId) ? "default" : "outline"}
                   className="cursor-pointer"
-                  onClick={() => handleTagToggle(tag.id)}
+                  onClick={() => handleTagToggle(tagId)}
                 >
-                  {tag.name}
+                  {tagId}
                 </Badge>
               ))}
             </div>

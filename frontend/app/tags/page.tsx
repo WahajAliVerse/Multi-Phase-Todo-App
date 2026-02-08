@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppDispatch, RootState } from '@/lib/store';
-import { 
-  fetchTags, 
-  createTag, 
-  updateTag, 
-  deleteTag, 
-  addTag, 
+import {
+  fetchTags,
+  createTag,
+  updateTag,
+  deleteTag,
+  addTag,
   removeTag,
-  clearError 
+  clearError
 } from '@/lib/store/slices/tagSlice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 const TagsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -103,57 +104,62 @@ const TagsPage = () => {
     <div className="container mx-auto py-10 max-w-4xl">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Manage Tags</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={handleNewTag}>Create New Tag</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingTag ? 'Edit Tag' : 'Create New Tag'}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Tag Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter tag name"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="color">Color</Label>
-                <div className="flex items-center space-x-2">
+        <div className="flex space-x-4">
+          <Button asChild>
+            <Link href="/dashboard">Back to Dashboard</Link>
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={handleNewTag}>Create New Tag</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingTag ? 'Edit Tag' : 'Create New Tag'}</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Tag Name</Label>
                   <Input
-                    id="color"
-                    name="color"
-                    type="color"
-                    value={formData.color}
+                    id="name"
+                    name="name"
+                    value={formData.name}
                     onChange={handleInputChange}
-                    className="w-16 h-10 p-1"
+                    required
+                    placeholder="Enter tag name"
                   />
-                  <span>{formData.color}</span>
                 </div>
-              </div>
-              
-              <div className="flex justify-end space-x-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {editingTag ? 'Update Tag' : 'Create Tag'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+
+                <div className="space-y-2">
+                  <Label htmlFor="color">Color</Label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      id="color"
+                      name="color"
+                      type="color"
+                      value={formData.color}
+                      onChange={handleInputChange}
+                      className="w-16 h-10 p-1"
+                    />
+                    <span>{formData.color}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    {editingTag ? 'Update Tag' : 'Create Tag'}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Error Message */}
