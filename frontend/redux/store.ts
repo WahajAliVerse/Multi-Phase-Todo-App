@@ -12,7 +12,9 @@ const unauthenticatedMiddleware: Middleware = (storeAPI) => (next) => (action: a
     // Dispatch logout action to clear user state
     storeAPI.dispatch(logout());
     // Optionally redirect to login page
-    window.location.href = '/login';
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   }
   return next(action);
 };

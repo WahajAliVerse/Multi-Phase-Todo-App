@@ -170,6 +170,16 @@ class NotificationService:
         
         return False
 
+    def get_upcoming_reminders(self, session: Session, user_id: uuid.UUID) -> List[Notification]:
+        """
+        Get upcoming reminders for a specific user
+        """
+        # Get notifications of type 'reminder' that are scheduled for the future
+        # For now, returning upcoming notifications that are not yet read
+        return self.repository.get_notifications_by_user(
+            session, user_id, type="reminder", status="sent"
+        )
+
     def get_unread_notification_count(self, session: Session, user_id: uuid.UUID) -> int:
         """
         Get the count of unread notifications for a user

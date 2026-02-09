@@ -1,16 +1,12 @@
 'use client';
 
 import React from 'react';
-import { useTheme } from 'next-themes';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
+import { useThemeSync } from '@/hooks/useThemeSync';
 
 const ThemeToggle: React.FC = () => {
-  const { theme, setTheme } = useTheme();
-
-  const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  };
+  const { theme, toggleTheme } = useThemeSync();
 
   return (
     <motion.button

@@ -24,18 +24,21 @@ const LoginForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
   const onSubmit = async (data: LoginData) => {
     try {
       await dispatch(loginUser(data)).unwrap();
-      dispatch(addNotification({ 
-        type: 'success', 
-        message: 'Login successful! Welcome back.' 
+      dispatch(addNotification({
+        type: 'success',
+        message: 'Login successful! Welcome back.'
       }));
+
+      // Wait a moment to ensure state is updated before navigation
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       if (onSuccess) {
         onSuccess();
       }
     } catch (error: any) {
-      dispatch(addNotification({ 
-        type: 'error', 
-        message: error.message || 'Login failed' 
+      dispatch(addNotification({
+        type: 'error',
+        message: error.message || 'Login failed'
       }));
     }
   };

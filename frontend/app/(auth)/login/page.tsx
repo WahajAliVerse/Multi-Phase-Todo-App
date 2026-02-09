@@ -4,8 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import LoginForm from '@/components/forms/LoginForm';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 const LoginPage: React.FC = () => {
+  const router = useRouter();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
@@ -30,8 +33,8 @@ const LoginPage: React.FC = () => {
             </Link>
           </p>
         </div>
-        
-        <LoginForm onSuccess={() => window.location.href = '/dashboard'} />
+
+        <LoginForm onSuccess={() => router.push('/dashboard')} />
       </motion.div>
     </div>
   );

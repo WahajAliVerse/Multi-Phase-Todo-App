@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { tasksApi } from '@/utils/api';
 import { Task, CreateTaskData, UpdateTaskData } from '@/utils/validators';
 import { TasksState } from '@/types';
@@ -42,7 +42,7 @@ export const fetchTaskById = createAsyncThunk(
 
 export const createTask = createAsyncThunk(
   'tasks/createTask',
-  async (taskData: CreateTaskData, { rejectWithValue }) => {
+  async (taskData: CreateTaskData & { userId?: string }, { rejectWithValue }) => {
     try {
       const response = await tasksApi.create(taskData);
       return response;
@@ -54,7 +54,7 @@ export const createTask = createAsyncThunk(
 
 export const updateTask = createAsyncThunk(
   'tasks/updateTask',
-  async ({ id, taskData }: { id: string; taskData: UpdateTaskData }, { rejectWithValue }) => {
+  async ({ id, taskData }: { id: string; taskData: UpdateTaskData & { userId?: string } }, { rejectWithValue }) => {
     try {
       const response = await tasksApi.update(id, taskData);
       return response;

@@ -25,7 +25,7 @@ export const fetchTags = createAsyncThunk(
 
 export const createTag = createAsyncThunk(
   'tags/createTag',
-  async (tagData: CreateTagData, { rejectWithValue }) => {
+  async (tagData: CreateTagData & { userId?: string }, { rejectWithValue }) => {
     try {
       const response = await tagsApi.create(tagData);
       return response;

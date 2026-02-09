@@ -4,8 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import RegisterForm from '@/components/forms/RegisterForm';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 const RegisterPage: React.FC = () => {
+  const router = useRouter();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
@@ -30,8 +33,8 @@ const RegisterPage: React.FC = () => {
             </Link>
           </p>
         </div>
-        
-        <RegisterForm onSuccess={() => window.location.href = '/dashboard'} />
+
+        <RegisterForm onSuccess={() => router.push('/dashboard')} />
       </motion.div>
     </div>
   );

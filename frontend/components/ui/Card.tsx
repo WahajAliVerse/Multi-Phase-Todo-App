@@ -1,19 +1,37 @@
+'use client';
+
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   elevated?: boolean;
+  animated?: boolean;
 }
 
 const Card: React.FC<CardProps> = ({ 
   children, 
   elevated = false, 
+  animated = false,
   className = '', 
   ...props 
 }) => {
-  const baseClasses = 'rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm';
-  const elevationClass = elevated ? 'shadow-lg' : '';
+  const baseClasses = 'rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/70 backdrop-blur-sm shadow-sm overflow-hidden';
+  const elevationClass = elevated ? 'shadow-xl' : '';
+  const animationClass = animated ? 'hover:shadow-xl transition-shadow duration-300' : '';
   
-  const classes = `${baseClasses} ${elevationClass} ${className}`;
+  const classes = `${baseClasses} ${elevationClass} ${animationClass} ${className}`;
+  
+  if (animated) {
+    return (
+      <motion.div 
+        whileHover={{ y: -5 }}
+        className={classes} 
+        {...(props as any)}
+      >
+        {children}
+      </motion.div>
+    );
+  }
   
   return (
     <div className={classes} {...props}>
@@ -30,7 +48,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
   ...props 
 }) => {
   return (
-    <div className={`p-6 ${className}`} {...props}>
+    <div className={`p-6 border-b border-gray-200 dark:border-gray-700 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -44,7 +62,7 @@ const CardBody: React.FC<CardBodyProps> = ({
   ...props 
 }) => {
   return (
-    <div className={`p-6 pt-0 ${className}`} {...props}>
+    <div className={`p-6 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -58,7 +76,7 @@ const CardFooter: React.FC<CardFooterProps> = ({
   ...props 
 }) => {
   return (
-    <div className={`p-6 pt-0 ${className}`} {...props}>
+    <div className={`p-6 border-t border-gray-200 dark:border-gray-700 ${className}`} {...props}>
       {children}
     </div>
   );
@@ -72,7 +90,7 @@ const CardTitle: React.FC<CardTitleProps> = ({
   ...props 
 }) => {
   return (
-    <h3 className={`text-lg font-semibold text-gray-900 dark:text-white ${className}`} {...props}>
+    <h3 className={`text-xl font-bold text-gray-900 dark:text-white ${className}`} {...props}>
       {children}
     </h3>
   );
@@ -86,7 +104,7 @@ const CardDescription: React.FC<CardDescriptionProps> = ({
   ...props 
 }) => {
   return (
-    <p className={`text-sm text-gray-500 dark:text-gray-400 ${className}`} {...props}>
+    <p className={`text-sm text-gray-500 dark:text-gray-400 mt-2 ${className}`} {...props}>
       {children}
     </p>
   );

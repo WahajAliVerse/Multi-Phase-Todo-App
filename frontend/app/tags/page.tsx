@@ -10,6 +10,7 @@ import TaskToolbar from '@/components/common/TaskToolbar';
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card';
 import { motion } from 'framer-motion';
 import Button from '@/components/ui/Button';
+import { formatDate } from '@/utils/dateUtils';
 
 const TagsPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -37,10 +38,11 @@ const TagsPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setShowForm(false);
     setEditingTag(null);
-    dispatch(fetchTags()); // Refresh the list
+    // Wait for tags to be fetched before continuing
+    await dispatch(fetchTags());
   };
 
   const handleCancel = () => {
@@ -84,7 +86,7 @@ const TagsPage: React.FC = () => {
               <div className="flex justify-center items-center h-32">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
               </div>
-            ) : tags.length === 0 ? (
+            ) : (tags || []).length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -109,7 +111,7 @@ const TagsPage: React.FC = () => {
                 {/* Tag Carousel */}
                 <div className="overflow-x-auto pb-4">
                   <div className="flex space-x-4" style={{ minWidth: 'max-content' }}>
-                    {tags.map((tag) => (
+                    {(tags || []).map((tag) => (
                       <motion.div
                         key={tag.id}
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -117,8 +119,8 @@ const TagsPage: React.FC = () => {
                         transition={{ duration: 0.2 }}
                         className="flex-shrink-0"
                       >
-                        <TagChip 
-                          tag={tag} 
+                        <TagChip
+                          tag={tag}
                           onClick={() => handleEdit(tag)}
                           removable={true}
                           onRemove={() => handleDelete(tag.id)}
@@ -135,7 +137,7 @@ const TagsPage: React.FC = () => {
                   transition={{ duration: 0.3 }}
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
-                  {tags.map((tag) => (
+                  {(tags || []).map((tag) => (
                     <motion.div
                       key={tag.id}
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -172,7 +174,7 @@ const TagsPage: React.FC = () => {
                               <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
-                              Created: {new Date(tag.createdAt).toLocaleDateString()}
+                              Created: {formatDate(tag.createdAt)}
                             </div>
                           </div>
                         </CardBody>

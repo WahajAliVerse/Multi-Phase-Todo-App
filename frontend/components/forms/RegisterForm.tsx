@@ -24,18 +24,21 @@ const RegisterForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
   const onSubmit = async (data: RegisterData) => {
     try {
       await dispatch(registerUser(data)).unwrap();
-      dispatch(addNotification({ 
-        type: 'success', 
-        message: 'Registration successful! Welcome to our app.' 
+      dispatch(addNotification({
+        type: 'success',
+        message: 'Registration successful! Welcome to our app.'
       }));
+
+      // Wait a moment to ensure state is updated before navigation
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       if (onSuccess) {
         onSuccess();
       }
     } catch (error: any) {
-      dispatch(addNotification({ 
-        type: 'error', 
-        message: error.message || 'Registration failed' 
+      dispatch(addNotification({
+        type: 'error',
+        message: error.message || 'Registration failed'
       }));
     }
   };

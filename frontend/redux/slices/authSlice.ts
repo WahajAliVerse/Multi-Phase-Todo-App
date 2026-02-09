@@ -143,7 +143,17 @@ const authSlice = createSlice({
       })
       // Update profile
       .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.user = { ...state.user, ...action.payload } as User;
+        // Ensure we're properly updating the user object with the latest data
+        if (state.user) {
+          state.user = {
+            ...state.user,
+            ...action.payload,
+            preferences: {
+              ...state.user.preferences,
+              ...action.payload.preferences
+            }
+          } as User;
+        }
         state.loading = false;
       })
       .addCase(updateUserProfile.rejected, (state, action) => {

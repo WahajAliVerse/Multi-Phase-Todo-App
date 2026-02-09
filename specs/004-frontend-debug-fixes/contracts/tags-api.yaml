@@ -1,0 +1,150 @@
+# API Contract: Tags Service
+
+## Overview
+This contract defines the API endpoints for tag management that the frontend debug fixes rely on.
+
+## Endpoints
+
+### GET /tags
+Retrieve all tags for the authenticated user.
+
+#### Request
+```
+GET /tags
+Cookie: access_token=<token>
+```
+
+#### Response
+```json
+{
+  "tags": [
+    {
+      "id": "string",
+      "name": "string",
+      "color": "string",
+      "user_id": "string",
+      "created_at": "string",
+      "updated_at": "string"
+    }
+  ]
+}
+```
+
+#### Success Response
+- Status: 200 OK
+- Content-Type: application/json
+
+#### Error Responses
+- 401 Unauthorized: Invalid or missing authentication token
+- 500 Internal Server Error: Server error
+
+### POST /tags
+Create a new tag for the authenticated user.
+
+#### Request
+```
+POST /tags
+Content-Type: application/json
+Cookie: access_token=<token>
+
+{
+  "name": "string",
+  "color": "string",
+  "user_id": "string"
+}
+```
+
+#### Response
+```json
+{
+  "id": "string",
+  "name": "string",
+  "color": "string",
+  "user_id": "string",
+  "created_at": "string",
+  "updated_at": "string"
+}
+```
+
+#### Success Response
+- Status: 201 Created
+- Content-Type: application/json
+
+#### Error Responses
+- 400 Bad Request: Invalid request body
+- 401 Unauthorized: Invalid or missing authentication token
+- 500 Internal Server Error: Server error
+
+### GET /auth/me
+Retrieve the authenticated user's profile.
+
+#### Request
+```
+GET /auth/me
+Cookie: access_token=<token>
+```
+
+#### Response
+```json
+{
+  "id": "string",
+  "email": "string",
+  "first_name": "string",
+  "last_name": "string",
+  "theme_preference": "string",
+  "created_at": "string",
+  "updated_at": "string"
+}
+```
+
+#### Success Response
+- Status: 200 OK
+- Content-Type: application/json
+
+#### Error Responses
+- 401 Unauthorized: Invalid or missing authentication token
+- 500 Internal Server Error: Server error
+
+### POST /tasks
+Create a new task for the authenticated user.
+
+#### Request
+```
+POST /tasks
+Content-Type: application/json
+Cookie: access_token=<token>
+
+{
+  "title": "string",
+  "description": "string",
+  "priority": "low|medium|high",
+  "due_date": "string",
+  "tags": ["string"],
+  "user_id": "string"
+}
+```
+
+#### Response
+```json
+{
+  "id": "string",
+  "title": "string",
+  "description": "string",
+  "completed": false,
+  "priority": "low|medium|high",
+  "due_date": "string",
+  "tags": ["string"],
+  "user_id": "string",
+  "created_at": "string",
+  "updated_at": "string"
+}
+```
+
+#### Success Response
+- Status: 201 Created
+- Content-Type: application/json
+
+#### Error Responses
+- 400 Bad Request: Invalid request body
+- 401 Unauthorized: Invalid or missing authentication token
+- 500 Internal Server Error: Server error

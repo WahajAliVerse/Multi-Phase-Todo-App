@@ -7,16 +7,17 @@ import { createTagSchema, CreateTagData } from '@/utils/validators';
 import { Tag } from '@/types';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { useAppDispatch } from '@/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { createTag, updateTag } from '@/redux/slices/tagsSlice';
 import { addNotification } from '@/redux/slices/uiSlice';
 
-const TagForm: React.FC<{ 
-  tag?: Partial<Tag>; 
-  onSubmitCallback?: () => void; 
-  onCancel?: () => void 
+const TagForm: React.FC<{
+  tag?: Partial<Tag>;
+  onSubmitCallback?: () => void;
+  onCancel?: () => void
 }> = ({ tag, onSubmitCallback, onCancel }) => {
   const dispatch = useAppDispatch();
+  const { user } = useAppSelector(state => state.auth);
   const {
     register,
     handleSubmit,
@@ -35,23 +36,32 @@ const TagForm: React.FC<{
       if (tag?.id) {
         await dispatch(updateTag({ id: tag.id, tagData: data })).unwrap();
       } else {
-        await dispatch(createTag(data)).unwrap();
+        // Include user ID when creating a new tag (using camelCase for backend compatibility)
+        const tagDataWithUserId = {
+          ...data,
+          userId: user?.id
+        };
+        
+        // Log the data being sent for debugging
+        console.log('Sending tag data:', tagDataWithUserId);
+        
+        await dispatch(createTag(tagDataWithUserId)).unwrap();
       }
-      
-      dispatch(addNotification({ 
-        type: 'success', 
-        message: tag?.id ? 'Tag updated successfully!' : 'Tag created successfully!' 
+
+      dispatch(addNotification({
+        type: 'success',
+        message: tag?.id ? 'Tag updated successfully!' : 'Tag created successfully!'
       }));
-      
+
       if (onSubmitCallback) {
         onSubmitCallback();
       } else {
         reset();
       }
     } catch (error: any) {
-      dispatch(addNotification({ 
-        type: 'error', 
-        message: error.message || 'Failed to save tag' 
+      dispatch(addNotification({
+        type: 'error',
+        message: error.message || 'Failed to save tag'
       }));
     }
   };

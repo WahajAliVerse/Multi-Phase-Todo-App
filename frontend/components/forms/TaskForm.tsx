@@ -7,16 +7,17 @@ import { createTaskSchema, CreateTaskData } from '@/utils/validators';
 import { Task } from '@/types';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { useAppDispatch } from '@/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { createTask, updateTask } from '@/redux/slices/tasksSlice';
 import { addNotification } from '@/redux/slices/uiSlice';
 
-const TaskForm: React.FC<{ 
-  task?: Partial<Task>; 
-  onSubmitCallback?: () => void; 
-  onCancel?: () => void 
+const TaskForm: React.FC<{
+  task?: Partial<Task>;
+  onSubmitCallback?: () => void;
+  onCancel?: () => void
 }> = ({ task, onSubmitCallback, onCancel }) => {
   const dispatch = useAppDispatch();
+  const { user } = useAppSelector(state => state.auth);
   const {
     register,
     handleSubmit,
@@ -45,14 +46,28 @@ const TaskForm: React.FC<{
 
   const onSubmit = async (data: CreateTaskData) => {
     try {
+      // Format dates to ensure they're in ISO format
+      const formattedData = {
+        ...data,
+        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined
+      };
+
       if (task?.id) {
         // Update existing task
-        await dispatch(updateTask({ id: task.id, taskData: data })).unwrap();
+        const taskDataWithUserId = {
+          ...formattedData,
+          userId: user?.id
+        };
+        await dispatch(updateTask({ id: task.id, taskData: taskDataWithUserId })).unwrap();
       } else {
         // Create new task
-        await dispatch(createTask(data)).unwrap();
+        const taskDataWithUserId = {
+          ...formattedData,
+          userId: user?.id
+        };
+        await dispatch(createTask(taskDataWithUserId)).unwrap();
       }
-      
+
       dispatch(addNotification({
         type: 'success',
         message: task?.id ? 'Task updated successfully!' : 'Task created successfully!'

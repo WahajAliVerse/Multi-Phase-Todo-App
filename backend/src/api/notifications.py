@@ -221,6 +221,24 @@ def update_notification_settings(
     return {"message": "Notification settings updated successfully", "settings": updated_user.notification_settings}
 
 
+@router.get("/reminders/upcoming", response_model=List[Notification])
+@rate_limit_api
+def get_upcoming_reminders(
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    session: Session = Depends(get_session)
+):
+    """
+    Get upcoming reminders for the current user
+    """
+    notification_service = NotificationService()
+    upcoming_reminders = notification_service.get_upcoming_reminders(
+        session=session,
+        user_id=current_user.id
+    )
+    return upcoming_reminders
+
+
 @router.get("/settings")
 @rate_limit_api
 def get_notification_settings(
@@ -241,5 +259,5 @@ def get_notification_settings(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
+
     return {"settings": user.notification_settings}

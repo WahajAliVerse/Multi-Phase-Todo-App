@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Task } from '@/types';
-import { useAppDispatch } from '@/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { updateTask, deleteTask, toggleTaskCompletion } from '@/redux/slices/tasksSlice';
 import { openModal } from '@/redux/slices/uiSlice';
 import Button from '@/components/ui/Button';
 import { PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { formatDate } from '@/utils/dateUtils';
 
 interface TaskCardProps {
   task: Task;
@@ -15,13 +16,18 @@ interface TaskCardProps {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const dispatch = useAppDispatch();
+  const { user } = useAppSelector(state => state.auth);
+  const allTags = useAppSelector(state => state.tags.tags);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleToggleCompletion = () => {
     dispatch(toggleTaskCompletion({ id: task.id, completed: !task.completed }));
     dispatch(updateTask({
       id: task.id,
-      taskData: { completed: !task.completed }
+      taskData: { 
+        completed: !task.completed,
+        userId: user?.id
+      }
     }));
   };
 
@@ -84,9 +90,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                 </p>
               )}
               <div className="mt-3 flex flex-wrap gap-2">
-                {task.tags.map((tag, index) => (
-                  <span 
-                    key={index} 
+                {(task.tags || []).map((tag, index) => (
+                  <span
+                    key={index}
                     className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300"
                   >
                     {tag}
@@ -119,7 +125,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                 <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                {new Date(task.dueDate).toLocaleDateString()}
+                {formatDate(task.dueDate)}
               </span>
             )}
           </div>
@@ -135,8 +141,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         >
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-600 dark:text-gray-300">
-              <p>Created: {new Date(task.createdAt).toLocaleDateString()}</p>
-              <p>Updated: {new Date(task.updatedAt).toLocaleDateString()}</p>
+              <p>Created: {formatDate(task.createdAt)}</p>
+              <p>Updated: {formatDate(task.updatedAt)}</p>
             </div>
             <div className="flex space-x-2">
               <Button 
