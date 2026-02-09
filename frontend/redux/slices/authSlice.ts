@@ -136,9 +136,20 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
         state.loading = false;
+        state.error = null; // Clear any previous errors
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
-        state.error = action.payload as string;
+        // Don't set error for unauthorized access - just mark as not authenticated
+        if (action.payload === 'Session expired. Please log in again.' || 
+            action.payload === 'Unauthorized' ||
+            (action.payload as string)?.includes('401') ||
+            (action.payload as string)?.includes('404')) {
+          state.user = null;
+          state.isAuthenticated = false;
+          state.error = null; // Don't show error for unauthorized access
+        } else {
+          state.error = action.payload as string;
+        }
         state.loading = false;
       })
       // Update profile

@@ -89,8 +89,8 @@ export async function apiRequest<T>(
   try {
     let response = await fetch(url, config);
 
-    // Handle 401 Unauthorized - likely means session expired
-    if (response.status === 401) {
+    // Handle 401 Unauthorized or 404 Not Found for auth endpoints - likely means session expired
+    if (response.status === 401 || (response.status === 404 && url.includes('/auth/me'))) {
       // Attempt to refresh the token if possible
       const refreshed = await refreshToken();
       if (refreshed) {
@@ -177,8 +177,14 @@ async function refreshToken(): Promise<boolean> {
       isRefreshing = false;
       processQueue(null, result.token || null);
       return true;
+    } else if (response.status === 404) {
+      // If refresh endpoint doesn't exist, treat as if refresh failed
+      // This means the session has expired and needs to be renewed via login
+      isRefreshing = false;
+      processQueue(new Error('Session expired. Please log in again.'), null);
+      return false;
     } else {
-      // If refresh fails, clear the queue and reject
+      // If refresh fails for other reasons, clear the queue and reject
       isRefreshing = false;
       processQueue(new Error('Token refresh failed'), null);
       return false;

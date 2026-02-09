@@ -17,14 +17,21 @@ export function AuthInitializer() {
 
   // Load user profile and tags on initial load to get theme preference and populate tags
   useEffect(() => {
-    if (isAuthenticated && !user) { // Only fetch if user is not already loaded
-      dispatch(fetchUserProfile());
-    }
-    
-    // Fetch tags to ensure they're available for UI components
-    // If authenticated, fetch user-specific tags; if not authenticated, still fetch public tags if applicable
-    dispatch(fetchTags());
-  }, [isAuthenticated, user, dispatch]);
+    // Attempt to fetch user profile to check authentication status
+    dispatch(fetchUserProfile())
+      .unwrap()
+      .then(() => {
+        // If profile fetch succeeds, fetch tags as well
+        dispatch(fetchTags());
+      })
+      .catch((error) => {
+        // If profile fetch fails with 401/404, the user is not authenticated
+        // This is expected behavior, so we don't need to show an error
+        console.log('User not authenticated:', error);
+        // Still fetch tags to ensure they're available for public components
+        dispatch(fetchTags());
+      });
+  }, [dispatch]);
 
   return null; // This component doesn't render anything
 }
