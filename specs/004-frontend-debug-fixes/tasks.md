@@ -19,16 +19,16 @@ Setup → Foundational → US4 (Auth Persistence) → US3 (User ID in Tags) → 
 ## Phase 1: Setup
 *Initialize project structure and verify environment*
 
-- [ ] T001 Set up development environment with proper dependencies
-- [ ] T002 Verify backend API connectivity and authentication
-- [ ] T003 Confirm existing functionality works before making changes
+- [x] T001 Set up development environment with proper dependencies
+- [x] T002 Verify backend API connectivity and authentication
+- [x] T003 Confirm existing functionality works before making changes
 
 ## Phase 2: Foundational
 *Core infrastructure fixes that unblock all user stories*
 
-- [ ] T010 [P] Update API utility to ensure proper CORS and credential handling in `frontend/utils/api.ts`
-- [ ] T011 [P] Verify TypeScript interfaces match backend API response format in `frontend/types/api.ts`
-- [ ] T012 [P] Ensure Redux store configuration supports required changes in `frontend/redux/store.ts`
+- [x] T010 [P] Update API utility to ensure proper CORS and credential handling in `frontend/utils/api.ts`
+- [x] T011 [P] Verify TypeScript interfaces match backend API response format in `frontend/types/api.ts`
+- [x] T012 [P] Ensure Redux store configuration supports required changes in `frontend/redux/store.ts`
 
 ## Phase 3: [US4] Maintain Session Across Page Refreshes
 *User data persists on refresh/navigation*
@@ -37,9 +37,9 @@ Setup → Foundational → US4 (Auth Persistence) → US3 (User ID in Tags) → 
 
 **Independent Test**: User can refresh the page and remain authenticated with their data intact
 
-- [ ] T020 Implement auth initializer to check authentication status on app load in `frontend/components/providers/AuthInitializer.tsx`
-- [ ] T021 Update auth slice to properly handle fulfilled state from auth check thunk in `frontend/redux/slices/authSlice.ts`
-- [ ] T022 Test page refresh maintains user session and data
+- [x] T020 Implement auth initializer to check authentication status on app load in `frontend/components/providers/AuthInitializer.tsx`
+- [x] T021 Update auth slice to properly handle fulfilled state from auth check thunk in `frontend/redux/slices/authSlice.ts`
+- [x] T022 Test page refresh maintains user session and data
 
 ## Phase 4: [US3] Create Tags Associated with User Account
 *User ID automatically attached when creating tags*
@@ -48,9 +48,9 @@ Setup → Foundational → US4 (Auth Persistence) → US3 (User ID in Tags) → 
 
 **Independent Test**: Creating a tag results in it being saved with the correct user ID and appearing in the user's tag list
 
-- [ ] T030 Update createTag thunk to automatically include user ID from auth state in `frontend/redux/slices/tagsSlice.ts`
-- [ ] T031 Verify tag creation API request includes user_id field
-- [ ] T032 Test that created tags are properly associated with the authenticated user
+- [x] T030 Update createTag thunk to automatically include user ID from auth state in `frontend/redux/slices/tagsSlice.ts`
+- [x] T031 Verify tag creation API request includes user_id field
+- [x] T032 Test that created tags are properly associated with the authenticated user
 
 ## Phase 5: [US2] Create Tasks with Valid Dates
 *Date conversion fixed for task creation*
@@ -59,10 +59,10 @@ Setup → Foundational → US4 (Auth Persistence) → US3 (User ID in Tags) → 
 
 **Independent Test**: Creating tasks with due dates succeeds without ISO format validation errors
 
-- [ ] T040 Update TaskForm to properly convert date inputs to ISO format in `frontend/components/forms/TaskForm.tsx`
-- [ ] T041 Handle timezone offsets safely when converting dates
-- [ ] T042 Test task creation with various date formats and edge cases
-- [ ] T043 Add error handling for invalid date inputs
+- [x] T040 Update TaskForm to properly convert date inputs to ISO format in `frontend/components/forms/TaskForm.tsx`
+- [x] T041 Handle timezone offsets safely when converting dates
+- [x] T042 Test task creation with various date formats and edge cases
+- [x] T043 Add error handling for invalid date inputs
 
 ## Phase 6: [US1] View Tags in Task Components
 *Tags render properly in UI with colors*
@@ -71,23 +71,23 @@ Setup → Foundational → US4 (Auth Persistence) → US3 (User ID in Tags) → 
 
 **Independent Test**: Creating tasks with tags results in tags appearing in the task list and modal with proper styling and colors
 
-- [ ] T050 Update TaskCard component to render tags using TagChip elements in `frontend/components/common/TaskCard.tsx`
-- [ ] T051 Ensure tags are fetched and mapped correctly from Redux state
-- [ ] T052 Verify tag colors and names display correctly in UI
-- [ ] T053 Add conditional checks for empty tag arrays to avoid errors
-- [ ] T054 Test tag rendering in task creation/edit modal
-- [ ] T055 Update TaskForm to include dropdown for selecting existing tags in `frontend/components/forms/TaskForm.tsx`
-- [ ] T056 Update tags page to fetch and display all tags from API for selection in the dropdown component
-- [ ] T057 Implement tag selection functionality to set tag IDs when creating tasks
-- [ ] T058 Verify selected tags are sent to task API with proper tag IDs
-- [ ] T059 Create/update tags page to display all tags from the API in a grid/list format in `frontend/app/tags/page.tsx`
-- [ ] T060 Ensure tags page fetches all tags from the API when loaded
-- [ ] T061 Implement proper tag display with colors and names on the tags page
-- [ ] T062 Add functionality to edit/delete tags directly from the tags page
-- [ ] T063 Implement tags page component to render TagChips with proper styling
-- [ ] T064 Add search/filter functionality to the tags page to find specific tags
-- [ ] T065 Implement pagination for the tags page when there are many tags
-- [ ] T066 Add sorting functionality to the tags page (by name, color, creation date)
+- [x] T050 Update TaskCard component to render tags using TagChip elements in `frontend/components/common/TaskCard.tsx`
+- [x] T051 Ensure tags are fetched and mapped correctly from Redux state
+- [x] T052 Verify tag colors and names display correctly in UI
+- [x] T053 Add conditional checks for empty tag arrays to avoid errors
+- [x] T054 Test tag rendering in task creation/edit modal
+- [x] T055 Update TaskForm to include dropdown for selecting existing tags in `frontend/components/forms/TaskForm.tsx`
+- [x] T056 Update tags page to fetch and display all tags from API for selection in the dropdown component
+- [x] T057 Implement tag selection functionality to set tag IDs when creating tasks
+- [x] T058 Verify selected tags are sent to task API with proper tag IDs
+- [x] T059 Create/update tags page to display all tags from the API in a grid/list format in `frontend/app/tags/page.tsx`
+- [x] T060 Ensure tags page fetches all tags from the API when loaded
+- [x] T061 Implement proper tag display with colors and names on the tags page
+- [x] T062 Add functionality to edit/delete tags directly from the tags page
+- [x] T063 Implement tags page component to render TagChips with proper styling
+- [x] T064 Add search/filter functionality to the tags page to find specific tags
+- [x] T065 Implement pagination for the tags page when there are many tags
+- [x] T066 Add sorting functionality to the tags page (by name, color, creation date)
 
 ## Phase 7: [US5] Access Backend API Without CORS Errors
 *CORS issues resolved for all API requests*
@@ -96,19 +96,19 @@ Setup → Foundational → US4 (Auth Persistence) → US3 (User ID in Tags) → 
 
 **Independent Test**: Performing various API operations results in no CORS errors in the console
 
-- [ ] T063 Verify all API calls in utils/api.ts include proper credentials and CORS settings
-- [ ] T064 Test API requests with authentication cookies
-- [ ] T065 Confirm no CORS errors appear in browser console
+- [x] T063 Verify all API calls in utils/api.ts include proper credentials and CORS settings
+- [x] T064 Test API requests with authentication cookies
+- [x] T065 Confirm no CORS errors appear in browser console
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 *Final integration, testing, and quality assurance*
 
-- [ ] T070 Perform end-to-end testing of all fixed features
-- [ ] T071 Verify no regressions in existing functionality
-- [ ] T072 Run build process to ensure no errors
-- [ ] T073 Clean up any debug code or temporary fixes
-- [ ] T074 Update documentation if needed
-- [ ] T075 Final verification of all acceptance criteria
+- [x] T070 Perform end-to-end testing of all fixed features
+- [x] T071 Verify no regressions in existing functionality
+- [x] T072 Run build process to ensure no errors
+- [x] T073 Clean up any debug code or temporary fixes
+- [x] T074 Update documentation if needed
+- [x] T075 Final verification of all acceptance criteria
 
 ## Dependencies
 
