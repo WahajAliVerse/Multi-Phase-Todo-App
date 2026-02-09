@@ -14,7 +14,7 @@ const TasksPage: React.FC = () => {
   const { tasks, loading } = useAppSelector(state => state.tasks);
 
   useEffect(() => {
-    dispatch(fetchTasks());
+    dispatch(fetchTasks(null));
   }, [dispatch]);
 
   return (

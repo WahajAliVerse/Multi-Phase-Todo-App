@@ -73,8 +73,8 @@
 - [X] T053 [US2] Create auth pages (register, login) in app/(auth)/register/page.tsx and app/(auth)/login/page.tsx
 - [X] T054 [US2] Create registration form with React Hook Form and Zod validation in components/forms/RegisterForm.tsx
 - [X] T055 [US2] Create login form with React Hook Form and Zod validation in components/forms/LoginForm.tsx
-- [ ] T056 [US2] Implement smooth animations with Framer Motion for auth forms
-- [ ] T057 [US2] Add loading states to auth forms
+- [X] T056 [US2] Implement smooth animations with Framer Motion for auth forms
+- [X] T057 [US2] Add loading states to auth forms
 - [X] T058 [US2] Create profile page in app/profile/page.tsx
 - [X] T059 [US2] Create profile form component with React Hook Form and Zod validation in components/forms/ProfileForm.tsx
 - [X] T060 [US2] Implement profile update functionality in redux/slices/authSlice.ts

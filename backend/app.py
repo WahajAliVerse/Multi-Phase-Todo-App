@@ -13,7 +13,7 @@ app = FastAPI(title="Multi-Phase Todo Backend", version="1.0.0")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001", "http://localhost:3000"],  # Allow frontend origins
+    allow_origins=["http://localhost:3000", "http://localhost:3000"],  # Allow frontend origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

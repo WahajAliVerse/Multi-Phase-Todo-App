@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useTheme } from '@/lib/theme';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';

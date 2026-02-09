@@ -6,6 +6,7 @@ import { fetchUserProfile } from '@/redux/slices/authSlice';
 import ProfileForm from '@/components/forms/ProfileForm';
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card';
 import { motion } from 'framer-motion';
+import ThemeToggle from '@/components/common/ThemeToggle';
 
 const ProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();

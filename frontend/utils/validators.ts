@@ -5,6 +5,9 @@ export const userSchema = z.object({
   id: z.string().min(1, 'ID is required'),
   email: z.string().email('Must be a valid email'),
   name: z.string().min(1, 'Name is required').max(50, 'Name must be less than 50 characters').optional(),
+  preferences: z.object({
+    theme: z.enum(['light', 'dark']).optional(),
+  }).optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -33,9 +36,7 @@ export const taskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
   description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
   completed: z.boolean(),
-  priority: z.enum(['low', 'medium', 'high'], {
-    errorMap: () => ({ message: 'Priority must be low, medium, or high' })
-  }),
+  priority: z.enum(['low', 'medium', 'high']).default('medium'),
   dueDate: z.string().datetime().optional(),
   tags: z.array(z.string()).optional(),
   userId: z.string().min(1, 'User ID is required'),
@@ -47,15 +48,20 @@ export const taskSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 
-export const createTaskSchema = taskSchema.omit({ 
-  id: true, 
-  completed: true, 
-  userId: true, 
-  createdAt: true, 
-  updatedAt: true 
+export const createTaskSchema = taskSchema.omit({
+  id: true,
+  completed: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true
 }).partial({ priority: true });
 
-export const updateTaskSchema = createTaskSchema.partial();
+export const updateTaskSchema = taskSchema.omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true
+}).partial();
 
 // Tag validation schemas
 export const tagSchema = z.object({
@@ -63,6 +69,7 @@ export const tagSchema = z.object({
   name: z.string().min(1, 'Name is required').max(30, 'Name must be less than 30 characters'),
   color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color code'),
   userId: z.string().min(1, 'User ID is required'),
+  taskCount: z.number().optional(), // Number of tasks associated with this tag
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });

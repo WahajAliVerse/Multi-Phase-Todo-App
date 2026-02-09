@@ -6,6 +6,7 @@ import { fetchTags, createTag, updateTag, deleteTag } from '@/redux/slices/tagsS
 import { openModal } from '@/redux/slices/uiSlice';
 import TagChip from '@/components/common/TagChip';
 import TagForm from '@/components/forms/TagForm';
+import TaskToolbar from '@/components/common/TaskToolbar';
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card';
 import { motion } from 'framer-motion';
 import Button from '@/components/ui/Button';
@@ -140,8 +141,8 @@ const TagsPage: React.FC = () => {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.2 }}
-                      draggable
-                      onDragStart={(e) => e.dataTransfer.setData('text/plain', tag.id)}
+                      drag="x"
+                      dragConstraints={{ left: 0, right: 0 }}
                       className="cursor-move"
                     >
                       <Card elevated>

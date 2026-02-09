@@ -1,3 +1,5 @@
+import { Task, Tag } from './index';
+
 // API response/request types
 
 // Authentication API types

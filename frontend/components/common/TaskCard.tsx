@@ -19,9 +19,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
   const handleToggleCompletion = () => {
     dispatch(toggleTaskCompletion({ id: task.id, completed: !task.completed }));
-    dispatch(updateTask({ 
-      id: task.id, 
-      taskData: { ...task, completed: !task.completed } 
+    dispatch(updateTask({
+      id: task.id,
+      taskData: { completed: !task.completed }
     }));
   };
 

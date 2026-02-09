@@ -18,7 +18,7 @@ const DashboardPage: React.FC = () => {
   const { tasks, loading } = useAppSelector(state => state.tasks);
 
   useEffect(() => {
-    dispatch(fetchTasks());
+    dispatch(fetchTasks(null));
   }, [dispatch]);
 
   // Prepare chart data

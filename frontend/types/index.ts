@@ -6,7 +6,7 @@ export interface User {
   email: string;
   name?: string;
   preferences?: {
-    theme: 'light' | 'dark';
+    theme?: 'light' | 'dark';
   };
   createdAt: string;
   updatedAt: string;
@@ -36,6 +36,7 @@ export interface Tag {
   name: string;
   color: string;
   userId: string;
+  taskCount?: number; // Number of tasks associated with this tag
   createdAt: string;
   updatedAt: string;
 }

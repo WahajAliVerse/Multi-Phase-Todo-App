@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import LoginForm from '@/components/forms/LoginForm';
 import { motion } from 'framer-motion';
 

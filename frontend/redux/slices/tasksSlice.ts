@@ -18,9 +18,9 @@ const initialState: TasksState = {
 // Async thunks for tasks
 export const fetchTasks = createAsyncThunk(
   'tasks/fetchTasks',
-  async (params?: any, { rejectWithValue }) => {
+  async (params: any | null = null, { rejectWithValue }) => {
     try {
-      const response = await tasksApi.getAll(params);
+      const response = await tasksApi.getAll(params || {});
       return response.tasks;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || error.message);
