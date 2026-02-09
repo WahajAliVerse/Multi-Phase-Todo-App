@@ -19,6 +19,7 @@ const TagsPage: React.FC = () => {
   const [editingTag, setEditingTag] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Fetch tags when component mounts
   useEffect(() => {
     dispatch(fetchTags());
   }, [dispatch]);
@@ -84,11 +85,20 @@ const TagsPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    setShowForm(false);
-    setEditingTag(null);
-    // Wait for tags to be fetched before continuing
-    await dispatch(fetchTags());
+  const handleSubmit = async (tagData: any) => {
+    try {
+      if (editingTag) {
+        await dispatch(updateTag({ id: editingTag.id, tagData })).unwrap();
+      } else {
+        await dispatch(createTag(tagData)).unwrap();
+      }
+      setShowForm(false);
+      setEditingTag(null);
+      // Refresh tags after successful operation
+      await dispatch(fetchTags()).unwrap();
+    } catch (error) {
+      console.error('Error saving tag:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -103,7 +113,7 @@ const TagsPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div className="flex-1 w-full">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Tags</h1>
-            
+
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative rounded-md shadow-sm">
                 <input
@@ -117,7 +127,7 @@ const TagsPage: React.FC = () => {
                   className="block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
-              
+
               <div className="flex space-x-2">
                 <select
                   value={sortBy}
@@ -131,7 +141,7 @@ const TagsPage: React.FC = () => {
                   <option value="color">Sort by Color</option>
                   <option value="createdAt">Sort by Date</option>
                 </select>
-                
+
                 <button
                   onClick={() => {
                     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -142,7 +152,7 @@ const TagsPage: React.FC = () => {
                   {sortOrder === 'asc' ? '↑' : '↓'}
                 </button>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-700 dark:text-gray-300">Show:</span>
                 <select
@@ -161,7 +171,7 @@ const TagsPage: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <Button variant="primary" onClick={handleCreateNew}>
             Create New Tag
           </Button>
@@ -178,10 +188,10 @@ const TagsPage: React.FC = () => {
                 <CardTitle>{editingTag ? 'Edit Tag' : 'Create New Tag'}</CardTitle>
               </CardHeader>
               <CardBody>
-                <TagForm 
-                  tag={editingTag} 
-                  onSubmitCallback={handleSubmit} 
-                  onCancel={handleCancel} 
+                <TagForm
+                  tag={editingTag}
+                  onSubmitCallback={handleSubmit}
+                  onCancel={handleCancel}
                 />
               </CardBody>
             </Card>
@@ -278,7 +288,7 @@ const TagsPage: React.FC = () => {
                             </p>
                             <div className="mt-2 flex items-center text-xs text-gray-500 dark:text-gray-400">
                               <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 01-18 0 9 9 0 0118 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
                               Created: {formatDate(tag.createdAt)}
                             </div>

@@ -11,6 +11,8 @@ import TagChip from '@/components/common/TagChip';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { createTask, updateTask } from '@/redux/slices/tasksSlice';
 import { addNotification } from '@/redux/slices/uiSlice';
+import { fetchTags } from '@/redux/slices/tagsSlice';
+import { useEffect } from 'react';
 
 const TaskForm: React.FC<{
   task?: Partial<Task>;
@@ -20,6 +22,13 @@ const TaskForm: React.FC<{
   const dispatch = useAppDispatch();
   const { user } = useAppSelector(state => state.auth);
   const allTags = useAppSelector(state => state.tags.tags) || [];
+  const tagsLoading = useAppSelector(state => state.tags.loading);
+
+  // Load tags when component mounts to ensure they're available for the dropdown
+  useEffect(() => {
+    dispatch(fetchTags());
+  }, [dispatch]);
+
   const {
     register,
     handleSubmit,
@@ -40,19 +49,24 @@ const TaskForm: React.FC<{
 
   // Watch the tags field to handle comma-separated input
   const tagsValue = watch('tags');
-  
+
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const tagsArray = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag);
     setValue('tags', tagsArray);
   };
 
+  // Ensure tags are loaded when component mounts
+  useEffect(() => {
+    dispatch(fetchTags());
+  }, [dispatch]);
+
   const onSubmit = async (data: CreateTaskData) => {
     try {
-      // Format dates to ensure they're in ISO format
+      // Format dates to ensure they're in ISO 8601 format
       let formattedData = { ...data };
 
       if (data.dueDate) {
-        // Check if the date is valid before converting
+        // Check if the date is already in ISO format, otherwise convert it
         const dateToProcess = new Date(data.dueDate);
         if (isNaN(dateToProcess.getTime())) {
           // Invalid date, show error
@@ -62,6 +76,7 @@ const TaskForm: React.FC<{
           }));
           return;
         }
+        // Convert to ISO string ensuring proper timezone handling
         formattedData = {
           ...data,
           dueDate: dateToProcess.toISOString()
