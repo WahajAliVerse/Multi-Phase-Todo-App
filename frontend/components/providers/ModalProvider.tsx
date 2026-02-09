@@ -1,22 +1,21 @@
 'use client';
 
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { closeModal } from '@/redux/slices/uiSlice';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskForm from '@/components/forms/TaskForm';
 import TagForm from '@/components/forms/TagForm';
 import { Task } from '@/types';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { closeModal } from '@/redux/slices/uiSlice';
 
 interface ModalProviderProps {
   children: React.ReactNode;
 }
 
 const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
-  const dispatch = useDispatch();
-  const { isOpen, mode, entityType, entityId } = useSelector((state: RootState) => state.ui.modal);
-  const { tasks } = useSelector((state: RootState) => state.tasks);
+  const dispatch = useAppDispatch();
+  const { isOpen, mode, entityType, entityId } = useAppSelector((state) => state.ui.modal);
+  const { tasks } = useAppSelector((state) => state.tasks);
 
   // Find the task to edit if in edit mode
   const taskToEdit = entityId ? tasks.find((task: Task) => task.id === entityId) : null;
@@ -68,10 +67,10 @@ const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
                   />
                 )}
                 {entityType === 'tag' && (
-                  <TagForm 
-                    tag={mode === 1 ? { id: entityId } : undefined} 
-                    onSubmitCallback={handleClose} 
-                    onCancel={handleClose} 
+                  <TagForm
+                    tag={mode === 1 ? { id: entityId } : undefined}
+                    onSubmitCallback={handleClose}
+                    onCancel={handleClose}
                   />
                 )}
               </div>

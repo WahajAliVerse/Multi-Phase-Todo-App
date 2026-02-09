@@ -23,6 +23,9 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  preferences?: {
+    theme?: 'light' | 'dark';
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +34,15 @@ export interface User {
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 const DEFAULT_HEADERS = {
   'Content-Type': 'application/json',
+};
+
+// CORS and credentials configuration
+const API_CONFIG: RequestInit = {
+  credentials: 'include',
+  mode: 'cors',
+  headers: {
+    ...DEFAULT_HEADERS,
+  },
 };
 
 // Retry configuration
@@ -63,9 +75,10 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;
 
-  // Add credentials to all requests for cookie authentication
+  // Add credentials and CORS settings to all requests for cookie authentication
   const config: RequestInit = {
     credentials: 'include', // This ensures cookies are sent with requests
+    mode: 'cors', // Enable CORS mode
     ...options,
     headers: {
       ...DEFAULT_HEADERS,
@@ -82,7 +95,16 @@ export async function apiRequest<T>(
       const refreshed = await refreshToken();
       if (refreshed) {
         // Retry the original request once after token refresh
-        const retryResponse = await fetch(url, config);
+        const retryConfig: RequestInit = {
+          credentials: 'include',
+          mode: 'cors',
+          ...options,
+          headers: {
+            ...DEFAULT_HEADERS,
+            ...options.headers,
+          },
+        };
+        const retryResponse = await fetch(url, retryConfig);
         if (!retryResponse.ok) {
           throw new Error(`HTTP error! status: ${retryResponse.status}`);
         }
@@ -95,7 +117,21 @@ export async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Try to get error message from response body
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorBody = await response.json();
+        if (errorBody.message) {
+          errorMessage = errorBody.message;
+        } else if (errorBody.detail) {
+          errorMessage = errorBody.detail;
+        }
+      } catch (parseError) {
+        // If we can't parse the error body, use the status code
+        console.warn('Could not parse error response:', parseError);
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return await response.json();
@@ -110,7 +146,8 @@ export async function apiRequest<T>(
     }
 
     // Show error toast
-    toast.error(error.message || 'An error occurred while processing your request');
+    const errorMessage = error.message || 'An error occurred while processing your request';
+    toast.error(errorMessage);
     throw error;
   }
 }
@@ -156,31 +193,94 @@ async function refreshToken(): Promise<boolean> {
 
 // Authentication API functions
 export const authApi = {
-  login: (credentials: LoginCredentials) => 
-    apiRequest<User>('/auth/login', {
+  login: async (credentials: LoginCredentials) => {
+    const response = await apiRequest<any>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
-    }),
-  
-  register: (userData: RegisterData) => 
-    apiRequest<User>('/auth/register', {
+    });
+    
+    // Transform backend response to match frontend expectations
+    if (response.user) {
+      return {
+        ...response.user,
+        name: response.user.first_name ? `${response.user.first_name} ${response.user.last_name || ''}`.trim() : undefined,
+        preferences: {
+          theme: response.user.theme_preference
+        }
+      };
+    }
+    return response;
+  },
+
+  register: async (userData: RegisterData) => {
+    const response = await apiRequest<any>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
-    }),
-  
-  logout: () => 
+    });
+    
+    // Transform backend response to match frontend expectations
+    if (response.user) {
+      return {
+        ...response.user,
+        name: response.user.first_name ? `${response.user.first_name} ${response.user.last_name || ''}`.trim() : undefined,
+        preferences: {
+          theme: response.user.theme_preference
+        }
+      };
+    }
+    return response;
+  },
+
+  logout: () =>
     apiRequest('/auth/logout', {
       method: 'POST',
     }),
-  
-  getProfile: () => 
-    apiRequest<User>('/auth/profile'),
-  
-  updateProfile: (userData: Partial<User>) => 
-    apiRequest<User>('/auth/profile', {
+
+  getProfile: async () => {
+    const response = await apiRequest<any>('/auth/me');
+
+    // Transform backend response to match frontend expectations
+    return {
+      ...response,
+      name: response.first_name ? `${response.first_name} ${response.last_name || ''}`.trim() : undefined,
+      preferences: {
+        theme: response.theme_preference || 'light' // Default to 'light' if not set
+      }
+    };
+  },
+
+  updateProfile: async (userData: Partial<User>) => {
+    // Transform frontend data to match backend expectations
+    const transformedData: any = {};
+    
+    if (userData.name !== undefined) {
+      const nameParts = userData.name.split(' ');
+      transformedData.first_name = nameParts[0];
+      transformedData.last_name = nameParts.slice(1).join(' ') || null;
+    }
+    
+    if (userData.preferences?.theme !== undefined) {
+      transformedData.theme_preference = userData.preferences.theme;
+    }
+
+    const response = await apiRequest<any>('/auth/me', {
       method: 'PUT',
-      body: JSON.stringify(userData),
-    }),
+      body: JSON.stringify(transformedData),
+    });
+
+    // Transform backend response to match frontend expectations
+    return {
+      ...response,
+      name: response.first_name ? 
+        response.last_name ? 
+          `${response.first_name} ${response.last_name}`.trim() : 
+          response.first_name 
+        : undefined,
+      preferences: {
+        theme: response.theme_preference || 'light' // Default to 'light' if not set
+      }
+    };
+  },
 };
 
 // Tasks API functions
@@ -201,6 +301,20 @@ export interface Task {
   updatedAt: string;
 }
 
+// Helper function to transform task response from snake_case to camelCase
+const transformTaskResponse = (task: any): Task => ({
+  ...task,
+  userId: task.user_id,
+  dueDate: task.due_date,
+  createdAt: task.created_at,
+  updatedAt: task.updated_at,
+  recurrence: task.recurrence ? {
+    ...task.recurrence,
+    pattern: task.recurrence.pattern,
+    interval: task.recurrence.interval,
+  } : undefined,
+});
+
 export interface CreateTaskData {
   title: string;
   description?: string;
@@ -218,7 +332,7 @@ export interface UpdateTaskData extends Partial<CreateTaskData> {
 }
 
 export const tasksApi = {
-  getAll: (filters?: {
+  getAll: async (filters?: {
     status?: 'all' | 'active' | 'completed';
     priority?: 'low' | 'medium' | 'high';
     tag?: string;
@@ -237,23 +351,60 @@ export const tasksApi = {
       });
     }
     const queryString = params.toString();
-    return apiRequest<{ tasks: Task[]; pagination: any }>(`/tasks${queryString ? '?' + queryString : ''}`);
+    const response = await apiRequest<{ tasks: any[]; pagination: any }>(`/tasks${queryString ? '?' + queryString : ''}`);
+    
+    return {
+      tasks: response.tasks.map(transformTaskResponse),
+      pagination: response.pagination
+    };
   },
 
-  getById: (id: string) => 
-    apiRequest<Task>(`/tasks/${id}`),
+  getById: async (id: string) => {
+    const response = await apiRequest<any>(`/tasks/${id}`);
+    return transformTaskResponse(response);
+  },
 
-  create: (taskData: CreateTaskData) => 
-    apiRequest<Task>('/tasks', {
+  create: async (taskData: CreateTaskData & { userId?: string }) => {
+    // Destructure userId separately to ensure it's included in the request
+    const { userId, ...restTaskData } = taskData;
+    
+    // Format dates to ensure they're in ISO format
+    const formattedTaskData = {
+      ...restTaskData,
+      dueDate: restTaskData.dueDate ? new Date(restTaskData.dueDate).toISOString() : undefined
+    };
+    
+    // Create the payload with userId converted to user_id for backend compatibility
+    const payload = userId ? { ...formattedTaskData, user_id: userId } : formattedTaskData;
+    
+    const response = await apiRequest<any>('/tasks', {
       method: 'POST',
-      body: JSON.stringify(taskData),
-    }),
+      body: JSON.stringify(payload),
+    });
+    
+    return transformTaskResponse(response);
+  },
 
-  update: (id: string, taskData: UpdateTaskData) => 
-    apiRequest<Task>(`/tasks/${id}`, {
+  update: async (id: string, taskData: UpdateTaskData & { userId?: string }) => {
+    // Destructure userId separately to ensure it's included in the request if provided
+    const { userId, ...restTaskData } = taskData;
+    
+    // Format dates to ensure they're in ISO format
+    const formattedTaskData = {
+      ...restTaskData,
+      dueDate: restTaskData.dueDate ? new Date(restTaskData.dueDate).toISOString() : undefined
+    };
+    
+    // Create the payload with userId converted to user_id for backend compatibility
+    const payload = userId ? { ...formattedTaskData, user_id: userId } : formattedTaskData;
+    
+    const response = await apiRequest<any>(`/tasks/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(taskData),
-    }),
+      body: JSON.stringify(payload),
+    });
+    
+    return transformTaskResponse(response);
+  },
 
   delete: (id: string) => 
     apiRequest(`/tasks/${id}`, {
@@ -277,22 +428,57 @@ export interface CreateTagData {
 }
 
 export const tagsApi = {
-  getAll: () => 
-    apiRequest<{ tags: Tag[] }>('/tags'),
+  getAll: async () => {
+    const response = await apiRequest<{ tags: any[] }>('/tags');
+    // Transform snake_case to camelCase for all tags
+    return {
+      tags: response.tags.map(tag => ({
+        ...tag,
+        userId: tag.user_id,
+        createdAt: tag.created_at,
+        updatedAt: tag.updated_at,
+      }))
+    };
+  },
 
-  create: (tagData: CreateTagData) => 
-    apiRequest<Tag>('/tags', {
+  create: async (tagData: CreateTagData & { userId?: string }) => {
+    // Prepare the tag data to send, including userId if provided
+    // Destructure userId separately to ensure it's included in the request
+    const { userId, ...restTagData } = tagData;
+
+    // Create the payload with userId converted to user_id for backend compatibility
+    const payload = userId ? { ...restTagData, user_id: userId } : restTagData;
+
+    const response = await apiRequest<any>('/tags', {
       method: 'POST',
-      body: JSON.stringify(tagData),
-    }),
+      body: JSON.stringify(payload),
+    });
+    
+    // Transform snake_case to camelCase
+    return {
+      ...response,
+      userId: response.user_id,
+      createdAt: response.created_at,
+      updatedAt: response.updated_at,
+    };
+  },
 
-  update: (id: string, tagData: Partial<CreateTagData>) => 
-    apiRequest<Tag>(`/tags/${id}`, {
+  update: async (id: string, tagData: Partial<CreateTagData>) => {
+    const response = await apiRequest<any>(`/tags/${id}`, {
       method: 'PUT',
       body: JSON.stringify(tagData),
-    }),
+    });
+    
+    // Transform snake_case to camelCase
+    return {
+      ...response,
+      userId: response.user_id,
+      createdAt: response.created_at,
+      updatedAt: response.updated_at,
+    };
+  },
 
-  delete: (id: string) => 
+  delete: (id: string) =>
     apiRequest(`/tags/${id}`, {
       method: 'DELETE',
     }),

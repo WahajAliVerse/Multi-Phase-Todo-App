@@ -4,19 +4,22 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createTaskSchema, CreateTaskData } from '@/utils/validators';
-import { Task } from '@/types';
+import { Task, Tag } from '@/types';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { useAppDispatch } from '@/redux/hooks';
+import TagChip from '@/components/common/TagChip';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { createTask, updateTask } from '@/redux/slices/tasksSlice';
 import { addNotification } from '@/redux/slices/uiSlice';
 
-const TaskForm: React.FC<{ 
-  task?: Partial<Task>; 
-  onSubmitCallback?: () => void; 
-  onCancel?: () => void 
+const TaskForm: React.FC<{
+  task?: Partial<Task>;
+  onSubmitCallback?: () => void;
+  onCancel?: () => void
 }> = ({ task, onSubmitCallback, onCancel }) => {
   const dispatch = useAppDispatch();
+  const { user } = useAppSelector(state => state.auth);
+  const allTags = useAppSelector(state => state.tags.tags) || [];
   const {
     register,
     handleSubmit,
@@ -45,14 +48,42 @@ const TaskForm: React.FC<{
 
   const onSubmit = async (data: CreateTaskData) => {
     try {
+      // Format dates to ensure they're in ISO format
+      let formattedData = { ...data };
+
+      if (data.dueDate) {
+        // Check if the date is valid before converting
+        const dateToProcess = new Date(data.dueDate);
+        if (isNaN(dateToProcess.getTime())) {
+          // Invalid date, show error
+          dispatch(addNotification({
+            type: 'error',
+            message: 'Invalid date format. Please select a valid date.'
+          }));
+          return;
+        }
+        formattedData = {
+          ...data,
+          dueDate: dateToProcess.toISOString()
+        };
+      }
+
       if (task?.id) {
         // Update existing task
-        await dispatch(updateTask({ id: task.id, taskData: data })).unwrap();
+        const taskDataWithUserId = {
+          ...formattedData,
+          userId: user?.id
+        };
+        await dispatch(updateTask({ id: task.id, taskData: taskDataWithUserId })).unwrap();
       } else {
         // Create new task
-        await dispatch(createTask(data)).unwrap();
+        const taskDataWithUserId = {
+          ...formattedData,
+          userId: user?.id
+        };
+        await dispatch(createTask(taskDataWithUserId)).unwrap();
       }
-      
+
       dispatch(addNotification({
         type: 'success',
         message: task?.id ? 'Task updated successfully!' : 'Task created successfully!'
@@ -131,14 +162,55 @@ const TaskForm: React.FC<{
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Tags
         </label>
-        <input
-          type="text"
-          value={tagsValue?.join(', ') || ''}
-          onChange={handleTagsChange}
-          placeholder="work, personal, urgent"
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
-        />
-        <p className="mt-1 text-sm text-gray-500">Separate tags with commas</p>
+        <div className="flex items-center space-x-2">
+          <select
+            value=""
+            onChange={(e) => {
+              const selectedTagId = e.target.value;
+              if (selectedTagId) {
+                const currentTags = watch('tags') || [];
+                if (!currentTags.includes(selectedTagId)) {
+                  setValue('tags', [...currentTags, selectedTagId]);
+                }
+                e.target.value = ''; // Reset the select to placeholder
+              }
+            }}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+          >
+            <option value="">Select a tag...</option>
+            {allTags.map((tag) => (
+              <option key={tag.id} value={tag.id}>
+                {tag.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {(watch('tags') || []).map((tagId: string, index: number) => {
+            const tag = allTags.find(t => t.id === tagId);
+            return (
+              <div key={tagId} className="relative inline-flex items-center">
+                {tag ? (
+                  <TagChip tag={tag} />
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                    {tagId}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentTags = watch('tags') || [];
+                    setValue('tags', currentTags.filter((_, i) => i !== index));
+                  }}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
+        </div>
         {errors.tags && (
           <p className="mt-1 text-sm text-red-600">{errors.tags.message}</p>
         )}
@@ -150,9 +222,9 @@ const TaskForm: React.FC<{
             Cancel
           </Button>
         )}
-        <Button 
-          variant="primary" 
-          type="submit" 
+        <Button
+          variant="primary"
+          type="submit"
           isLoading={isSubmitting}
         >
           {task?.id ? 'Update Task' : 'Create Task'}

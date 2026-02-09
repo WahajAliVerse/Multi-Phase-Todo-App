@@ -25,9 +25,14 @@ export const fetchTags = createAsyncThunk(
 
 export const createTag = createAsyncThunk(
   'tags/createTag',
-  async (tagData: CreateTagData, { rejectWithValue }) => {
+  async (tagData: CreateTagData & { userId?: string }, { rejectWithValue, getState }) => {
     try {
-      const response = await tagsApi.create(tagData);
+      // If userId is not provided in tagData, get it from the auth state
+      const finalTagData = tagData.userId 
+        ? tagData 
+        : { ...tagData, userId: (getState() as any).auth.user?.id };
+      
+      const response = await tagsApi.create(finalTagData);
       return response;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || error.message);

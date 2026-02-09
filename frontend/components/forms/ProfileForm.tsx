@@ -27,18 +27,18 @@ const ProfileForm: React.FC<{ user: User; onSuccess?: () => void }> = ({ user, o
   const onSubmit = async (data: any) => {
     try {
       await dispatch(updateUserProfile(data)).unwrap();
-      dispatch(addNotification({ 
-        type: 'success', 
-        message: 'Profile updated successfully!' 
+      dispatch(addNotification({
+        type: 'success',
+        message: 'Profile updated successfully!'
       }));
-      
+
       if (onSuccess) {
         onSuccess();
       }
     } catch (error: any) {
-      dispatch(addNotification({ 
-        type: 'error', 
-        message: error.message || 'Failed to update profile' 
+      dispatch(addNotification({
+        type: 'error',
+        message: error.message || 'Failed to update profile'
       }));
     }
   };

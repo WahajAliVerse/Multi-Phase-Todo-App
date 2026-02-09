@@ -41,5 +41,6 @@ class UserPublicProfile(BaseModel):
     email: EmailStr
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    theme_preference: str = "light"  # Enum: 'light', 'dark'
     created_at: datetime
     updated_at: datetime

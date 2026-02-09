@@ -3,9 +3,10 @@
 import { Provider } from 'react-redux';
 import { store } from '@/redux/store';
 import { ThemeProvider } from 'next-themes';
+import { ReactNode } from 'react';
 
 interface ProvidersProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {

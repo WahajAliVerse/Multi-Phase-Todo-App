@@ -13,7 +13,24 @@ app = FastAPI(title="Multi-Phase Todo Backend", version="1.0.0")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3000"],  # Allow frontend origins
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://localhost:3001", 
+        "http://localhost:3002", 
+        "http://localhost:3003",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3002",
+        "http://127.0.0.1:3003",
+        "https://localhost:3000",
+        "https://localhost:3001",
+        "https://localhost:3002",
+        "https://localhost:3003",
+        "https://127.0.0.1:3000",
+        "https://127.0.0.1:3001",
+        "https://127.0.0.1:3002",
+        "https://127.0.0.1:3003"
+    ],  # Allow frontend origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,10 +43,10 @@ from src.api.tasks import router as tasks_router
 from src.api.tags import router as tags_router
 from src.api.notifications import router as notifications_router
 
-app.include_router(auth_router)
-app.include_router(tasks_router)
-app.include_router(tags_router)
-app.include_router(notifications_router)
+app.include_router(auth_router, prefix="/api")
+app.include_router(tasks_router, prefix="/api")
+app.include_router(tags_router, prefix="/api")
+app.include_router(notifications_router, prefix="/api")
 
 @app.get("/")
 def read_root():
