@@ -5,6 +5,7 @@ import { Providers } from './providers';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
 import ToastWrapper from '@/components/common/ToastWrapper';
+import ModalProvider from '@/components/providers/ModalProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,14 +23,16 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
         <Providers>
-          <div className="flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-grow">
-              {children}
-            </main>
-            <Footer />
-          </div>
-          <ToastWrapper />
+          <ModalProvider>
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow">
+                {children}
+              </main>
+              <Footer />
+            </div>
+            <ToastWrapper />
+          </ModalProvider>
         </Providers>
       </body>
     </html>

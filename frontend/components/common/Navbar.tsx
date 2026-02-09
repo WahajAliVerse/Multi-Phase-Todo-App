@@ -4,9 +4,24 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import ThemeToggle from '@/components/common/ThemeToggle';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { logoutUser } from '@/redux/slices/authSlice';
+import { useRouter } from 'next/navigation';
 
 const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { user } = useAppSelector(state => state.auth);
+
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const navLinks = [
     { name: 'Dashboard', href: '/' },
@@ -43,14 +58,30 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
 
-            <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium">
-              Sign Out
-            </button>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-700 dark:text-gray-300 hidden md:inline">
+                  Welcome, {user.name || user.email}
+                </span>
+                <button 
+                  onClick={handleLogout}
+                  className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link href="/login">
+                <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200">
+                  Sign In
+                </button>
+              </Link>
+            )}
           </div>
 
           <div className="md:hidden flex items-center">
             <ThemeToggle />
-            
+
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
@@ -81,9 +112,27 @@ const Navbar: React.FC = () => {
                 {link.name}
               </Link>
             ))}
-            <button className="w-full text-left bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-md text-base font-medium mt-2">
-              Sign Out
-            </button>
+            <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
+              {user ? (
+                <>
+                  <p className="text-base font-medium text-gray-800 dark:text-white px-3">
+                    {user.name || user.email}
+                  </p>
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full text-left bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-md text-base font-medium mt-2 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link href="/login">
+                  <button className="w-full text-left bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-md text-base font-medium hover:bg-gray-300 dark:hover:bg-gray-600">
+                    Sign In
+                  </button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}

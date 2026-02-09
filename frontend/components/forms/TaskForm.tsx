@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,7 +8,7 @@ import { Task } from '@/types';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { useAppDispatch } from '@/redux/hooks';
-import { createTask } from '@/redux/slices/tasksSlice';
+import { createTask, updateTask } from '@/redux/slices/tasksSlice';
 import { addNotification } from '@/redux/slices/uiSlice';
 
 const TaskForm: React.FC<{ 
@@ -43,21 +45,28 @@ const TaskForm: React.FC<{
 
   const onSubmit = async (data: CreateTaskData) => {
     try {
-      await dispatch(createTask(data)).unwrap();
-      dispatch(addNotification({ 
-        type: 'success', 
-        message: task?.id ? 'Task updated successfully!' : 'Task created successfully!' 
-      }));
+      if (task?.id) {
+        // Update existing task
+        await dispatch(updateTask({ id: task.id, taskData: data })).unwrap();
+      } else {
+        // Create new task
+        await dispatch(createTask(data)).unwrap();
+      }
       
+      dispatch(addNotification({
+        type: 'success',
+        message: task?.id ? 'Task updated successfully!' : 'Task created successfully!'
+      }));
+
       if (onSubmitCallback) {
         onSubmitCallback();
       } else {
         reset();
       }
     } catch (error: any) {
-      dispatch(addNotification({ 
-        type: 'error', 
-        message: error.message || 'Failed to save task' 
+      dispatch(addNotification({
+        type: 'error',
+        message: error.message || 'Failed to save task'
       }));
     }
   };
