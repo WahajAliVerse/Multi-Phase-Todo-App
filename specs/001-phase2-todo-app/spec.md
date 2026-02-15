@@ -311,10 +311,14 @@ App
 4. Run the development server with `bun run dev`
 
 ### Backend Setup
-1. Navigate to the backend directory
+1. Navigate to the backend directory: `cd backend/todo-backend`
 2. Install dependencies using `uv sync` (or `pip install -r requirements.txt`)
 3. Configure environment variables for database connection and email service
-4. Run the development server with `uv run dev` (or `python -m uvicorn main:app --reload`)
+4. Activate the virtual environment and run the development server:
+   ```bash
+   source .venv/bin/activate
+   uvicorn app:app --reload
+   ```
 
 ### Architecture Patterns
 - **Backend**: Follows OOP principles with Repository, Strategy, Factory, and Observer patterns where appropriate

@@ -3,10 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchTags, createTag, updateTag, deleteTag } from '@/redux/slices/tagsSlice';
-import { openModal } from '@/redux/slices/uiSlice';
+import { openModal, addNotification } from '@/redux/slices/uiSlice';
 import TagChip from '@/components/common/TagChip';
 import TagForm from '@/components/forms/TagForm';
-import TaskToolbar from '@/components/common/TaskToolbar';
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card';
 import { motion } from 'framer-motion';
 import Button from '@/components/ui/Button';
@@ -15,14 +14,33 @@ import { formatDate } from '@/utils/dateUtils';
 const TagsPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { tags, loading } = useAppSelector(state => state.tags);
+  console.log('TagsPage - tags from state:', tags);
+  console.log('TagsPage - tags type:', typeof tags);
+  console.log('TagsPage - tags isArray:', Array.isArray(tags));
+  console.log('TagsPage - tags length:', tags?.length);
+  const { isAuthenticated } = useAppSelector(state => state.auth);
   const [showForm, setShowForm] = useState(false);
   const [editingTag, setEditingTag] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Fetch tags when component mounts
+  // Fetch tags when component mounts or when authentication status changes
   useEffect(() => {
-    dispatch(fetchTags());
-  }, [dispatch]);
+    const fetchTagsData = async () => {
+      try {
+        await dispatch(fetchTags()).unwrap();
+      } catch (error: any) {
+        dispatch(addNotification({
+          type: 'error',
+          message: error.message || 'Failed to load tags'
+        }));
+      }
+    };
+
+    // Only fetch tags if authenticated
+    if (isAuthenticated) {
+      fetchTagsData();
+    }
+
+  }, [isAuthenticated, dispatch]);
 
   // State for pagination and sorting
   const [currentPage, setCurrentPage] = useState(1);
@@ -31,13 +49,13 @@ const TagsPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Filter tags based on search query
-  const filteredTags = tags.filter(tag =>
+  const filteredTags = (Array.isArray(tags) ? tags : []).filter(tag =>
     tag.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     tag.color.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Sort tags
-  const sortedTags = [...filteredTags].sort((a, b) => {
+  const sortedTags = Array.isArray(filteredTags) ? [...filteredTags].sort((a, b) => {
     let aValue: string | Date;
     let bValue: string | Date;
 
@@ -62,12 +80,12 @@ const TagsPage: React.FC = () => {
     if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
     if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
     return 0;
-  });
+  }) : [];
 
   // Pagination
-  const totalPages = Math.ceil(sortedTags.length / itemsPerPage);
+  const totalPages = Math.ceil((Array.isArray(sortedTags) ? sortedTags.length : 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedTags = sortedTags.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedTags = Array.isArray(sortedTags) ? sortedTags.slice(startIndex, startIndex + itemsPerPage) : [];
 
   const handleCreateNew = () => {
     setEditingTag(null);
@@ -94,11 +112,16 @@ const TagsPage: React.FC = () => {
       }
       setShowForm(false);
       setEditingTag(null);
-      // Refresh tags after successful operation
-      await dispatch(fetchTags()).unwrap();
     } catch (error) {
       console.error('Error saving tag:', error);
     }
+  };
+
+  const handleFormSubmit = async () => {
+    // This function is called by the TagForm when submission is complete
+    // The Redux state is already updated via the createTag/updateTag thunks
+    setShowForm(false);
+    setEditingTag(null);
   };
 
   const handleCancel = () => {
@@ -107,12 +130,11 @@ const TagsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <TaskToolbar />
+    <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div className="flex-1 w-full">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Tags</h1>
+            <h1 className="text-2xl font-bold text-foreground">Manage Tags</h1>
 
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative rounded-md shadow-sm">
@@ -124,7 +146,7 @@ const TagsPage: React.FC = () => {
                     setCurrentPage(1); // Reset to first page when searching
                   }}
                   placeholder="Search tags..."
-                  className="block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="block w-full pl-3 pr-10 py-2 border border-input rounded-md leading-5 bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring sm:text-sm"
                 />
               </div>
 
@@ -135,7 +157,7 @@ const TagsPage: React.FC = () => {
                     setSortBy(e.target.value as 'name' | 'color' | 'createdAt');
                     setCurrentPage(1); // Reset to first page when sorting
                   }}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+                  className="block w-full rounded-md border-input bg-background text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring sm:text-sm"
                 >
                   <option value="name">Sort by Name</option>
                   <option value="color">Sort by Color</option>
@@ -147,21 +169,21 @@ const TagsPage: React.FC = () => {
                     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
                     setCurrentPage(1); // Reset to first page when changing sort order
                   }}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="inline-flex items-center px-3 py-2 border border-input bg-background text-foreground shadow-sm text-sm leading-4 font-medium rounded-md hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring"
                 >
                   {sortOrder === 'asc' ? '↑' : '↓'}
                 </button>
               </div>
 
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-700 dark:text-gray-300">Show:</span>
+                <span className="text-sm text-muted-foreground">Show:</span>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => {
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1); // Reset to first page when changing items per page
                   }}
-                  className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+                  className="block rounded-md border-input bg-background text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring sm:text-sm"
                 >
                   <option value={6}>6</option>
                   <option value={9}>9</option>
@@ -190,7 +212,7 @@ const TagsPage: React.FC = () => {
               <CardBody>
                 <TagForm
                   tag={editingTag}
-                  onSubmitCallback={handleSubmit}
+                  onSubmitCallback={handleFormSubmit}
                   onCancel={handleCancel}
                 />
               </CardBody>
@@ -200,20 +222,20 @@ const TagsPage: React.FC = () => {
           <>
             {loading ? (
               <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
-            ) : (tags || []).length === 0 ? (
+            ) : (!Array.isArray(tags) || tags.length === 0) ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
                 className="text-center py-12"
               >
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="mx-auto h-12 w-12 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
-                <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No tags</h3>
-                <p className="mt-1 text-gray-500 dark:text-gray-400">
+                <h3 className="mt-2 text-lg font-medium text-foreground">No tags</h3>
+                <p className="mt-1 text-muted-foreground">
                   Get started by creating a new tag.
                 </p>
                 <div className="mt-6">
@@ -227,7 +249,7 @@ const TagsPage: React.FC = () => {
                 {/* Tag Carousel - Show all tags, not just paginated ones */}
                 <div className="overflow-x-auto pb-4">
                   <div className="flex space-x-4" style={{ minWidth: 'max-content' }}>
-                    {(sortedTags || []).map((tag) => (
+                    {Array.isArray(sortedTags) ? sortedTags.map((tag) => (
                       <motion.div
                         key={tag.id}
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -242,7 +264,7 @@ const TagsPage: React.FC = () => {
                           onRemove={() => handleDelete(tag.id)}
                         />
                       </motion.div>
-                    ))}
+                    )) : []}
                   </div>
                 </div>
 
@@ -253,7 +275,7 @@ const TagsPage: React.FC = () => {
                   transition={{ duration: 0.3 }}
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
-                  {(paginatedTags || []).map((tag) => (
+                  {Array.isArray(paginatedTags) ? paginatedTags.map((tag) => (
                     <motion.div
                       key={tag.id}
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -267,10 +289,10 @@ const TagsPage: React.FC = () => {
                         <CardBody>
                           <div className="flex justify-between items-start">
                             <div className="flex items-center space-x-2">
-                              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                               </svg>
-                              <span className="font-medium text-gray-900 dark:text-white">{tag.name}</span>
+                              <span className="font-medium text-foreground">{tag.name}</span>
                             </div>
                             <div className="flex space-x-2">
                               <Button variant="secondary" size="sm" onClick={() => handleEdit(tag)}>
@@ -283,10 +305,10 @@ const TagsPage: React.FC = () => {
                           </div>
 
                           <div className="mt-4">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <p className="text-sm text-muted-foreground">
                               Used in {tag.taskCount || 0} tasks
                             </p>
-                            <div className="mt-2 flex items-center text-xs text-gray-500 dark:text-gray-400">
+                            <div className="mt-2 flex items-center text-xs text-muted-foreground">
                               <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                               </svg>
@@ -296,7 +318,7 @@ const TagsPage: React.FC = () => {
                         </CardBody>
                       </Card>
                     </motion.div>
-                  ))}
+                  )) : []}
                 </motion.div>
 
                 {/* Pagination Controls */}
@@ -306,21 +328,21 @@ const TagsPage: React.FC = () => {
                       <button
                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
-                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="relative inline-flex items-center px-4 py-2 border border-input bg-background text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Previous
                       </button>
                       <button
                         onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
-                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-input bg-background text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Next
                       </button>
                     </div>
                     <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                       <div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <p className="text-sm text-muted-foreground">
                           Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
                           <span className="font-medium">{Math.min(startIndex + itemsPerPage, sortedTags.length)}</span> of{' '}
                           <span className="font-medium">{sortedTags.length}</span> results
@@ -331,12 +353,12 @@ const TagsPage: React.FC = () => {
                           <button
                             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                             disabled={currentPage === 1}
-                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-input bg-background text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <span className="sr-only">Previous</span>
                             &lt;
                           </button>
-                          
+
                           {/* Page numbers */}
                           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                             let pageNum;
@@ -353,26 +375,26 @@ const TagsPage: React.FC = () => {
                               // Show current page in the middle
                               pageNum = currentPage - 2 + i;
                             }
-                            
+
                             return (
                               <button
                                 key={pageNum}
                                 onClick={() => setCurrentPage(pageNum)}
                                 className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                                   currentPage === pageNum
-                                    ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                    ? 'z-10 bg-primary border-primary text-primary-foreground'
+                                    : 'bg-background border-input text-foreground hover:bg-accent'
                                 }`}
                               >
                                 {pageNum}
                               </button>
                             );
                           })}
-                          
+
                           <button
                             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                             disabled={currentPage === totalPages}
-                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-input bg-background text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <span className="sr-only">Next</span>
                             &gt;

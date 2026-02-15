@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from './providers';
-import Navbar from '@/components/common/Navbar';
+import Sidebar from '@/components/common/Sidebar';
 import Footer from '@/components/common/Footer';
 import ToastWrapper from '@/components/common/ToastWrapper';
 import ModalProvider from '@/components/providers/ModalProvider';
@@ -23,17 +23,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
+      <body className={`${inter.className} bg-background text-foreground antialiased`}>
         <Providers>
           <AuthInitializer />
           <ProtectedRouteHandler />
           <ModalProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
-                {children}
-              </main>
-              <Footer />
+            <div className="flex min-h-screen flex-col md:flex-row">
+              <Sidebar />
+              <div className="flex-1 flex flex-col md:ml-0">
+                <main className="flex-grow">
+                  {children}
+                </main>
+                <Footer />
+              </div>
             </div>
             <ToastWrapper />
           </ModalProvider>

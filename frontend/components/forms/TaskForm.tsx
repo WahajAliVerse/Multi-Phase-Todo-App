@@ -13,6 +13,7 @@ import { createTask, updateTask } from '@/redux/slices/tasksSlice';
 import { addNotification } from '@/redux/slices/uiSlice';
 import { fetchTags } from '@/redux/slices/tagsSlice';
 import { useEffect } from 'react';
+import { safeParseDate } from '@/utils/dateUtils';
 
 const TaskForm: React.FC<{
   task?: Partial<Task>;
@@ -24,10 +25,12 @@ const TaskForm: React.FC<{
   const allTags = useAppSelector(state => state.tags.tags) || [];
   const tagsLoading = useAppSelector(state => state.tags.loading);
 
-  // Load tags when component mounts to ensure they're available for the dropdown
+  // Load tags when component mounts or when tags state is empty to ensure they're available for the dropdown
   useEffect(() => {
-    dispatch(fetchTags());
-  }, [dispatch]);
+    if (allTags.length === 0) {
+      dispatch(fetchTags());
+    }
+  }, [dispatch, allTags.length]);
 
   const {
     register,
@@ -55,20 +58,16 @@ const TaskForm: React.FC<{
     setValue('tags', tagsArray);
   };
 
-  // Ensure tags are loaded when component mounts
-  useEffect(() => {
-    dispatch(fetchTags());
-  }, [dispatch]);
-
   const onSubmit = async (data: CreateTaskData) => {
     try {
       // Format dates to ensure they're in ISO 8601 format
       let formattedData = { ...data };
 
       if (data.dueDate) {
-        // Check if the date is already in ISO format, otherwise convert it
-        const dateToProcess = new Date(data.dueDate);
-        if (isNaN(dateToProcess.getTime())) {
+        // Use safeParseDate utility for consistent timezone handling
+        const parsedDate = safeParseDate(data.dueDate);
+        
+        if (!parsedDate) {
           // Invalid date, show error
           dispatch(addNotification({
             type: 'error',
@@ -76,11 +75,27 @@ const TaskForm: React.FC<{
           }));
           return;
         }
+
         // Convert to ISO string ensuring proper timezone handling
+        // Use UTC to avoid timezone issues
         formattedData = {
           ...data,
-          dueDate: dateToProcess.toISOString()
+          dueDate: parsedDate.toISOString()
         };
+      }
+
+      // Validate that due date is not before current date if provided
+      if (formattedData.dueDate) {
+        const dueDate = new Date(formattedData.dueDate);
+        const currentDate = new Date();
+
+        // If due date is before current date, show warning
+        if (dueDate < currentDate) {
+          const confirmed = window.confirm('The due date is in the past. Are you sure you want to continue?');
+          if (!confirmed) {
+            return;
+          }
+        }
       }
 
       if (task?.id) {
@@ -128,53 +143,53 @@ const TaskForm: React.FC<{
           {...register('title')}
         />
       </div>
-      
+
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-foreground mb-1">
           Description
         </label>
         <textarea
           {...register('description')}
           rows={3}
-          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+          className="block w-full rounded-md border-input bg-background text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring sm:text-sm border"
           placeholder="Enter task description"
         />
         {errors.description && (
-          <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+          <p className="mt-1 text-sm text-destructive">{errors.description.message}</p>
         )}
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             Priority
           </label>
           <select
             {...register('priority')}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+            className="block w-full rounded-md border-input bg-background text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring sm:text-sm"
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
             <option value="high">High</option>
           </select>
           {errors.priority && (
-            <p className="mt-1 text-sm text-red-600">{errors.priority.message}</p>
+            <p className="mt-1 text-sm text-destructive">{errors.priority.message}</p>
           )}
         </div>
-        
+
         <div>
           <Input
             label="Due Date"
-            type="date"
+            type="datetime-local"
             error={errors.dueDate?.message}
             fullWidth
             {...register('dueDate')}
           />
         </div>
       </div>
-      
+
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-foreground mb-1">
           Tags
         </label>
         <div className="flex items-center space-x-2">
@@ -190,25 +205,31 @@ const TaskForm: React.FC<{
                 e.target.value = ''; // Reset the select to placeholder
               }
             }}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+            className="block w-full rounded-md border-input bg-background text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring sm:text-sm"
+            disabled={tagsLoading} // Disable while tags are loading
           >
             <option value="">Select a tag...</option>
-            {allTags.map((tag) => (
+            {Array.isArray(allTags) && allTags.map((tag) => (
               <option key={tag.id} value={tag.id}>
                 {tag.name}
               </option>
             ))}
           </select>
+          {tagsLoading && (
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+            </div>
+          )}
         </div>
         <div className="mt-2 flex flex-wrap gap-2">
           {(watch('tags') || []).map((tagId: string, index: number) => {
-            const tag = allTags.find(t => t.id === tagId);
+            const tag = Array.isArray(allTags) ? allTags.find(t => t.id === tagId) : undefined;
             return (
               <div key={tagId} className="relative inline-flex items-center">
                 {tag ? (
                   <TagChip tag={tag} />
                 ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
                     {tagId}
                   </span>
                 )}
@@ -218,7 +239,7 @@ const TaskForm: React.FC<{
                     const currentTags = watch('tags') || [];
                     setValue('tags', currentTags.filter((_, i) => i !== index));
                   }}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs"
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center text-xs"
                 >
                   ×
                 </button>
@@ -227,10 +248,10 @@ const TaskForm: React.FC<{
           })}
         </div>
         {errors.tags && (
-          <p className="mt-1 text-sm text-red-600">{errors.tags.message}</p>
+          <p className="mt-1 text-sm text-destructive">{errors.tags.message}</p>
         )}
       </div>
-      
+
       <div className="flex justify-end space-x-3 pt-4">
         {onCancel && (
           <Button variant="ghost" type="button" onClick={onCancel}>

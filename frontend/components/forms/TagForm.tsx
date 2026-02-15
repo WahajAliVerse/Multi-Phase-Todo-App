@@ -33,7 +33,10 @@ const TagForm: React.FC<{
 
   const onSubmit = async (data: CreateTagData) => {
     try {
+      console.log('TagForm onSubmit called with data:', data);
+      
       if (tag?.id) {
+        console.log('Updating existing tag with id:', tag.id);
         await dispatch(updateTag({ id: tag.id, tagData: data })).unwrap();
       } else {
         // Include user ID when creating a new tag (using camelCase for backend compatibility)
@@ -41,10 +44,13 @@ const TagForm: React.FC<{
           ...data,
           userId: user?.id
         };
+
+        console.log('Creating new tag with data:', tagDataWithUserId);
         
-        // Log the data being sent for debugging
-        console.log('Sending tag data:', tagDataWithUserId);
-        
+        if (!user?.id) {
+          throw new Error('User not authenticated. Cannot create tag.');
+        }
+
         await dispatch(createTag(tagDataWithUserId)).unwrap();
       }
 
@@ -54,11 +60,14 @@ const TagForm: React.FC<{
       }));
 
       if (onSubmitCallback) {
+        console.log('Calling onSubmitCallback');
         onSubmitCallback();
       } else {
+        console.log('Resetting form');
         reset();
       }
     } catch (error: any) {
+      console.error('Error in TagForm onSubmit:', error);
       dispatch(addNotification({
         type: 'error',
         message: error.message || 'Failed to save tag'
@@ -79,7 +88,7 @@ const TagForm: React.FC<{
       </div>
       
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-foreground mb-1">
           Color
         </label>
         <div className="flex items-center space-x-3">
@@ -93,11 +102,11 @@ const TagForm: React.FC<{
             type="text"
             {...register('color')}
             placeholder="#3B82F6"
-            className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border"
+            className="flex-1 rounded-md border-input bg-background text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring sm:text-sm border"
           />
         </div>
         {errors.color && (
-          <p className="mt-1 text-sm text-red-600">{errors.color.message}</p>
+          <p className="mt-1 text-sm text-destructive">{errors.color.message}</p>
         )}
       </div>
       

@@ -7,7 +7,8 @@ import { registerSchema, RegisterData } from '@/utils/validators';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { useAppDispatch } from '@/redux/hooks';
-import { registerUser } from '@/redux/slices/authSlice';
+import { registerUser, fetchUserProfile } from '@/redux/slices/authSlice';
+import { fetchTags } from '@/redux/slices/tagsSlice';
 import { addNotification } from '@/redux/slices/uiSlice';
 import Link from 'next/link';
 
@@ -29,9 +30,13 @@ const RegisterForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
         message: 'Registration successful! Welcome to our app.'
       }));
 
+      // After successful registration (status 200), fetch user profile and tags
+      await dispatch(fetchUserProfile()).unwrap();
+      await dispatch(fetchTags()).unwrap();
+
       // Wait a moment to ensure state is updated before navigation
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       if (onSuccess) {
         onSuccess();
       }

@@ -8,9 +8,9 @@
 
 ## Setup Instructions
 
-### 1. Clone and Navigate to Project
+### 1. Navigate to the frontend directory
 ```bash
-cd frontend/
+cd frontend
 ```
 
 ### 2. Install Dependencies with Bun
@@ -44,6 +44,11 @@ bun run start
 ```
 
 ## Key Scripts
+
+Before running any of these commands, make sure you're in the frontend directory:
+```bash
+cd frontend
+```
 
 - `bun run dev` - Start development server with hot reloading
 - `bun run build` - Create optimized production build

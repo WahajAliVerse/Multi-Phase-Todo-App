@@ -18,7 +18,7 @@ interface TaskCardProps {
 const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector(state => state.auth);
-  const allTags = useAppSelector(state => state.tags.tags) || [];
+  const allTags = useAppSelector(state => state.tags.tags) ?? [];
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleToggleCompletion = () => {
@@ -43,15 +43,15 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   };
 
   const priorityColors = {
-    low: 'border-l-blue-500',
-    medium: 'border-l-yellow-500',
-    high: 'border-l-red-500',
+    low: 'border-l-info',
+    medium: 'border-l-warning',
+    high: 'border-l-destructive',
   };
 
   const priorityBgColors = {
-    low: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-    medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-    high: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+    low: 'bg-info/20 text-info-foreground',
+    medium: 'bg-warning/20 text-warning-foreground',
+    high: 'bg-destructive/20 text-destructive-foreground',
   };
 
   return (
@@ -61,7 +61,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -5 }}
-      className={`border-l-4 ${priorityColors[task.priority]} bg-white dark:bg-gray-800 rounded-xl shadow-sm transition-all duration-300 overflow-hidden cursor-pointer`}
+      className={`border-l-4 ${priorityColors[task.priority]} bg-card rounded-xl shadow-sm transition-all duration-300 overflow-hidden cursor-pointer`}
       onClick={() => setIsExpanded(!isExpanded)}
     >
       <div className="p-5">
@@ -74,26 +74,26 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                 e.stopPropagation();
                 handleToggleCompletion();
               }}
-              className="mt-1 h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500"
+              className="mt-1 h-5 w-5 text-primary rounded focus:ring-primary"
             />
             <div className="flex-1 min-w-0">
-              <h3 className={`text-lg font-semibold ${task.completed ? 'line-through text-gray-500' : 'text-gray-900 dark:text-white'}`}>
+              <h3 className={`text-lg font-semibold ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                 {task.title}
               </h3>
               {!isExpanded && task.description && (
-                <p className="mt-1 text-gray-600 dark:text-gray-300 truncate">
+                <p className="mt-1 text-muted-foreground truncate">
                   {task.description}
                 </p>
               )}
               {isExpanded && task.description && (
-                <p className="mt-2 text-gray-600 dark:text-gray-300">
+                <p className="mt-2 text-muted-foreground">
                   {task.description}
                 </p>
               )}
               <div className="mt-3 flex flex-wrap gap-2">
                 {(task.tags || []).map((tagId, index) => {
                   // Find the full tag object from the tags state
-                  const fullTag = allTags.find(tag => tag.id === tagId);
+                  const fullTag = Array.isArray(allTags) ? allTags.find(tag => tag.id === tagId) : undefined;
                   return fullTag ? (
                     <div key={fullTag.id} className="mr-2 mb-2">
                       <TagChip tag={fullTag} />
@@ -102,7 +102,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                     // Fallback to display tag ID if full tag object not found
                     <span
                       key={tagId}
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground"
                     >
                       {tagId}
                     </span>
@@ -116,12 +116,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
               <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${priorityBgColors[task.priority]}`}>
                 {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
               </span>
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsExpanded(!isExpanded);
                 }}
-                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+                className="p-1 rounded-full hover:bg-accent text-muted-foreground"
               >
                 {isExpanded ? (
                   <ChevronUpIcon className="h-5 w-5" />
@@ -131,7 +131,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
               </button>
             </div>
             {task.dueDate && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+              <span className="text-xs text-muted-foreground flex items-center">
                 <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -141,23 +141,23 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           </div>
         </div>
       </div>
-      
+
       {isExpanded && (
         <motion.div
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
-          className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 px-5 py-4"
+          className="border-t border-border bg-muted px-5 py-4"
         >
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-600 dark:text-gray-300">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="text-sm text-muted-foreground">
               <p>Created: {formatDate(task.createdAt)}</p>
               <p>Updated: {formatDate(task.updatedAt)}</p>
             </div>
             <div className="flex space-x-2">
-              <Button 
-                variant="secondary" 
-                size="sm" 
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleEdit();
@@ -167,9 +167,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                 <PencilIcon className="h-4 w-4 mr-1" />
                 Edit
               </Button>
-              <Button 
-                variant="danger" 
-                size="sm" 
+              <Button
+                variant="danger"
+                size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDelete();

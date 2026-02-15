@@ -36,7 +36,7 @@ export const useThemeSync = () => {
   }, [isAuthenticated, user, setTheme, theme]);
 
   // Memoize the update function to prevent unnecessary re-renders
-  const updateThemeOnBackend = useCallback(async (newTheme: string) => {
+  const updateThemeOnBackend = useCallback(async (newTheme: 'light' | 'dark') => {
     if (isAuthenticated && user && newTheme && newTheme !== user.preferences?.theme) {
       try {
         // Update user profile with new theme preference
@@ -61,11 +61,14 @@ export const useThemeSync = () => {
     // 4. Theme has changed from the previous value
     // 5. Theme initialization is complete
     if (isAuthenticated && user && theme && theme !== prevThemeRef.current && themeInitializedRef.current) {
+      // Ensure theme is of the correct type before passing to update function
+      const validTheme = theme === 'light' || theme === 'dark' ? theme : 'light';
+      
       // Debounce the update to avoid excessive API calls
       const timer = setTimeout(() => {
-        updateThemeOnBackend(theme);
+        updateThemeOnBackend(validTheme);
         // Update the previous theme ref after the update
-        prevThemeRef.current = theme;
+        prevThemeRef.current = validTheme;
       }, 500); // Increased delay to reduce API calls
 
       return () => clearTimeout(timer);

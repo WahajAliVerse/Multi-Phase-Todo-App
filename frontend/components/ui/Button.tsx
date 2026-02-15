@@ -24,14 +24,14 @@ const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 focus:ring-indigo-500 border-transparent shadow-md hover:shadow-lg',
-    secondary: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 dark:from-gray-700 dark:to-gray-600 dark:text-white hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 focus:ring-gray-500 border border-gray-300 dark:border-gray-600',
-    danger: 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:from-red-700 hover:to-orange-700 focus:ring-red-500 border-transparent shadow-md hover:shadow-lg',
-    ghost: 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-gray-500 border-transparent',
-    outline: 'bg-white text-indigo-600 dark:text-indigo-400 border border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 focus:ring-indigo-500 dark:bg-gray-800 dark:border-indigo-500',
+    primary: 'bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-ring border border-transparent shadow-md hover:shadow-lg',
+    secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:ring-ring border border-input',
+    danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-ring border border-transparent shadow-md hover:shadow-lg',
+    ghost: 'bg-transparent text-foreground hover:bg-accent focus:ring-ring border border-transparent',
+    outline: 'bg-background text-foreground border border-input hover:bg-accent focus:ring-ring',
   };
 
   const sizeClasses = {

@@ -58,9 +58,11 @@ This is a full-stack web application for managing todo tasks, built with FastAPI
    python -m src.database.init_db
    ```
 
-6. Run the development server:
+6. Navigate to the backend directory, activate the virtual environment, and run the development server:
    ```bash
-   uvicorn src.main:app --reload
+   cd backend/todo-backend
+   source .venv/bin/activate
+   uvicorn app:app --reload
    ```
 
 The backend will be available at `http://localhost:8000`.
@@ -74,7 +76,7 @@ The backend will be available at `http://localhost:8000`.
 
 2. Install dependencies:
    ```bash
-   npm install
+   bun install
    ```
 
 3. Set up environment variables:
@@ -85,7 +87,12 @@ The backend will be available at `http://localhost:8000`.
 
 4. Run the development server:
    ```bash
-   npm run dev
+   bun run dev
+   ```
+
+5. To build for production:
+   ```bash
+   bun run build
    ```
 
 The frontend will be available at `http://localhost:3000`.
@@ -113,8 +120,8 @@ The services will be available at:
 
 ```bash
 # Run all backend tests
-cd backend
-source venv/bin/activate
+cd backend/todo-backend
+source .venv/bin/activate
 pytest
 
 # Run tests with coverage
@@ -126,9 +133,9 @@ pytest --cov=src --cov-report=html
 ```bash
 # Run all frontend tests
 cd frontend
-npm test
+bun run test
 # Or for watch mode
-npm run test:watch
+bun run test:watch
 ```
 
 ## Project Structure
@@ -136,16 +143,17 @@ npm run test:watch
 ```
 multi-phase-todo/
 ├── backend/
-│   ├── src/
-│   │   ├── models/      # Database models
-│   │   ├── schemas/     # Pydantic schemas
-│   │   ├── services/    # Business logic
-│   │   ├── api/         # API routes
-│   │   ├── database/    # Database utilities
-│   │   └── core/        # Configuration and security
-│   ├── tests/           # Backend tests
-│   ├── requirements.txt # Python dependencies
-│   └── .env            # Environment variables
+│   └── todo-backend/
+│       ├── src/
+│       │   ├── models/      # Database models
+│       │   ├── schemas/     # Pydantic schemas
+│       │   ├── services/    # Business logic
+│       │   ├── api/         # API routes
+│       │   ├── database/    # Database utilities
+│       │   └── core/        # Configuration and security
+│       ├── tests/           # Backend tests
+│       ├── requirements.txt # Python dependencies
+│       └── .env            # Environment variables
 ├── frontend/
 │   ├── src/
 │   │   ├── components/  # React components
@@ -154,7 +162,7 @@ multi-phase-todo/
 │   │   ├── store/       # Redux store
 │   │   └── types/       # TypeScript types
 │   ├── public/          # Static assets
-│   ├── package.json     # Node.js dependencies
+│   ├── package.json     # Bun dependencies
 │   └── .env.local      # Environment variables
 ├── specs/               # Feature specifications
 ├── docs/                # Documentation

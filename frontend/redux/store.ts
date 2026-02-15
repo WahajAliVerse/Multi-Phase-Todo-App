@@ -1,4 +1,6 @@
 import { configureStore, Middleware } from '@reduxjs/toolkit';
+import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
+import storage from 'redux-persist/lib/storage'; // defaults to localStorage for web
 import { logout } from './slices/authSlice';
 import authReducer from './slices/authSlice';
 import tasksReducer from './slices/tasksSlice';
@@ -8,7 +10,12 @@ import uiReducer from './slices/uiSlice';
 // Middleware to handle 401 errors globally
 const unauthenticatedMiddleware: Middleware = (storeAPI) => (next) => (action: any) => {
   // Check if this is a rejected action with 401 status
-  if (typeof action.type === 'string' && action.type.endsWith('/rejected') && action.payload?.status === 401) {
+  // Exclude login action from automatic redirect to allow proper error handling in the component
+  if (typeof action.type === 'string' &&
+      action.type.endsWith('/rejected') &&
+      action.payload?.status === 401 &&
+      !action.type.startsWith('auth/login') &&
+      !action.type.startsWith('auth/fetchProfile')) {
     // Dispatch logout action to clear user state
     storeAPI.dispatch(logout());
     // Optionally redirect to login page
@@ -19,17 +26,35 @@ const unauthenticatedMiddleware: Middleware = (storeAPI) => (next) => (action: a
   return next(action);
 };
 
+// Configure Redux Persist for auth slice
+const authPersistConfig = {
+  key: 'auth',
+  storage,
+  whitelist: ['user', 'isAuthenticated', 'token'], // Only persist these fields
+};
+
+// Configure Redux Persist for tags slice
+const tagsPersistConfig = {
+  key: 'tags',
+  storage,
+  // Remove whitelist to persist the entire state of the tags slice
+  // This ensures all properties (tags, loading, error) are persisted
+};
+
+const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
+const persistedTagsReducer = persistReducer(tagsPersistConfig, tagsReducer);
+
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
+    auth: persistedAuthReducer,
     tasks: tasksReducer,
-    tags: tagsReducer,
+    tags: persistedTagsReducer,
     ui: uiReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     }).concat(unauthenticatedMiddleware),
 });
@@ -37,4 +62,5 @@ export const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
+export const persistor = persistStore(store);
 export default store;

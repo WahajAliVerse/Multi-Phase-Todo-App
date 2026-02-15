@@ -10,31 +10,32 @@ const ToastWrapper: React.FC = () => {
         className: '',
         duration: 3000,
         style: {
-          background: '#363636',
-          color: '#fff',
+          background: 'var(--card)',
+          color: 'var(--card-foreground)',
           padding: '16px',
           borderRadius: '8px',
+          border: '1px solid var(--border)',
         },
-        
+
         // Default options for specific types
         success: {
           duration: 3000,
           style: {
-            background: '#28a745',
-            color: '#fff',
+            background: 'var(--success)',
+            color: 'var(--primary-foreground)',
           },
         },
         error: {
           duration: 5000,
           style: {
-            background: '#dc3545',
-            color: '#fff',
+            background: 'var(--destructive)',
+            color: 'var(--destructive-foreground)',
           },
         },
         loading: {
           style: {
-            background: '#333',
-            color: '#fff',
+            background: 'var(--card)',
+            color: 'var(--card-foreground)',
           },
         },
       }}

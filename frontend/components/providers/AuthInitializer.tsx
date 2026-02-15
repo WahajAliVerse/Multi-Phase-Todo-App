@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchUserProfile } from '@/redux/slices/authSlice';
 import { fetchTags } from '@/redux/slices/tagsSlice';
@@ -8,30 +8,43 @@ import { initializeApiConnection } from '@/utils/apiHealth';
 
 export function AuthInitializer() {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, user, loading } = useAppSelector((state) => state.auth);
+  const [rehydrationComplete, setRehydrationComplete] = useState(false);
 
   // Initialize API connection and check health on initial load
   useEffect(() => {
     initializeApiConnection();
   }, []);
 
-  // Load user profile and tags on initial load to get theme preference and populate tags
+  // Track when rehydration is complete
   useEffect(() => {
-    // Attempt to fetch user profile to check authentication status
-    dispatch(fetchUserProfile())
-      .unwrap()
-      .then(() => {
-        // If profile fetch succeeds, fetch tags as well
-        dispatch(fetchTags());
-      })
-      .catch((error) => {
-        // If profile fetch fails with 401/404, the user is not authenticated
-        // This is expected behavior, so we don't need to show an error
-        console.log('User not authenticated:', error);
-        // Still fetch tags to ensure they're available for public components
-        dispatch(fetchTags());
-      });
-  }, [dispatch]);
+    const timer = setTimeout(() => {
+      setRehydrationComplete(true);
+    }, 100); // Small delay to ensure rehydration is complete
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Load user profile and tags after rehydration is complete
+  useEffect(() => {
+    // Only proceed after rehydration is complete
+    if (!rehydrationComplete) return;
+
+    // If the user is already authenticated after rehydration, fetch profile first, then tags
+    if (isAuthenticated && user) {
+      // Fetch user profile first to ensure session is valid
+      dispatch(fetchUserProfile())
+        .unwrap()
+        .then(() => {
+          // After profile is fetched successfully, fetch tags
+          dispatch(fetchTags());
+        })
+        .catch(error => {
+          console.error('Failed to fetch user profile on initialization:', error);
+        });
+    }
+    // If not authenticated but we have a token, try to fetch profile to validate the session
+  }, [isAuthenticated, user?.id, rehydrationComplete]); // Using user.id instead of the whole user object to prevent infinite loop
 
   return null; // This component doesn't render anything
 }

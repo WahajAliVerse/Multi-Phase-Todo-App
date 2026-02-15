@@ -7,7 +7,8 @@ import { loginSchema, LoginData } from '@/utils/validators';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { useAppDispatch } from '@/redux/hooks';
-import { loginUser } from '@/redux/slices/authSlice';
+import { loginUser, fetchUserProfile } from '@/redux/slices/authSlice';
+import { fetchTags } from '@/redux/slices/tagsSlice';
 import { addNotification } from '@/redux/slices/uiSlice';
 import Link from 'next/link';
 
@@ -29,9 +30,6 @@ const LoginForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
         message: 'Login successful! Welcome back.'
       }));
 
-      // Wait a moment to ensure state is updated before navigation
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       if (onSuccess) {
         onSuccess();
       }

@@ -14,6 +14,7 @@ export const checkApiHealth = async (): Promise<boolean> => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Include cookies in health check
     });
 
     if (response.ok) {
