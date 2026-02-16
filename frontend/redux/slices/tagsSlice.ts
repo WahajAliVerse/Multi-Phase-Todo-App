@@ -82,7 +82,7 @@ const tagsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Handle rehydration from Redux Persist
-      .addCase('persist/REHYDRATE', (state, action) => {
+      .addCase('persist/REHYDRATE', (state, action: any) => {
         const incomingState = action.payload;
         if (incomingState && Array.isArray(incomingState.tags)) {
           // Only update if the incoming state has tags and the current state is empty

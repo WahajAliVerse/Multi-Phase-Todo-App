@@ -7,7 +7,7 @@ import { FunnelIcon, MagnifyingGlassIcon, ArrowDownIcon, ArrowUpIcon } from '@he
 
 const TaskToolbar: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { filters, tags } = useAppSelector(state => state.tasks);
+  const { filters } = useAppSelector(state => state.tasks);
   const allTags = useAppSelector(state => state.tags.tags);
 
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');

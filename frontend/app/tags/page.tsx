@@ -206,11 +206,6 @@ const TagsPage: React.FC = () => {
             </div>
           </div>
 
-          <Button variant="primary" onClick={handleCreateNew}>
-            Create New Tag
-          </Button>
-        </div>
-
         {showForm ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -409,7 +404,7 @@ const TagsPage: React.FC = () => {
                             className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-input bg-background text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <span className="sr-only">Next</span>
-                            &gt;
+                            {'>'}
                           </button>
                         </nav>
                       </div>
@@ -419,6 +414,7 @@ const TagsPage: React.FC = () => {
               </div>
             )}
           </>
+        )}
         </div>
       </main>
     </div>
