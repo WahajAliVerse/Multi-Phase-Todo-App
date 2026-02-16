@@ -37,7 +37,13 @@ export const taskSchema = z.object({
   description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
   completed: z.boolean(),
   priority: z.enum(['low', 'medium', 'high']).default('medium'),
-  dueDate: z.string().datetime().optional(),
+  dueDate: z.string().refine((val) => {
+    // Allow empty values
+    if (!val) return true;
+    // Check if it's a valid date string (accepts multiple formats)
+    const date = new Date(val);
+    return !isNaN(date.getTime());
+  }, 'Invalid date format').optional(),
   tags: z.array(z.string()).optional(),
   userId: z.string().min(1, 'User ID is required'),
   recurrence: z.object({
@@ -54,6 +60,14 @@ export const createTaskSchema = taskSchema.omit({
   userId: true,
   createdAt: true,
   updatedAt: true
+}).extend({
+  dueDate: z.string().refine((val) => {
+    // Allow empty values
+    if (!val) return true;
+    // Check if it's a valid date string (accepts multiple formats)
+    const date = new Date(val);
+    return !isNaN(date.getTime());
+  }, 'Invalid date format').optional(),
 }).partial({ priority: true });
 
 export const updateTaskSchema = taskSchema.omit({
@@ -61,6 +75,14 @@ export const updateTaskSchema = taskSchema.omit({
   userId: true,
   createdAt: true,
   updatedAt: true
+}).extend({
+  dueDate: z.string().refine((val) => {
+    // Allow empty values
+    if (!val) return true;
+    // Check if it's a valid date string (accepts multiple formats)
+    const date = new Date(val);
+    return !isNaN(date.getTime());
+  }, 'Invalid date format').optional(),
 }).partial();
 
 // Tag validation schemas

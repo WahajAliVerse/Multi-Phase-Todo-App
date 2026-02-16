@@ -7,6 +7,7 @@ import { AuthState } from '@/types';
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
+  token: null,
   loading: false,
   error: null,
 };
@@ -102,8 +103,14 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
+        // The action.payload might contain both user and token
+        if (action.payload.user) {
+          state.user = action.payload.user;
+        } else {
+          state.user = action.payload;
+        }
         state.isAuthenticated = true;
+        state.error = null; // Clear any previous errors
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -136,9 +143,23 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = true;
         state.loading = false;
+        state.error = null; // Clear any previous errors
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
-        state.error = action.payload as string;
+        // Don't set error for unauthorized access - just mark as not authenticated
+        // Only update state if we're not in the middle of a login process
+        if (action.payload === 'Session expired. Please log in again.' ||
+            action.payload === 'Unauthorized' ||
+            (action.payload as string)?.includes('401') ||
+            (action.payload as string)?.includes('404')) {
+          // Reset state to unauthenticated if we get a 401/404 error
+          // This prevents infinite loops when the token is invalid/expired
+          state.user = null;
+          state.isAuthenticated = false;
+          state.error = null; // Don't show error for unauthorized access
+        } else {
+          state.error = action.payload as string;
+        }
         state.loading = false;
       })
       // Update profile
@@ -159,7 +180,20 @@ const authSlice = createSlice({
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.error = action.payload as string;
         state.loading = false;
-      });
+      })
+      // Handle rehydration from persisted state
+      .addMatcher(
+        (action) => action.type === 'persist/REHYDRATE' && action.payload?.auth,
+        (state, action) => {
+          const rehydratedAuth = action.payload.auth;
+          if (rehydratedAuth) {
+            // Only update if we have actual auth data
+            state.user = rehydratedAuth.user || state.user;
+            state.isAuthenticated = rehydratedAuth.isAuthenticated || state.isAuthenticated;
+            state.token = rehydratedAuth.token || state.token;
+          }
+        }
+      );
   },
 });
 

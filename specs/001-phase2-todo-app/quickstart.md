@@ -36,14 +36,11 @@
    alembic upgrade head
    ```
 
-5. Start the development server:
+5. Activate the virtual environment and start the development server:
    ```bash
-   uv run dev
-   ```
-   
-   Or:
-   ```bash
-   python -m uvicorn src.main:app --reload
+   cd backend/todo-backend
+   source .venv/bin/activate
+   uvicorn app:app --reload
    ```
 
 ## Setting Up the Frontend
@@ -60,13 +57,18 @@
 
 3. Set up environment variables:
    ```bash
-   cp .env.example .env
+   cp .env.local .env
    # Edit .env with your backend API URL and other settings
    ```
 
 4. Start the development server:
    ```bash
    bun run dev
+   ```
+
+5. To build for production:
+   ```bash
+   bun run build
    ```
 
 ## Key Architecture Patterns
@@ -101,6 +103,11 @@ pytest --cov=src
 ```
 
 ### Frontend Tests
+Before running these commands, make sure you're in the frontend directory:
+```bash
+cd frontend
+```
+
 ```bash
 # Run unit tests
 bun run test

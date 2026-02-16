@@ -37,20 +37,20 @@ const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
             onClick={handleClose}
           >
             <motion.div
-              className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden"
+              className="relative w-full max-w-md bg-background rounded-xl shadow-2xl overflow-hidden border border-border"
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
             >
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <div className="flex items-center justify-between p-4 border-b border-border">
+                <h3 className="text-lg font-semibold text-foreground">
                   {mode === 0 ? `Create New ${entityType}` : `Edit ${entityType}`}
                 </h3>
                 <button
                   onClick={handleClose}
-                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none"
+                  className="text-muted-foreground hover:text-foreground focus:outline-none"
                 >
                   <span className="sr-only">Close</span>
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -6,13 +6,16 @@
 - HTTP-only cookie authentication enabled
 
 ## Setup
-1. Clone the repository
-2. Install dependencies: `bun install` or `npm install`
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies: `bun install`
 3. Set up environment variables:
    ```
    NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
    ```
-4. Run the development server: `bun run dev` or `npm run dev`
+4. Run the development server: `bun run dev`
 
 ## Running the Fixes
 The fixes are implemented as targeted changes to existing components and services:

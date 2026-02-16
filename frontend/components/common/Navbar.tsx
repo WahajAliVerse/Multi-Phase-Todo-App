@@ -1,18 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import ThemeToggle from '@/components/common/ThemeToggle';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { logoutUser } from '@/redux/slices/authSlice';
 import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { user } = useAppSelector(state => state.auth);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -31,12 +43,16 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+    <nav className={`sticky top-0 z-50 transition-all duration-300 ${
+      scrolled
+        ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-md'
+        : 'bg-background/90 backdrop-blur-md border-b border-border'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+              <Link href="/" className="text-xl font-bold text-primary dark:text-primary-foreground">
                 TodoApp
               </Link>
             </div>
@@ -46,9 +62,12 @@ const Navbar: React.FC = () => {
                   <Link
                     key={link.name}
                     href={link.href}
-                    className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                    className="text-foreground hover:bg-accent px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative"
                   >
                     {link.name}
+                    {pathname === link.href && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></span>
+                    )}
                   </Link>
                 ))}
               </div>
@@ -60,31 +79,31 @@ const Navbar: React.FC = () => {
 
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700 dark:text-gray-300 hidden md:inline">
+                <span className="text-foreground hidden md:inline">
                   Welcome, {user.name || user.email}
                 </span>
-                <button 
+                <button
                   onClick={handleLogout}
-                  className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+                  className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md text-sm font-medium hover:bg-accent transition-colors duration-200"
                 >
                   Sign Out
                 </button>
               </div>
             ) : (
               <Link href="/login">
-                <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200">
+                <button className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md text-sm font-medium hover:bg-accent transition-colors duration-200">
                   Sign In
                 </button>
               </Link>
             )}
           </div>
 
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-2">
             <ThemeToggle />
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+              className="p-2 rounded-md text-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary"
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
@@ -106,28 +125,28 @@ const Navbar: React.FC = () => {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                className="text-foreground hover:bg-accent block px-3 py-2 rounded-md text-base font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.name}
               </Link>
             ))}
-            <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="pt-4 pb-3 border-t border-border">
               {user ? (
                 <>
-                  <p className="text-base font-medium text-gray-800 dark:text-white px-3">
+                  <p className="text-base font-medium text-foreground px-3">
                     {user.name || user.email}
                   </p>
-                  <button 
+                  <button
                     onClick={handleLogout}
-                    className="w-full text-left bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-md text-base font-medium mt-2 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    className="w-full text-left bg-secondary text-secondary-foreground px-3 py-2 rounded-md text-base font-medium mt-2 hover:bg-accent transition-colors duration-200"
                   >
                     Sign Out
                   </button>
                 </>
               ) : (
                 <Link href="/login">
-                  <button className="w-full text-left bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-md text-base font-medium hover:bg-gray-300 dark:hover:bg-gray-600">
+                  <button className="w-full text-left bg-secondary text-secondary-foreground px-3 py-2 rounded-md text-base font-medium hover:bg-accent transition-colors duration-200">
                     Sign In
                   </button>
                 </Link>

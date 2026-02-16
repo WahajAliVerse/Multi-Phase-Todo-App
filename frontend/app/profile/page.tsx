@@ -19,12 +19,13 @@ const ProfilePage: React.FC = () => {
   }, [dispatch, user]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
-          <ThemeToggle />
-        </div>
+    <div className="min-h-screen bg-background">
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h1 className="text-2xl font-bold text-foreground">Profile Settings</h1>
+            <ThemeToggle />
+          </div>
         
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -38,17 +39,17 @@ const ProfilePage: React.FC = () => {
             <CardBody>
               {loading ? (
                 <div className="flex justify-center items-center h-32">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                 </div>
               ) : user ? (
                 <ProfileForm user={user} />
               ) : (
                 <div className="text-center py-12">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="mx-auto h-12 w-12 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No profile data</h3>
-                  <p className="mt-1 text-gray-500 dark:text-gray-400">
+                  <h3 className="mt-2 text-lg font-medium text-foreground">No profile data</h3>
+                  <p className="mt-1 text-muted-foreground">
                     Unable to load profile information.
                   </p>
                 </div>
@@ -71,28 +72,28 @@ const ProfilePage: React.FC = () => {
               </CardHeader>
               <CardBody>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                     <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white">Tasks Completed This Week</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Last 7 days</p>
+                      <h4 className="font-medium text-foreground">Tasks Completed This Week</h4>
+                      <p className="text-sm text-muted-foreground">Last 7 days</p>
                     </div>
-                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">12</div>
+                    <div className="text-2xl font-bold text-primary">12</div>
                   </div>
-                  
-                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+
+                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                     <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white">Tasks Created This Month</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Last 30 days</p>
+                      <h4 className="font-medium text-foreground">Tasks Created This Month</h4>
+                      <p className="text-sm text-muted-foreground">Last 30 days</p>
                     </div>
-                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">24</div>
+                    <div className="text-2xl font-bold text-primary">24</div>
                   </div>
-                  
-                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+
+                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                     <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white">Current Streak</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Days in a row</p>
+                      <h4 className="font-medium text-foreground">Current Streak</h4>
+                      <p className="text-sm text-muted-foreground">Days in a row</p>
                     </div>
-                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">7</div>
+                    <div className="text-2xl font-bold text-primary">7</div>
                   </div>
                 </div>
               </CardBody>

@@ -238,6 +238,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - TypeScript 5.x with JavaScript compatibility + Next.js 14+ (with App Router), React 18+, Redux Toolkit, React Hook Form, Zod, Tailwind CSS, Framer Motion, react-hot-toast (001-frontend-modern-ui)
 - TypeScript 5.x (with JavaScript compatibility), React 18+, Next.js 14+ + Next.js 14+ (with App Router), React 18+, Redux Toolkit, React Hook Form, Zod, Tailwind CSS, Framer Motion (004-frontend-debug-fixes)
 - Client-side state management with Redux Toolkit; backend persistence with FastAPI + SQLModel + Neon DB (004-frontend-debug-fixes)
+- TypeScript 5.x (with JavaScript compatibility), Python 3.12+ + Next.js 14+ (with App Router), React 18+, Redux Toolkit, FastAPI, SQLModel (005-fix-tags-display-flow)
+- SQLite (development), with migration path to PostgreSQL (production) (005-fix-tags-display-flow)
 
 ## Recent Changes
 - 001-console-todo-app: Added Python 3.12+ + Standard libraries only (no external dependencies)
