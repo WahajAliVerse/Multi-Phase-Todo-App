@@ -174,6 +174,7 @@ export const testTransformationFunctions = () => {
     id: 'task-123',
     title: 'Test Task',
     description: 'Test Description',
+    status: 'pending',
     completed: false,
     priority: 'medium',
     due_date: '2023-12-31T23:59:59Z',

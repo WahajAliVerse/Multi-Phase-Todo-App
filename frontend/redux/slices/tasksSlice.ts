@@ -121,7 +121,7 @@ const tasksSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Handle rehydration from Redux Persist
-      .addCase('persist/REHYDRATE', (state, action) => {
+      .addCase('persist/REHYDRATE', (state, action: any) => {
         console.log('[tasksSlice] REHYDRATE action received:', action.payload);
         const incomingState = action.payload;
         if (incomingState && Array.isArray(incomingState.tasks)) {

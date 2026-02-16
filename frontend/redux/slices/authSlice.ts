@@ -140,7 +140,9 @@ const authSlice = createSlice({
       })
       // Fetch profile
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
-        state.user = action.payload;
+        // Extract user from payload (could be User or { user: User, token: any })
+        const user = (action.payload as any).user || action.payload;
+        state.user = user;
         state.isAuthenticated = true;
         state.loading = false;
         state.error = null; // Clear any previous errors
@@ -166,12 +168,13 @@ const authSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         // Ensure we're properly updating the user object with the latest data
         if (state.user) {
+          const payload = (action.payload as any).user || action.payload;
           state.user = {
             ...state.user,
-            ...action.payload,
+            ...payload,
             preferences: {
               ...state.user.preferences,
-              ...action.payload.preferences
+              ...payload.preferences
             }
           } as User;
         }
@@ -183,9 +186,9 @@ const authSlice = createSlice({
       })
       // Handle rehydration from persisted state
       .addMatcher(
-        (action) => action.type === 'persist/REHYDRATE' && action.payload?.auth,
+        (action) => action.type === 'persist/REHYDRATE' && (action as any).payload?.auth,
         (state, action) => {
-          const rehydratedAuth = action.payload.auth;
+          const rehydratedAuth = (action as any).payload.auth;
           if (rehydratedAuth) {
             // Only update if we have actual auth data
             state.user = rehydratedAuth.user || state.user;
