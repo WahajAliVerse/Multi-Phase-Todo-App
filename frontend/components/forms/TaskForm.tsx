@@ -42,11 +42,11 @@ const TaskForm: React.FC<{
   } = useForm<CreateTaskData>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
-      title: task?.title || '',
-      description: task?.description || '',
-      priority: task?.priority || 'medium',
-      dueDate: task?.dueDate || '',
-      tags: task?.tags || [],
+      title: task?.title ?? '',
+      description: task?.description ?? '',
+      priority: task?.priority ?? 'medium',
+      dueDate: task?.dueDate ?? '',
+      tags: task?.tags ?? [],
     },
   });
 
@@ -60,15 +60,31 @@ const TaskForm: React.FC<{
 
   const onSubmit = async (data: CreateTaskData) => {
     try {
+      console.log('Original data:', data);
+
       // Format dates to ensure they're in ISO 8601 format
       let formattedData = { ...data };
 
       if (data.dueDate) {
-        // Use safeParseDate utility for consistent timezone handling
-        const parsedDate = safeParseDate(data.dueDate);
-        
-        if (!parsedDate) {
-          // Invalid date, show error
+        console.log('Original dueDate:', data.dueDate);
+
+        // The datetime-local input returns a string in the format YYYY-MM-DDTHH:mm
+        // We need to ensure it's properly formatted as an ISO string for the API
+        let dateStr = data.dueDate;
+        console.log('Original dueDate value:', dateStr, 'Type:', typeof dateStr);
+
+        // If the date string doesn't include seconds, append ":00" to make it compatible
+        if (dateStr && dateStr.length === 16) { // Format: YYYY-MM-DDTHH:mm
+          dateStr += ':00'; // Append seconds to make it YYYY-MM-DDTHH:mm:ss
+        }
+
+        // Create a Date object from the input string to ensure it's valid and convert to ISO format
+        const dateObj = new Date(dateStr);
+        console.log('Date object created:', dateObj, 'Time value:', dateObj.getTime());
+
+        // Check if the date is valid
+        if (isNaN(dateObj.getTime())) {
+          console.log('Date is invalid (NaN)');
           dispatch(addNotification({
             type: 'error',
             message: 'Invalid date format. Please select a valid date.'
@@ -76,12 +92,18 @@ const TaskForm: React.FC<{
           return;
         }
 
-        // Convert to ISO string ensuring proper timezone handling
-        // Use UTC to avoid timezone issues
+        // Convert to ISO string which includes timezone offset
+        // This ensures proper ISO 8601 format that the backend expects
+        // Using toISOString() gives us the standard ISO format: YYYY-MM-DDTHH:mm:ss.sssZ
+        const isoString = dateObj.toISOString();
+        console.log('ISO string from date object (for backend):', isoString);
+
         formattedData = {
           ...data,
-          dueDate: parsedDate.toISOString()
+          dueDate: isoString
         };
+
+        console.log('Formatted dueDate:', formattedData.dueDate);
       }
 
       // Validate that due date is not before current date if provided
@@ -104,14 +126,26 @@ const TaskForm: React.FC<{
           ...formattedData,
           userId: user?.id
         };
-        await dispatch(updateTask({ id: task.id, taskData: taskDataWithUserId })).unwrap();
+        console.log('Updating task with data:', taskDataWithUserId);
+        try {
+          await dispatch(updateTask({ id: task.id, taskData: taskDataWithUserId })).unwrap();
+        } catch (error: any) {
+          console.error('Error updating task:', error);
+          throw error;
+        }
       } else {
         // Create new task
         const taskDataWithUserId = {
           ...formattedData,
           userId: user?.id
         };
-        await dispatch(createTask(taskDataWithUserId)).unwrap();
+        console.log('Creating task with data:', taskDataWithUserId);
+        try {
+          await dispatch(createTask(taskDataWithUserId)).unwrap();
+        } catch (error: any) {
+          console.error('Error creating task:', error);
+          throw error;
+        }
       }
 
       dispatch(addNotification({
@@ -125,6 +159,12 @@ const TaskForm: React.FC<{
         reset();
       }
     } catch (error: any) {
+      console.error('Error saving task:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       dispatch(addNotification({
         type: 'error',
         message: error.message || 'Failed to save task'

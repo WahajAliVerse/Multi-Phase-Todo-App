@@ -83,6 +83,7 @@ export async function apiRequest<T>(
   retries = MAX_RETRIES
 ): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;
+  console.log('Making API request to:', url, 'with options:', options);
 
   // Add credentials and CORS settings to all requests for cookie authentication
   const config: RequestInit = {
@@ -95,6 +96,11 @@ export async function apiRequest<T>(
     },
   };
 
+  // Log the request body if it exists
+  if (options.body) {
+    console.log('Request body:', options.body);
+  }
+
   // For local development, we need to ensure the cookie is sent even with different protocols
   if (process.env.NODE_ENV === 'development') {
     config.credentials = 'include';
@@ -102,6 +108,7 @@ export async function apiRequest<T>(
 
   try {
     let response = await fetch(url, config);
+    console.log('Response received:', response.status, response.statusText);
 
     // Handle 401 Unauthorized - likely means session expired
     if (response.status === 401) {
@@ -123,20 +130,40 @@ export async function apiRequest<T>(
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
         const errorBody = await response.json();
+        console.log('Error response body:', errorBody);
+        console.log('Full error details:', { status: response.status, errorBody });
         if (errorBody.message) {
           errorMessage = errorBody.message;
         } else if (errorBody.detail) {
           errorMessage = errorBody.detail;
+        } else if (errorBody.errors) {
+          // Handle validation errors that might be in a different format
+          console.log('Validation errors:', errorBody.errors);
+          if (Array.isArray(errorBody.errors)) {
+            errorMessage = errorBody.errors.map((err: any) => err.msg || err.detail || err).join('; ');
+          } else {
+            errorMessage = JSON.stringify(errorBody.errors);
+          }
         }
       } catch (parseError) {
         // If we can't parse the error body, use the status code
         console.warn('Could not parse error response:', parseError);
+        // Try to get text response if JSON parsing fails
+        try {
+          const errorText = await response.text();
+          console.log('Error response as text:', errorText);
+          errorMessage = errorText;
+        } catch (textError) {
+          console.warn('Could not parse error response as text either:', textError);
+        }
       }
 
       throw new ApiError(errorMessage, response.status);
     }
 
-    return await response.json();
+    const result = await response.json();
+    console.log('Successful response body:', result);
+    return result;
   } catch (error: any) {
     console.error(`API request failed for ${url}:`, error);
 
@@ -321,13 +348,18 @@ export const tasksApi = {
       });
     }
     const queryString = params.toString();
-    const response = await apiRequest<{ tasks: TaskDto[]; pagination: any }>(`/tasks${queryString ? '?' + queryString : ''}`);
+    console.log('[tasksApi.getAll] Fetching from:', `/tasks${queryString ? '?' + queryString : ''}`);
+    const response = await apiRequest<any>(`/tasks${queryString ? '?' + queryString : ''}`);
+    console.log('[tasksApi.getAll] Raw API response:', response);
+    console.log('[tasksApi.getAll] Is response an array?:', Array.isArray(response));
 
-    // Check if response.tasks exists and is an array before mapping
-    const tasksArray = Array.isArray(response.tasks) ? response.tasks : [];
+    // The backend returns an array directly, not an object with tasks property
+    const tasksArray = Array.isArray(response) ? response : (response.tasks || []);
+    console.log('[tasksApi.getAll] Tasks array to transform:', tasksArray.length);
+    
     return {
       tasks: tasksArray.map(transformTaskDtoToFrontendModel),
-      pagination: response.pagination
+      pagination: response.pagination || null
     };
   },
 
@@ -337,55 +369,116 @@ export const tasksApi = {
   },
 
   create: async (taskData: CreateTaskData & { userId?: string }) => {
+    console.log('[API.create] Received data:', taskData);
+
     // Destructure userId separately to ensure it's included in the request
     const { userId, ...restTaskData } = taskData;
 
-    // Format dates to ensure they're in ISO format
-    const formattedTaskData = {
-      ...restTaskData,
-      dueDate: restTaskData.dueDate ? new Date(restTaskData.dueDate).toISOString() : undefined
-    };
+    // Build the payload with snake_case field names for backend compatibility
+    const payload: any = {};
 
-    // Create the payload with userId converted to user_id for backend compatibility
-    // Also convert tags to tag_ids for backend compatibility
-    const payload: any = userId ? { ...formattedTaskData, user_id: userId } : formattedTaskData;
+    // Convert dueDate to due_date for backend
+    if (restTaskData.dueDate) {
+      let dateStr = restTaskData.dueDate;
+      const dateObj = new Date(dateStr);
+
+      if (!isNaN(dateObj.getTime())) {
+        // Convert to ISO string for backend
+        payload.due_date = dateObj.toISOString();
+        console.log('[API.create] Converted dueDate to due_date:', payload.due_date);
+      } else {
+        console.warn('Invalid dueDate provided, sending as-is:', restTaskData.dueDate);
+        payload.due_date = restTaskData.dueDate;
+      }
+    }
+
+    // Add other fields with snake_case conversion
+    if (restTaskData.title) payload.title = restTaskData.title;
+    if (restTaskData.description) payload.description = restTaskData.description;
+    if (restTaskData.priority) payload.priority = restTaskData.priority;
     
+    // Add recurrence_pattern_id if provided
+    if ((restTaskData as any).recurrence_pattern_id) {
+      payload.recurrence_pattern_id = (restTaskData as any).recurrence_pattern_id;
+      console.log('[API.create] Including recurrence_pattern_id:', payload.recurrence_pattern_id);
+    }
+
+    // Add user_id for backend compatibility
+    if (userId) {
+      payload.user_id = userId;
+    }
+
     // If tags are provided, convert to tag_ids for backend
     if (restTaskData.tags && Array.isArray(restTaskData.tags)) {
-      payload.tag_ids = restTaskData.tags; // Backend expects tag_ids field
+      payload.tag_ids = restTaskData.tags;
     }
+
+    console.log('[API.create] Final payload being sent to backend:', payload);
 
     const response = await apiRequest<TaskDto>('/tasks', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
 
+    console.log('[API.create] Response from backend:', response);
+
     return transformTaskDtoToFrontendModel(response);
   },
 
   update: async (id: string, taskData: UpdateTaskData & { userId?: string }) => {
+    console.log('[API.update] Received data for task ID:', id, 'data:', taskData);
+
     // Destructure userId separately to ensure it's included in the request if provided
     const { userId, ...restTaskData } = taskData;
 
-    // Format dates to ensure they're in ISO format
-    const formattedTaskData = {
-      ...restTaskData,
-      dueDate: restTaskData.dueDate ? new Date(restTaskData.dueDate).toISOString() : undefined
-    };
+    // Build the payload with snake_case field names for backend compatibility
+    const payload: any = {};
 
-    // Create the payload with userId converted to user_id for backend compatibility
-    // Also convert tags to tag_ids for backend compatibility
-    const payload: any = userId ? { ...formattedTaskData, user_id: userId } : formattedTaskData;
+    // Convert dueDate to due_date for backend
+    if (restTaskData.dueDate) {
+      let dateStr = restTaskData.dueDate;
+      const dateObj = new Date(dateStr);
+
+      if (!isNaN(dateObj.getTime())) {
+        // Convert to ISO string for backend
+        payload.due_date = dateObj.toISOString();
+        console.log('[API.update] Converted dueDate to due_date:', payload.due_date);
+      } else {
+        console.warn('Invalid dueDate provided for update, sending as-is:', restTaskData.dueDate);
+        payload.due_date = restTaskData.dueDate;
+      }
+    }
+
+    // Add other fields with snake_case conversion
+    if (restTaskData.title !== undefined) payload.title = restTaskData.title;
+    if (restTaskData.description !== undefined) payload.description = restTaskData.description;
+    if (restTaskData.priority !== undefined) payload.priority = restTaskData.priority;
+    if (restTaskData.completed !== undefined) payload.status = restTaskData.completed ? 'completed' : 'pending';
     
+    // Add recurrence_pattern_id if provided
+    if ((restTaskData as any).recurrence_pattern_id !== undefined) {
+      payload.recurrence_pattern_id = (restTaskData as any).recurrence_pattern_id;
+      console.log('[API.update] Including recurrence_pattern_id:', payload.recurrence_pattern_id);
+    }
+
+    // Add user_id for backend compatibility (if provided)
+    if (userId) {
+      payload.user_id = userId;
+    }
+
     // If tags are provided, convert to tag_ids for backend
     if (restTaskData.tags && Array.isArray(restTaskData.tags)) {
-      payload.tag_ids = restTaskData.tags; // Backend expects tag_ids field
+      payload.tag_ids = restTaskData.tags;
     }
+
+    console.log('[API.update] Final payload for update being sent to backend:', payload);
 
     const response = await apiRequest<TaskDto>(`/tasks/${id}`, {
       method: 'PUT',
       body: JSON.stringify(payload),
     });
+
+    console.log('[API.update] Response from backend:', response);
 
     return transformTaskDtoToFrontendModel(response);
   },

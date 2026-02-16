@@ -19,8 +19,8 @@ const ProfileForm: React.FC<{ user: User; onSuccess?: () => void }> = ({ user, o
   } = useForm({
     resolver: zodResolver(profileUpdateSchema),
     defaultValues: {
-      name: user.name || '',
-      preferences: user.preferences || { theme: 'light' },
+      name: user.name ?? '',
+      preferences: user.preferences ?? { theme: 'light' },
     },
   });
 

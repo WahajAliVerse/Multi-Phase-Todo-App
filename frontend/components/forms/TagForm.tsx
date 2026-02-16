@@ -25,9 +25,9 @@ const TagForm: React.FC<{
     reset,
   } = useForm<CreateTagData>({
     resolver: zodResolver(createTagSchema),
-    defaultValues: tag || {
-      name: '',
-      color: '#3B82F6', // Default indigo color
+    defaultValues: {
+      name: tag?.name ?? '',
+      color: tag?.color ?? '#3B82F6', // Default indigo color
     },
   });
 

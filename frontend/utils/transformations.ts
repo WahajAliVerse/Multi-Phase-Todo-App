@@ -24,16 +24,23 @@ export const transformTagDtoToFrontendModel = (dto: TagDto): Tag => {
 };
 
 export const transformTaskDtoToFrontendModel = (dto: TaskDto): Task => {
+  // Convert backend status to frontend completed boolean
+  const isCompleted = dto.status === 'completed';
+  
+  console.log('[transformTaskDtoToFrontendModel] Backend status:', dto.status, '-> Frontend completed:', isCompleted);
+  
   return {
     id: dto.id,
     title: dto.title,
     description: dto.description || undefined,
-    completed: dto.completed,
+    completed: isCompleted,
+    status: dto.status as 'pending' | 'in_progress' | 'completed',
     priority: dto.priority,
     dueDate: dto.due_date || undefined,
     completedAt: dto.completed_at || undefined,
     userId: dto.user_id,
     tags: dto.tags || [], // Use tags from DTO if available
+    recurrence_pattern_id: dto.recurrence_pattern_id || null,
     recurrence: undefined, // May need to be populated separately
     createdAt: dto.created_at,
     updatedAt: dto.updated_at,
@@ -79,15 +86,21 @@ export const transformTagFrontendModelToDto = (model: Tag): TagDto => {
 };
 
 export const transformTaskFrontendModelToDto = (model: Task): TaskDto => {
+  // Convert frontend completed boolean to backend status
+  const status = model.completed ? 'completed' : 'pending';
+  
   return {
     id: model.id,
     title: model.title,
     description: model.description || null,
+    status: status,
     completed: model.completed,
     priority: model.priority,
     due_date: model.dueDate || null,
     completed_at: model.completedAt || null,
     user_id: model.userId,
+    tags: model.tags || [],
+    recurrence_pattern_id: (model as any).recurrence_pattern_id || null,
     created_at: model.createdAt,
     updated_at: model.updatedAt,
   };

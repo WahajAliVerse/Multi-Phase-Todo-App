@@ -14,12 +14,14 @@ export interface TaskDto {
   id: string;
   title: string;
   description: string | null;
-  completed: boolean;
+  status: string; // Backend field: 'pending', 'completed', 'in_progress'
+  completed?: boolean; // Frontend field (derived from status)
   priority: 'low' | 'medium' | 'high';
   due_date: string | null;
   completed_at: string | null;
   user_id: string;
   tags?: string[]; // Array of tag IDs associated with the task
+  recurrence_pattern_id?: string | null; // Recurrence pattern ID for recurring tasks
   created_at: string;
   updated_at: string;
 }
@@ -97,11 +99,13 @@ export interface Task {
   title: string;
   description?: string;
   completed: boolean;
+  status?: 'pending' | 'in_progress' | 'completed'; // Backend status field
   priority: 'low' | 'medium' | 'high';
   dueDate?: string;
   completedAt?: string;
   tags: string[]; // Array of tag IDs associated with the task
   userId: string;
+  recurrence_pattern_id?: string | null; // Recurrence pattern ID for recurring tasks
   recurrence?: {
     pattern: 'daily' | 'weekly' | 'monthly' | 'yearly';
     interval: number;
@@ -168,6 +172,9 @@ export interface TasksState {
     status: 'all' | 'active' | 'completed';
     priority: 'low' | 'medium' | 'high' | 'all';
     tag: string | 'all';
+    search?: string;
+    sortBy?: 'title' | 'priority' | 'dueDate' | 'createdAt';
+    sortOrder?: 'asc' | 'desc';
   };
 }
 

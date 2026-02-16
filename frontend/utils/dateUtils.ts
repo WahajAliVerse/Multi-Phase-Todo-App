@@ -4,7 +4,10 @@
  * @returns A Date object or null if the string cannot be parsed
  */
 export function safeParseDate(dateString: string | undefined | null): Date | null {
+  console.log('safeParseDate called with:', dateString);
+  
   if (!dateString) {
+    console.log('Date string is null/undefined, returning null');
     return null;
   }
 
@@ -12,16 +15,19 @@ export function safeParseDate(dateString: string | undefined | null): Date | nul
   if (typeof dateString === 'string') {
     // Try to parse the date string
     const date = new Date(dateString);
-    
+    console.log('Created date object from string:', date, 'Time value:', date.getTime());
+
     // Check if the date is valid
     if (isNaN(date.getTime())) {
       console.warn(`Invalid date string provided: ${dateString}`);
       return null;
     }
-    
+
+    console.log('Valid date parsed:', date);
     return date;
   }
-  
+
+  console.log('Date string is not a string, returning null');
   return null;
 }
 

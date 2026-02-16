@@ -41,13 +41,22 @@ const tagsPersistConfig = {
   // This ensures all properties (tags, loading, error) are persisted
 };
 
+// Configure Redux Persist for tasks slice
+const tasksPersistConfig = {
+  key: 'tasks',
+  storage,
+  // Only persist tasks array, not loading/error state
+  whitelist: ['tasks'],
+};
+
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedTagsReducer = persistReducer(tagsPersistConfig, tagsReducer);
+const persistedTasksReducer = persistReducer(tasksPersistConfig, tasksReducer);
 
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
-    tasks: tasksReducer,
+    tasks: persistedTasksReducer,
     tags: persistedTagsReducer,
     ui: uiReducer,
   },

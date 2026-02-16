@@ -56,194 +56,196 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-gray-900 dark:to-gray-800">
       <TaskToolbar />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
-            Welcome to <span className="text-indigo-600 dark:text-indigo-400">TodoApp</span>
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Your modern task management solution with AI-inspired fluidity and neumorphic design elements
-          </p>
-        </motion.div>
 
-        {/* Stats Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-8" style={{ paddingTop: '8rem' }}>
+        <div className="max-w-7xl mx-auto">
+          {/* Hero Section */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-8 sm:mb-12 px-4"
+          >
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+              Welcome to <span className="text-indigo-600 dark:text-indigo-400">TodoApp</span>
+            </h1>
+            <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto px-4">
+              Your modern task management solution with AI-inspired fluidity and neumorphic design elements
+            </p>
+          </motion.div>
+
+          {/* Stats Overview Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card elevated>
+                <CardBody>
+                  <div className="flex items-center">
+                    <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/30">
+                      <svg className="h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{totalTasks}</h3>
+                      <p className="text-gray-500 dark:text-gray-400">Total Tasks</p>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <Card elevated>
+                <CardBody>
+                  <div className="flex items-center">
+                    <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
+                      <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{completedTasks}</h3>
+                      <p className="text-gray-500 dark:text-gray-400">Completed</p>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              <Card elevated>
+                <CardBody>
+                  <div className="flex items-center">
+                    <div className="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
+                      <svg className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{pendingTasks}</h3>
+                      <p className="text-gray-500 dark:text-gray-400">Pending</p>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+            >
+              <Card elevated>
+                <CardBody>
+                  <div className="flex items-center">
+                    <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30">
+                      <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{highPriorityTasks}</h3>
+                      <p className="text-gray-500 dark:text-gray-400">High Priority</p>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+          </div>
+
+          {/* Charts Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
           >
             <Card elevated>
+              <CardHeader>
+                <CardTitle>Task Analytics</CardTitle>
+              </CardHeader>
               <CardBody>
-                <div className="flex items-center">
-                  <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/30">
-                    <svg className="h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <TaskCharts
+                  data={chartData}
+                  pieData={pieData}
+                />
+              </CardBody>
+            </Card>
+          </motion.div>
+
+          {/* Task List */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.5 }}
+            className="mt-8"
+          >
+            <Card elevated>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Your Tasks</CardTitle>
+                <div className="flex space-x-3">
+                  <Button
+                    variant="primary"
+                    onClick={() => dispatch(openModal({ mode: 0, entityType: 'task' }))}
+                    className="flex items-center"
+                  >
+                    <PlusIcon className="h-5 w-5 mr-2" />
+                    Create Task
+                  </Button>
+                  <Link href="/tasks">
+                    <Button variant="secondary">
+                      View All Tasks
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardBody>
+                {loading ? (
+                  <div className="flex justify-center items-center h-32">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+                  </div>
+                ) : (tasks || []).length === 0 ? (
+                  <div className="text-center py-12">
+                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
+                    <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No tasks</h3>
+                    <p className="mt-1 text-gray-500 dark:text-gray-400">
+                      Get started by creating a new task.
+                    </p>
+                    <div className="mt-6">
+                      <Button
+                        variant="primary"
+                        onClick={() => dispatch(openModal({ mode: 0, entityType: 'task' }))}
+                        className="inline-flex items-center"
+                      >
+                        <PlusIcon className="h-5 w-5 mr-2" />
+                        Create Task
+                      </Button>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{totalTasks}</h3>
-                    <p className="text-gray-500 dark:text-gray-400">Total Tasks</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {(tasks || []).slice(0, 6).map((task) => (  // Show only first 6 tasks on dashboard
+                      <TaskCard key={task.id} task={task} />
+                    ))}
                   </div>
-                </div>
-              </CardBody>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <Card elevated>
-              <CardBody>
-                <div className="flex items-center">
-                  <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
-                    <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{completedTasks}</h3>
-                    <p className="text-gray-500 dark:text-gray-400">Completed</p>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            <Card elevated>
-              <CardBody>
-                <div className="flex items-center">
-                  <div className="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
-                    <svg className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{pendingTasks}</h3>
-                    <p className="text-gray-500 dark:text-gray-400">Pending</p>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-          >
-            <Card elevated>
-              <CardBody>
-                <div className="flex items-center">
-                  <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30">
-                    <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{highPriorityTasks}</h3>
-                    <p className="text-gray-500 dark:text-gray-400">High Priority</p>
-                  </div>
-                </div>
+                )}
               </CardBody>
             </Card>
           </motion.div>
         </div>
-
-        {/* Charts Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-        >
-          <Card elevated>
-            <CardHeader>
-              <CardTitle>Task Analytics</CardTitle>
-            </CardHeader>
-            <CardBody>
-              <TaskCharts 
-                data={chartData} 
-                pieData={pieData} 
-              />
-            </CardBody>
-          </Card>
-        </motion.div>
-
-        {/* Task List */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.5 }}
-          className="mt-8"
-        >
-          <Card elevated>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Your Tasks</CardTitle>
-              <div className="flex space-x-3">
-                <Button 
-                  variant="primary" 
-                  onClick={() => dispatch(openModal({ mode: 0, entityType: 'task' }))}
-                  className="flex items-center"
-                >
-                  <PlusIcon className="h-5 w-5 mr-2" />
-                  Create Task
-                </Button>
-                <Link href="/tasks">
-                  <Button variant="secondary">
-                    View All Tasks
-                  </Button>
-                </Link>
-              </div>
-            </CardHeader>
-            <CardBody>
-              {loading ? (
-                <div className="flex justify-center items-center h-32">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-                </div>
-              ) : (tasks || []).length === 0 ? (
-                <div className="text-center py-12">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                  <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No tasks</h3>
-                  <p className="mt-1 text-gray-500 dark:text-gray-400">
-                    Get started by creating a new task.
-                  </p>
-                  <div className="mt-6">
-                    <Button 
-                      variant="primary" 
-                      onClick={() => dispatch(openModal({ mode: 0, entityType: 'task' }))}
-                      className="inline-flex items-center"
-                    >
-                      <PlusIcon className="h-5 w-5 mr-2" />
-                      Create Task
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {(tasks || []).slice(0, 6).map((task) => (  // Show only first 6 tasks on dashboard
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                </div>
-              )}
-            </CardBody>
-          </Card>
-        </motion.div>
       </main>
 
       <FAB />

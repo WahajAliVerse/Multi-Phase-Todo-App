@@ -23,15 +23,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground antialiased`}>
+      <body className={`${inter.className} bg-background text-foreground antialiased`} suppressHydrationWarning>
         <Providers>
           <AuthInitializer />
           <ProtectedRouteHandler />
           <ModalProvider>
-            <div className="flex min-h-screen flex-col md:flex-row">
+            <div className="flex min-h-screen">
               <Sidebar />
-              <div className="flex-1 flex flex-col md:ml-0">
-                <main className="flex-grow">
+              <div className="flex-1 flex flex-col w-full">
+                <main className="flex-grow w-full">
                   {children}
                 </main>
                 <Footer />

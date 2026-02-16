@@ -131,65 +131,77 @@ const TagsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <div className="flex-1 w-full">
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h1 className="text-2xl font-bold text-foreground">Manage Tags</h1>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowForm(!showForm)}
+              className="w-full sm:w-auto"
+            >
+              {showForm ? 'Cancel' : 'Add Tag'}
+            </Button>
+          </div>
 
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative rounded-md shadow-sm">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1); // Reset to first page when searching
-                  }}
-                  placeholder="Search tags..."
-                  className="block w-full pl-3 pr-10 py-2 border border-input rounded-md leading-5 bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring sm:text-sm"
-                />
-              </div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div className="flex-1 w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="relative rounded-md shadow-sm">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1); // Reset to first page when searching
+                    }}
+                    placeholder="Search tags..."
+                    className="block w-full pl-3 pr-10 py-2 border border-input rounded-md leading-5 bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring sm:text-sm"
+                  />
+                </div>
 
-              <div className="flex space-x-2">
-                <select
-                  value={sortBy}
-                  onChange={(e) => {
-                    setSortBy(e.target.value as 'name' | 'color' | 'createdAt');
-                    setCurrentPage(1); // Reset to first page when sorting
-                  }}
-                  className="block w-full rounded-md border-input bg-background text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring sm:text-sm"
-                >
-                  <option value="name">Sort by Name</option>
-                  <option value="color">Sort by Color</option>
-                  <option value="createdAt">Sort by Date</option>
-                </select>
+                <div className="flex space-x-2">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value as 'name' | 'color' | 'createdAt');
+                      setCurrentPage(1); // Reset to first page when sorting
+                    }}
+                    className="block w-full rounded-md border-input bg-background text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring sm:text-sm"
+                  >
+                    <option value="name">Sort by Name</option>
+                    <option value="color">Sort by Color</option>
+                    <option value="createdAt">Sort by Date</option>
+                  </select>
 
-                <button
-                  onClick={() => {
-                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                    setCurrentPage(1); // Reset to first page when changing sort order
-                  }}
-                  className="inline-flex items-center px-3 py-2 border border-input bg-background text-foreground shadow-sm text-sm leading-4 font-medium rounded-md hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  {sortOrder === 'asc' ? '↑' : '↓'}
-                </button>
-              </div>
+                  <button
+                    onClick={() => {
+                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                      setCurrentPage(1); // Reset to first page when changing sort order
+                    }}
+                    className="inline-flex items-center px-3 py-2 border border-input bg-background text-foreground shadow-sm text-sm leading-4 font-medium rounded-md hover:bg-accent focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    {sortOrder === 'asc' ? '↑' : '↓'}
+                  </button>
+                </div>
 
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Show:</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1); // Reset to first page when changing items per page
-                  }}
-                  className="block rounded-md border-input bg-background text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring sm:text-sm"
-                >
-                  <option value={6}>6</option>
-                  <option value={9}>9</option>
-                  <option value={12}>12</option>
-                  <option value={24}>24</option>
-                </select>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground">Show:</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1); // Reset to first page when changing items per page
+                    }}
+                    className="block rounded-md border-input bg-background text-foreground shadow-sm focus:border-ring focus:ring-1 focus:ring-ring sm:text-sm"
+                  >
+                    <option value={6}>6</option>
+                    <option value={9}>9</option>
+                    <option value={12}>12</option>
+                    <option value={24}>24</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -273,7 +285,7 @@ const TagsPage: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
                 >
                   {Array.isArray(paginatedTags) ? paginatedTags.map((tag) => (
                     <motion.div
@@ -407,7 +419,7 @@ const TagsPage: React.FC = () => {
               </div>
             )}
           </>
-        )}
+        </div>
       </main>
     </div>
   );
