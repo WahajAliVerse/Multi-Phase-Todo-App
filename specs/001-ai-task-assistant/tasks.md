@@ -15,9 +15,9 @@
 
 ## Path Conventions
 
-- **Web app**: `backend/`, `frontend/` at repository root
-- Backend: `backend/todo-backend/src/agent/` for AI agent module
-- Frontend: `frontend/components/`, `frontend/redux/`
+- **Agent Module**: `agent/` at project root (AI agent implementation)
+- **Backend**: `backend/` at repository root (existing backend)
+- **Frontend**: `frontend/` at repository root
 
 ---
 
@@ -25,11 +25,35 @@
 
 **Purpose**: Project initialization and AI agent module structure
 
-- [ ] T001 Create backend agent module structure in `backend/todo-backend/src/agent/`
-- [ ] T002 [P] Install backend dependencies: `openai`, `python-dotenv`, `slowapi` in `backend/todo-backend/requirements.txt`
+**Status**: ✅ **COMPLETE** - Agent directory created at project root, venv setup, dependencies installed via `uv add`
+
+- [X] T001 Create backend agent module structure in `agent/`
+- [X] T002 [P] Install backend dependencies: `openai`, `python-dotenv`, `slowapi` using `uv add`
 - [ ] T003 [P] Install frontend dependencies: `@reduxjs/toolkit`, `react-redux` in `frontend/package.json`
-- [ ] T004 [P] Configure Gemini API environment in `backend/todo-backend/.env.example`
+- [X] T004 [P] Configure Gemini API environment in `agent/.env.example`
 - [ ] T005 [P] Configure frontend chat API URL in `frontend/.env.local.example`
+
+**⚠️ Development Workflow** (REQUIRED for all agent development):
+
+```bash
+# Navigate to agent directory (at project root)
+cd agent
+
+# Activate virtual environment (ALWAYS do this first)
+source .venv/bin/activate
+
+# Install new dependencies (ALWAYS use uv add - NEVER use uv pip install)
+uv add <package-name>
+
+# Verify installation
+uv pip list
+```
+
+**IMPORTANT**: 
+- ✅ ALWAYS activate venv: `source .venv/bin/activate`
+- ✅ ALWAYS use `uv add <package-name>` for installing dependencies
+- ❌ Do NOT use `uv pip install`
+- ❌ Do NOT use any other package manager
 
 ---
 
@@ -39,14 +63,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 [P] Implement Gemini client initialization in `backend/todo-backend/src/agent/config.py`
-- [ ] T007 [P] Create OpenAI Agents SDK wrapper in `backend/todo-backend/src/agent/agent.py`
+- [ ] T006 [P] Implement Gemini client initialization in `agent/config.py`
+- [ ] T007 [P] Create OpenAI Agents SDK wrapper in `agent/agent.py`
 - [ ] T008 [P] Implement rate limiting middleware in `backend/todo-backend/src/core/rate_limiter.py`
 - [ ] T009 [P] Create chat API endpoint skeleton in `backend/todo-backend/src/api/chat.py`
 - [ ] T010 [P] Setup Redux store slice structure in `frontend/redux/slices/agentChat.ts`
 - [ ] T011 [P] Create shared types for chat messages in `frontend/types/index.ts`
-- [ ] T012 [P] Implement error handling utility in `backend/todo-backend/src/agent/error_handler.py`
-- [ ] T013 [P] Setup logging infrastructure for agent in `backend/todo-backend/src/agent/logger.py`
+- [ ] T012 [P] Implement error handling utility in `agent/error_handler.py`
+- [ ] T013 [P] Setup logging infrastructure for agent in `agent/logger.py`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -68,11 +92,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T017 [P] [US1] Implement create_task tool wrapper in `backend/todo-backend/src/agent/tools/task_tools.py`
-- [ ] T018 [P] [US1] Implement get_tasks tool wrapper in `backend/todo-backend/src/agent/tools/task_tools.py`
-- [ ] T019 [US1] Implement natural language date parser in `backend/todo-backend/src/agent/utils/date_parser.py`
-- [ ] T020 [US1] Implement intent parser for task creation in `backend/todo-backend/src/agent/mcp/reasoning.py`
-- [ ] T021 [US1] Add MCP clarification flow for ambiguous dates in `backend/todo-backend/src/agent/mcp/reasoning.py`
+- [ ] T017 [P] [US1] Implement create_task tool wrapper in `agent/tools/task_tools.py`
+- [ ] T018 [P] [US1] Implement get_tasks tool wrapper in `agent/tools/task_tools.py`
+- [ ] T019 [US1] Implement natural language date parser in `agent/utils/date_parser.py`
+- [ ] T020 [US1] Implement intent parser for task creation in `agent/mcp/reasoning.py`
+- [ ] T021 [US1] Add MCP clarification flow for ambiguous dates in `agent/mcp/reasoning.py`
 - [ ] T022 [US1] Implement chat message handler in `backend/todo-backend/src/api/chat.py`
 - [ ] T023 [US1] Create ChatButton component in `frontend/components/common/ChatButton.tsx`
 - [ ] T024 [US1] Create ChatModal component in `frontend/components/common/ChatModal.tsx`
@@ -80,7 +104,7 @@
 - [ ] T026 [US1] Add chat button to layout in `frontend/app/layout.tsx`
 - [ ] T027 [US1] Implement Redux chat message actions in `frontend/redux/slices/agentChat.ts`
 - [ ] T028 [US1] Add task creation confirmation UI in `frontend/components/common/ChatModal.tsx`
-- [ ] T029 [US1] Add logging for task creation operations in `backend/todo-backend/src/agent/logger.py`
+- [ ] T029 [US1] Add logging for task creation operations in `agent/logger.py`
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -99,17 +123,17 @@
 
 ### Implementation for User Story 2
 
-- [ ] T032 [P] [US2] Implement update_task tool wrapper in `backend/todo-backend/src/agent/tools/task_tools.py`
-- [ ] T033 [P] [US2] Implement mark_task_complete tool in `backend/todo-backend/src/agent/tools/task_tools.py`
-- [ ] T034 [US2] Implement intent parser for task updates in `backend/todo-backend/src/agent/mcp/reasoning.py`
-- [ ] T035 [US2] Add MCP clarification for multiple matching tasks in `backend/todo-backend/src/agent/mcp/reasoning.py`
-- [ ] T036 [US2] Implement task search utility in `backend/todo-backend/src/agent/utils/task_search.py`
-- [ ] T037 [US2] Add priority update handling in `backend/todo-backend/src/agent/tools/task_tools.py`
-- [ ] T038 [US2] Add tag assignment handling in `backend/todo-backend/src/agent/tools/tag_tools.py`
-- [ ] T039 [US2] Implement chat response formatting for updates in `backend/todo-backend/src/agent/agent.py`
+- [ ] T032 [P] [US2] Implement update_task tool wrapper in `agent/tools/task_tools.py`
+- [ ] T033 [P] [US2] Implement mark_task_complete tool in `agent/tools/task_tools.py`
+- [ ] T034 [US2] Implement intent parser for task updates in `agent/mcp/reasoning.py`
+- [ ] T035 [US2] Add MCP clarification for multiple matching tasks in `agent/mcp/reasoning.py`
+- [ ] T036 [US2] Implement task search utility in `agent/utils/task_search.py`
+- [ ] T037 [US2] Add priority update handling in `agent/tools/task_tools.py`
+- [ ] T038 [US2] Add tag assignment handling in `agent/tools/tag_tools.py`
+- [ ] T039 [US2] Implement chat response formatting for updates in `agent/agent.py`
 - [ ] T040 [US2] Add update confirmation UI in `frontend/components/common/ChatModal.tsx`
 - [ ] T041 [US2] Add Redux actions for task updates in `frontend/redux/slices/agentChat.ts`
-- [ ] T042 [US2] Add logging for task update operations in `backend/todo-backend/src/agent/logger.py`
+- [ ] T042 [US2] Add logging for task update operations in `agent/logger.py`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -128,17 +152,17 @@
 
 ### Implementation for User Story 3
 
-- [ ] T045 [P] [US3] Implement create_recurring_task tool in `backend/todo-backend/src/agent/tools/recurrence_tools.py`
-- [ ] T046 [P] [US3] Implement update_recurrence_pattern tool in `backend/todo-backend/src/agent/tools/recurrence_tools.py`
-- [ ] T047 [P] [US3] Implement cancel_recurrence tool in `backend/todo-backend/src/agent/tools/recurrence_tools.py`
-- [ ] T048 [P] [US3] Implement generate_next_occurrence tool in `backend/todo-backend/src/agent/tools/recurrence_tools.py`
-- [ ] T049 [US3] Implement recurrence pattern parser in `backend/todo-backend/src/agent/utils/recurrence_parser.py`
-- [ ] T050 [US3] Add natural language recurrence patterns support in `backend/todo-backend/src/agent/utils/recurrence_parser.py`
-- [ ] T051 [US3] Implement MCP reasoning for recurrence clarification in `backend/todo-backend/src/agent/mcp/reasoning.py`
-- [ ] T052 [US3] Add recurrence validation in `backend/todo-backend/src/agent/tools/recurrence_tools.py`
+- [ ] T045 [P] [US3] Implement create_recurring_task tool in `agent/tools/recurrence_tools.py`
+- [ ] T046 [P] [US3] Implement update_recurrence_pattern tool in `agent/tools/recurrence_tools.py`
+- [ ] T047 [P] [US3] Implement cancel_recurrence tool in `agent/tools/recurrence_tools.py`
+- [ ] T048 [P] [US3] Implement generate_next_occurrence tool in `agent/tools/recurrence_tools.py`
+- [ ] T049 [US3] Implement recurrence pattern parser in `agent/utils/recurrence_parser.py`
+- [ ] T050 [US3] Add natural language recurrence patterns support in `agent/utils/recurrence_parser.py`
+- [ ] T051 [US3] Implement MCP reasoning for recurrence clarification in `agent/mcp/reasoning.py`
+- [ ] T052 [US3] Add recurrence validation in `agent/tools/recurrence_tools.py`
 - [ ] T053 [US3] Implement chat UI for recurrence confirmation in `frontend/components/common/ChatModal.tsx`
 - [ ] T054 [US3] Add recurrence display in chat responses in `frontend/components/common/ChatModal.tsx`
-- [ ] T055 [US3] Add logging for recurrence operations in `backend/todo-backend/src/agent/logger.py`
+- [ ] T055 [US3] Add logging for recurrence operations in `agent/logger.py`
 
 **Checkpoint**: All P1 user stories complete - MVP ready for deployment
 
@@ -157,14 +181,14 @@
 
 ### Implementation for User Story 4
 
-- [ ] T058 [P] [US4] Enhance get_tasks tool with filter support in `backend/todo-backend/src/agent/tools/task_tools.py`
-- [ ] T059 [US4] Implement query intent parser in `backend/todo-backend/src/agent/mcp/reasoning.py`
-- [ ] T060 [US4] Add date range parsing for queries in `backend/todo-backend/src/agent/utils/date_parser.py`
-- [ ] T061 [US4] Implement task summarization in `backend/todo-backend/src/agent/agent.py`
-- [ ] T062 [US4] Add query result formatting in `backend/todo-backend/src/agent/agent.py`
+- [ ] T058 [P] [US4] Enhance get_tasks tool with filter support in `agent/tools/task_tools.py`
+- [ ] T059 [US4] Implement query intent parser in `agent/mcp/reasoning.py`
+- [ ] T060 [US4] Add date range parsing for queries in `agent/utils/date_parser.py`
+- [ ] T061 [US4] Implement task summarization in `agent/agent.py`
+- [ ] T062 [US4] Add query result formatting in `agent/agent.py`
 - [ ] T063 [US4] Implement chat UI for query results in `frontend/components/common/ChatModal.tsx`
 - [ ] T064 [US4] Add task list display component in `frontend/components/common/ChatMessageList.tsx`
-- [ ] T065 [US4] Add logging for query operations in `backend/todo-backend/src/agent/logger.py`
+- [ ] T065 [US4] Add logging for query operations in `agent/logger.py`
 
 **Checkpoint**: User Story 4 complete - intelligent queries functional
 
@@ -183,16 +207,16 @@
 
 ### Implementation for User Story 5
 
-- [ ] T068 [P] [US5] Implement create_tag tool in `backend/todo-backend/src/agent/tools/tag_tools.py`
-- [ ] T069 [P] [US5] Implement update_tag tool in `backend/todo-backend/src/agent/tools/tag_tools.py`
-- [ ] T070 [P] [US5] Implement delete_tag tool in `backend/todo-backend/src/agent/tools/tag_tools.py`
-- [ ] T071 [P] [US5] Implement get_tags tool in `backend/todo-backend/src/agent/tools/tag_tools.py`
-- [ ] T072 [P] [US5] Implement assign_tag_to_task tool in `backend/todo-backend/src/agent/tools/tag_tools.py`
-- [ ] T073 [US5] Implement tag intent parser in `backend/todo-backend/src/agent/mcp/reasoning.py`
-- [ ] T074 [US5] Add tag color validation in `backend/todo-backend/src/agent/tools/tag_tools.py`
+- [ ] T068 [P] [US5] Implement create_tag tool in `agent/tools/tag_tools.py`
+- [ ] T069 [P] [US5] Implement update_tag tool in `agent/tools/tag_tools.py`
+- [ ] T070 [P] [US5] Implement delete_tag tool in `agent/tools/tag_tools.py`
+- [ ] T071 [P] [US5] Implement get_tags tool in `agent/tools/tag_tools.py`
+- [ ] T072 [P] [US5] Implement assign_tag_to_task tool in `agent/tools/tag_tools.py`
+- [ ] T073 [US5] Implement tag intent parser in `agent/mcp/reasoning.py`
+- [ ] T074 [US5] Add tag color validation in `agent/tools/tag_tools.py`
 - [ ] T075 [US5] Implement tag confirmation UI in `frontend/components/common/ChatModal.tsx`
 - [ ] T076 [US5] Add tag display in chat responses in `frontend/components/common/ChatModal.tsx`
-- [ ] T077 [US5] Add logging for tag operations in `backend/todo-backend/src/agent/logger.py`
+- [ ] T077 [US5] Add logging for tag operations in `agent/logger.py`
 
 **Checkpoint**: User Story 5 complete - tag management functional
 
@@ -211,12 +235,12 @@
 
 ### Implementation for User Story 6
 
-- [ ] T080 [P] [US6] Implement schedule_task_reminder tool in `backend/todo-backend/src/agent/tools/recurrence_tools.py`
-- [ ] T081 [US6] Implement reminder time parser in `backend/todo-backend/src/agent/utils/date_parser.py`
-- [ ] T082 [US6] Add natural language reminder expressions in `backend/todo-backend/src/agent/utils/date_parser.py`
-- [ ] T083 [US6] Implement reminder confirmation flow in `backend/todo-backend/src/agent/agent.py`
+- [ ] T080 [P] [US6] Implement schedule_task_reminder tool in `agent/tools/recurrence_tools.py`
+- [ ] T081 [US6] Implement reminder time parser in `agent/utils/date_parser.py`
+- [ ] T082 [US6] Add natural language reminder expressions in `agent/utils/date_parser.py`
+- [ ] T083 [US6] Implement reminder confirmation flow in `agent/agent.py`
 - [ ] T084 [US6] Add reminder display in chat responses in `frontend/components/common/ChatModal.tsx`
-- [ ] T085 [US6] Add logging for reminder operations in `backend/todo-backend/src/agent/logger.py`
+- [ ] T085 [US6] Add logging for reminder operations in `agent/logger.py`
 
 **Checkpoint**: All user stories complete - full AI agent functional
 
@@ -235,16 +259,16 @@
 
 ### Implementation for User Story 7
 
-- [ ] T088 [P] [US7] Implement conversation soft-delete in `backend/todo-backend/src/agent/tools/conversation_tools.py`
-- [ ] T089 [P] [US7] Implement conversation history retrieval in `backend/todo-backend/src/agent/tools/conversation_tools.py`
+- [ ] T088 [P] [US7] Implement conversation soft-delete in `agent/tools/conversation_tools.py`
+- [ ] T089 [P] [US7] Implement conversation history retrieval in `agent/tools/conversation_tools.py`
 - [ ] T090 [US7] Add is_deleted field to Chat Conversation model in `backend/todo-backend/src/models/conversation.py`
-- [ ] T091 [US7] Implement conversation search utility in `backend/todo-backend/src/agent/utils/conversation_search.py`
+- [ ] T091 [US7] Implement conversation search utility in `agent/utils/conversation_search.py`
 - [ ] T092 [US7] Add conversation list UI in `frontend/components/common/ChatModal.tsx`
 - [ ] T093 [US7] Implement delete conversation button in `frontend/components/common/ChatModal.tsx`
 - [ ] T094 [US7] Add clear all history confirmation dialog in `frontend/components/common/ChatModal.tsx`
 - [ ] T095 [US7] Implement conversation search UI in `frontend/components/common/ChatModal.tsx`
-- [ ] T096 [US7] Add conversation persistence to database in `backend/todo-backend/src/agent/conversation_store.py`
-- [ ] T097 [US7] Add logging for conversation operations in `backend/todo-backend/src/agent/logger.py`
+- [ ] T096 [US7] Add conversation persistence to database in `agent/conversation_store.py`
+- [ ] T097 [US7] Add logging for conversation operations in `agent/logger.py`
 
 **Checkpoint**: User Story 7 complete - conversation management functional
 
@@ -257,8 +281,8 @@
 - [ ] T098 [P] Create comprehensive API documentation in `specs/001-ai-task-assistant/contracts/api-contracts.md`
 - [ ] T099 [P] Update quickstart.md with complete setup instructions in `specs/001-ai-task-assistant/quickstart.md`
 - [ ] T100 [P] Add TypeScript types for all chat messages in `frontend/types/index.ts`
-- [ ] T101 [P] Implement comprehensive error messages in `backend/todo-backend/src/agent/error_handler.py`
-- [ ] T102 [P] Add retry logic with exponential backoff in `backend/todo-backend/src/agent/error_handler.py`
+- [ ] T101 [P] Implement comprehensive error messages in `agent/error_handler.py`
+- [ ] T102 [P] Add retry logic with exponential backoff in `agent/error_handler.py`
 - [ ] T103 [P] Implement typing indicators in `frontend/components/common/ChatModal.tsx`
 - [ ] T104 [P] Add message status (sending/sent/failed) in `frontend/redux/slices/agentChat.ts`
 - [ ] T105 [P] Run quickstart.md validation tests
@@ -318,8 +342,8 @@ npm test -- frontend/tests/integration/chat-task-creation.test.tsx &
 npm run test:e2e -- tests/e2e/chat-agent.spec.ts &
 
 # Launch all tool implementations for User Story 1 together:
-# Developer A: Create create_task tool in backend/todo-backend/src/agent/tools/task_tools.py
-# Developer B: Create get_tasks tool in backend/todo-backend/src/agent/tools/task_tools.py
+# Developer A: Create create_task tool in agent/tools/task_tools.py
+# Developer B: Create get_tasks tool in agent/tools/task_tools.py
 
 # Launch all frontend components together:
 # Developer C: Create ChatButton in frontend/components/common/ChatButton.tsx
@@ -371,7 +395,7 @@ With multiple developers:
 **Total Tasks**: 110
 
 **By Phase**:
-- Phase 1 (Setup): 5 tasks
+- Phase 1 (Setup): 5 tasks (3 complete ✅, 2 pending)
 - Phase 2 (Foundational): 8 tasks
 - Phase 3 (US1): 13 tasks
 - Phase 4 (US2): 11 tasks
@@ -392,10 +416,14 @@ With multiple developers:
 - US7 (Conversation History): 10 tasks + 2 tests = 12 tasks
 
 **Parallel Opportunities**:
-- Phase 1: 5/5 tasks parallel (100%)
-- Phase 2: 8/8 tasks parallel (100%)
+- Phase 1: 3/5 tasks complete (60%)
+- Phase 2: 8/8 tasks parallel (100%) - READY TO START
 - User Stories: All 7 stories can run in parallel after Phase 2
 - Within stories: ~60% of tasks can run in parallel
+
+**Current Progress**: 
+- Phase 1: 60% complete (T001, T002, T004 done)
+- Next: Complete T003, T005 (frontend setup) OR start Phase 2 (Foundational)
 
 **Suggested MVP**: Phases 1-3 (Setup + Foundational + US1) = 26 tasks
 - Delivers: Chat-based task creation via natural language

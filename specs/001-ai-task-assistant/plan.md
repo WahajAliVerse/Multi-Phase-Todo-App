@@ -11,15 +11,32 @@ Build an AI Task Assistant that enables natural language interactions for task m
 
 ## Technical Context
 
-**Language/Version**: Python 3.12+ (backend), TypeScript 5.x (frontend)
-**Primary Dependencies**: FastAPI (backend), Next.js 14+ (frontend), Google Gemini via OpenAI Agents SDK
+**Language/Version**: Python 3.12+ (agent), TypeScript 5.x (frontend)
+**Primary Dependencies**:
+- Agent: `openai-agents` (OpenAI Agents Python SDK with built-in MCP support)
+- Backend: FastAPI (existing, READ-ONLY)
+- Frontend: Next.js 14+ (existing)
 **Storage**: SQLite (development), PostgreSQL (production) - via existing backend
-**Testing**: pytest (backend), Jest/React Testing Library (frontend)
+**Testing**: pytest (agent), Jest/React Testing Library (frontend)
 **Target Platform**: Web application with floating chat interface
-**Project Type**: Full-stack web application (frontend + backend)
+**Project Type**: Full-stack web application (frontend + backend) with AI agent layer
 **Performance Goals**: <3s response time for chat interactions, 100 concurrent sessions, <1s Redux sync
 **Constraints**: Backend READ-ONLY (no modifications), HTTP-only cookies, rate-limiting required
-**Scale/Scope**: Production-grade AI agent with 15 backend API tools, MCP integration, bilingual support ready
+**Scale/Scope**: Production-grade AI agent using OpenAI Agents SDK with MCP integration
+
+**OpenAI Agents SDK Integration**:
+- Package: `openai-agents` (install via `uv add openai-agents`)
+- Documentation: https://openai.github.io/openai-agents-python/
+- Key Features Used:
+  - Agent loop for automatic tool invocation
+  - MCP server tool calling (built-in)
+  - Function tools with automatic schema generation
+  - Sessions for persistent memory
+  - Guardrails for input/output validation
+  - Tracing for observability
+- Agent Pattern: `Agent(name="TodoAssistant", instructions="...")`
+- Runner Pattern: `Runner.run_sync(agent, "user prompt")`
+- MCP Integration: Native MCP server support via SDK
 
 ## Constitution Check
 
@@ -57,6 +74,17 @@ specs/001-ai-task-assistant/
 ### Source Code (repository root)
 
 ```text
+agent/                      # NEW: AI Agent module (root level)
+├── __init__.py
+├── agent.py                # Gemini agent with OpenAI SDK
+├── tools/                  # Tool wrappers for backend APIs
+│   ├── task_tools.py
+│   ├── tag_tools.py
+│   └── recurrence_tools.py
+├── mcp/                    # Multi-Context Provider integration
+│   └── reasoning.py
+└── config.py               # Gemini configuration, env loading
+
 backend/
 ├── todo-backend/
 │   ├── src/
@@ -64,18 +92,8 @@ backend/
 │   │   │   └── tasks.py          # Existing backend APIs (READ-ONLY)
 │   │   ├── models/
 │   │   │   └── task.py           # Existing task model (READ-ONLY)
-│   │   ├── services/
-│   │   │   └── task_service.py   # Existing service layer (READ-ONLY)
-│   │   └── agent/                # NEW: AI Agent module
-│   │       ├── __init__.py
-│   │       ├── agent.py          # Gemini agent with OpenAI SDK
-│   │       ├── tools/            # Tool wrappers for backend APIs
-│   │       │   ├── task_tools.py
-│   │       │   ├── tag_tools.py
-│   │       │   └── recurrence_tools.py
-│   │       ├── mcp/              # Multi-Context Provider integration
-│   │       │   └── reasoning.py
-│   │       └── config.py         # Gemini configuration, env loading
+│   │   └── services/
+│   │       └── task_service.py   # Existing service layer (READ-ONLY)
 │   └── tests/
 │       └── agent/                # Agent tests
 │           ├── test_tools.py
@@ -100,7 +118,7 @@ tests/
 ```
 
 **Structure Decision**: Full-stack web application structure (Option 2 variant)
-- Backend: New `agent/` module isolated from existing backend (preserves READ-ONLY constraint)
+- Agent: New `agent/` module at root level (isolated from existing backend)
 - Frontend: New chat components integrated into existing component library
 - Clear separation between agent logic and existing application code
 

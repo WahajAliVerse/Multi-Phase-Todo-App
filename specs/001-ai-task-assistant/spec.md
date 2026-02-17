@@ -13,6 +13,126 @@
 
 ---
 
+## Setup & Installation Status
+
+**Completed**:
+- ✅ Agent directory created: `agent/` (at project root)
+- ✅ Virtual environment created using `uv`
+- ✅ All required dependencies installed via `uv add`
+
+**Development Workflow**:
+
+```bash
+# Navigate to agent directory (at project root)
+cd agent
+
+# Activate virtual environment (REQUIRED before any development)
+source .venv/bin/activate
+
+# Install new dependencies (ALWAYS use uv add)
+uv add <package-name>
+
+# Verify installation
+uv pip list
+```
+
+**⚠️ IMPORTANT**: 
+- ALWAYS activate the virtual environment before working on the agent: `source .venv/bin/activate`
+- ALWAYS use `uv add <package-name>` for installing dependencies - do NOT use `uv pip install`
+- Do NOT use any other package manager - strictly use `uv add` only
+
+**Installed Dependencies** (via `uv add`):
+- `openai-agents` - OpenAI Agents Python SDK (includes MCP support, tool calling, agent loop)
+- `python-dotenv` - Environment variable management
+- `slowapi` - Rate limiting middleware
+
+**OpenAI Agents SDK Reference**:
+- Documentation: https://openai.github.io/openai-agents-python/
+- Key Features: Agent loop, MCP server tool calling, function tools, sessions, guardrails, tracing
+- MCP Integration: Built-in Model Context Protocol support for external tool integration
+- Agent Configuration: `Agent(name="...", instructions="...")`
+- Runner: `Runner.run_sync(agent, "prompt")` for synchronous execution
+
+**Google Gemini Integration Pattern** (Reference Implementation):
+```python
+from agents import Agent, Runner, OpenAIChatCompletionsModel, function_tool
+from agents import GuardrailFunctionOutput, TResponseInputItem, RunContextWrapper
+from agents import input_guardrail, output_guardrail, RunConfig
+from agents import InputGuardrailTripwireTriggered, OutputGuardrailTripwireTriggered
+from openai import AsyncOpenAI
+from agents import enable_verbose_stdout_logging
+
+# Enable verbose logging (optional)
+enable_verbose_stdout_logging()
+
+# Configure Gemini API via OpenAI-compatible endpoint
+client = AsyncOpenAI(
+    api_key=GEMINI_API_KEY,
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+)
+
+# Configure model
+model = OpenAIChatCompletionsModel(
+    model="gemini-2.0-flash",
+    openai_client=client,
+)
+
+# Run configuration
+config = RunConfig(
+    model=model,
+    model_provider=client,
+    tracing_disabled=True
+)
+
+# Define function tool
+@function_tool
+def create_task(title: str, description: str = None, due_date: str = None):
+    """Create a new task in the todo app"""
+    # Implementation calls existing backend API
+    return {"success": True, "task_id": "..."}
+
+# Create agent with tools
+agent = Agent(
+    name="TodoAssistant",
+    instructions="You are a senior AI assistant for a production Todo app...",
+    tools=[create_task, ...],  # List of function tools
+    output_type=GuardrailOutput,  # Optional: structured output
+    model_settings=ModelSettings(temperature=0.4, max_tokens=700, tool_choice="auto")
+)
+
+# Input guardrail (optional)
+@input_guardrail
+async def input_guardrail_func(ctx: RunContextWrapper, agent: Agent, input: str | list):
+    result = await Runner.run(guardrail_agent, input, context=ctx.context, run_config=config)
+    return GuardrailFunctionOutput(
+        output_info=result.final_output,
+        tripwire_triggered=result.final_output.is_not_news
+    )
+
+# Output guardrail (optional)
+@output_guardrail
+async def output_guardrail_func(ctx: RunContextWrapper, agent: Agent, output):
+    # Validate and process output
+    return GuardrailFunctionOutput(
+        output_info=result.final_output,
+        tripwire_triggered=result.final_output.is_not_news
+    )
+
+# Run agent
+result = Runner.run_sync(agent, "Create a task to buy groceries tomorrow", run_config=config)
+print(result.final_output)
+```
+
+**Key Implementation Notes**:
+- Use `OpenAIChatCompletionsModel` for Gemini integration
+- Configure `AsyncOpenAI` client with Gemini API key and base URL
+- Use `ModelSettings` for temperature, max_tokens, tool_choice
+- Guardrails are optional but recommended for production
+- Use `function_tool` decorator for all backend API wrappers
+- Agent loop handles tool invocation automatically
+
+---
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Chat-Based Task Creation (Priority: P1)
@@ -191,12 +311,12 @@ Users can view, search, and delete their chat conversation history.
 - **FR-032**: System MUST include HTTP-only cookies with credentials (withCredentials: true) for all API calls
 
 #### LLM Integration Requirements
-- **FR-033**: System MUST use Google Gemini LLM exclusively (no other LLM providers)
-- **FR-034**: System MUST configure Gemini for compatibility with OpenAI Agents SDK
-- **FR-035**: System MUST load Gemini API key from environment variables (.env file)
-- **FR-036**: System MUST raise ValueError if GEMINI_API_KEY environment variable is not set
+- **FR-033**: System MUST use OpenAI Agents Python SDK exclusively (pip install openai-agents)
+- **FR-034**: System MUST configure Agent using `Agent(name="...", instructions="...")` pattern
+- **FR-035**: System MUST use `Runner.run_sync()` or `Runner.run()` for agent execution
+- **FR-036**: System MUST leverage built-in MCP server tool calling from OpenAI Agents SDK
 - **FR-037**: System MUST NEVER expose API keys or sensitive credentials to frontend
-- **FR-038**: System MUST follow OpenAI-compatible schemas for requests and responses
+- **FR-038**: System MUST follow OpenAI Agents SDK patterns for tool definition and handoffs
 
 #### Multi-Context Provider (MCP) Requirements
 - **FR-039**: System MUST invoke MCP for reasoning in ambiguous scenarios (multiple matching tasks, unclear dates, conflicting intents)

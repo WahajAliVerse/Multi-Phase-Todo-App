@@ -1,269 +1,199 @@
-# Phase 0 Research: AI Task Assistant Integration
+# Phase 0 Research: OpenAI Agents SDK Integration
 
 ## Research Questions & Findings
 
-### 1. Google Gemini Integration with OpenAI Agents SDK
+### 1. OpenAI Agents Python SDK
 
-**Decision**: Use Google Gemini 1.5 Flash via OpenAI-compatible endpoint
+**Decision**: Use `openai-agents` package (official OpenAI Agents Python SDK)
 
 **Rationale**:
-- Gemini 1.5 Flash provides excellent performance for task management NLP
-- OpenAI Agents SDK compatibility allows using familiar patterns
-- Cost-effective for production use with high token limits
-- Supports function calling for tool invocation
+- Official SDK from OpenAI with production-ready features
+- Built-in MCP (Model Context Protocol) server tool calling
+- Minimal learning curve with Python-first design
+- Includes agent loop, sessions, guardrails, and tracing
+- Production upgrade of Swarm pattern
+
+**Installation**:
+```bash
+uv add openai-agents
+```
+
+**Environment Setup**:
+```bash
+export OPENAI_API_KEY=sk-...
+```
+
+**Hello World Example**:
+```python
+from agents import Agent, Runner
+
+agent = Agent(name="Assistant", instructions="You are a helpful assistant")
+result = Runner.run_sync(agent, "Write a haiku about recursion.")
+print(result.final_output)
+```
 
 **Alternatives Considered**:
-- Gemini 2.0 Pro: More powerful but overkill for task management, higher cost
-- Claude 3.5 Sonnet: Excellent but requires different SDK, violates "Gemini exclusively" constraint
-- GPT-4o: Violates constraint of using Google Gemini exclusively
+- Google Gemini + OpenAI SDK compatibility layer: Unnecessary complexity, use official SDK
+- LangChain: Too heavy, more abstraction than needed
+- Custom implementation: Reinventing the wheel, SDK is production-ready
 
-**Implementation Pattern**:
+**Documentation**: https://openai.github.io/openai-agents-python/
+
+---
+
+### 2. MCP Integration with OpenAI Agents SDK
+
+**Decision**: Use built-in MCP server tool calling from OpenAI Agents SDK
+
+**Rationale**:
+- Native MCP support in SDK (no additional configuration needed)
+- Works identically to function tools
+- Seamless server integration
+- Part of core SDK features
+
+**Integration Pattern**:
 ```python
-from openai import AsyncOpenAI
-from agents import Agent, Runner, RunConfig
-from agents.models import OpenAIChatCompletionsModel
+from agents import Agent, Runner, MCPServer
 
-# Initialize with Gemini endpoint
-external_client = AsyncOpenAI(
-    api_key=os.getenv("GEMINI_API_KEY"),
-    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+# MCP servers work as tools automatically
+agent = Agent(
+    name="TodoAssistant",
+    instructions="Help users manage tasks",
+    tools=[mcp_server_tool]  # MCP tools integrated natively
 )
+```
 
-model = OpenAIChatCompletionsModel(
-    model="gemini-1.5-flash",
-    openai_client=external_client
+**Key Features**:
+- MCP servers provide external tool integration
+- Built-in protocol handling
+- Automatic schema generation
+- Same interface as function tools
+
+---
+
+### 3. Agent Configuration & Execution
+
+**Decision**: Use Agent/Runner pattern from OpenAI Agents SDK
+
+**Agent Configuration**:
+```python
+from agents import Agent
+
+agent = Agent(
+    name="TodoAssistant",
+    instructions="You are a senior AI assistant for a production Todo app. Handle user intents via tools, clarify ambiguities with MCP, and ensure secure, efficient operations.",
+    tools=[task_tools, tag_tools, recurrence_tools]
 )
 ```
 
----
-
-### 2. Multi-Context Provider (MCP) Integration Pattern
-
-**Decision**: Implement MCP as analysis-only layer before tool execution
-
-**Rationale**:
-- MCP provides reasoning for ambiguous scenarios without executing actions
-- Separates analysis from execution (clean architecture)
-- Enables clarification before destructive actions
-- Aligns with LEARN → THINK → ACT principle
-
-**Integration Points**:
-1. **Ambiguous task references**: "Mark the meeting as complete" (multiple meetings exist)
-2. **Unclear dates**: "Next week" (which day?)
-3. **Conflicting intents**: "Delete all tasks" (destructive, needs confirmation)
-4. **Parsing failures**: Unrecognized date formats or recurrence patterns
-
-**Implementation Pattern**:
+**Runner Execution**:
 ```python
-async def analyze_with_mcp(user_input: str, context: dict) -> MCPResult:
-    """Use MCP for reasoning before tool invocation"""
-    # MCP analyzes intent, identifies ambiguities
-    # Returns clarification questions or recommended action
-    # NEVER executes tools directly
-    pass
+from agents import Runner
 
-async def execute_with_clarification(user_input: str):
-    """Main flow: MCP analysis → clarification (if needed) → tool execution"""
-    analysis = await analyze_with_mcp(user_input, context)
-    
-    if analysis.needs_clarification:
-        questions = analysis.get_clarification_questions()
-        user_response = await ask_user(questions)
-        refined_input = refine_with_clarifications(user_input, user_response)
-    else:
-        refined_input = user_input
-    
-    # Now execute tools with clarified intent
-    return await execute_tools(refined_input)
+# Synchronous execution
+result = Runner.run_sync(agent, "Create a task to buy groceries tomorrow")
+print(result.final_output)
+
+# Or async execution
+result = await Runner.run(agent, "Create a task...")
 ```
 
+**Agent Loop**:
+- Built-in loop handles tool invocation automatically
+- Continues until task completion
+- No manual loop management needed
+
 ---
 
-### 3. Natural Language Date/Time Parsing
+### 4. Function Tools
 
-**Decision**: Use `dateutil` library with custom extensions for recurrence patterns
+**Decision**: Use `@function_tool` decorator for backend API wrappers
 
-**Rationale**:
-- Handles relative references ("tomorrow", "next week", "in 2 hours")
-- Timezone-aware parsing
-- Extensible for custom recurrence patterns
-- Well-maintained and production-tested
-
-**Pattern Support**:
-- Absolute: "2026-02-20 at 3pm", "next Monday at 10am"
-- Relative: "tomorrow", "in 2 hours", "next week"
-- Recurrence: "every Monday", "daily for 10 days", "monthly on the 1st"
-- Reminders: "30 minutes before", "1 day before", "at start time"
-
-**Implementation Pattern**:
+**Pattern**:
 ```python
-from dateutil import parser
-from dateutil.relativedelta import relativedelta
+from agents import function_tool
 
-def parse_datetime(expression: str, reference: datetime = None) -> datetime:
-    """Parse natural language datetime expression"""
-    reference = reference or datetime.now()
-    
-    # Handle relative expressions
-    if "in" in expression and ("hour" in expression or "day" in expression or "week" in expression):
-        # Parse "in 2 hours", "in 3 days", etc.
-        ...
-    elif "next" in expression:
-        # Parse "next Monday", "next week", etc.
-        ...
-    else:
-        # Standard parsing
-        return parser.parse(expression, fuzzy=True)
+@function_tool
+def create_task(title: str, description: str = None, due_date: str = None):
+    """Create a new task in the todo app"""
+    # Implementation calls existing backend API
+    return {"success": True, "task_id": "..."}
 ```
 
+**Features**:
+- Automatic schema generation
+- Pydantic-powered validation
+- Type hints become tool schema
+- Docstring becomes tool description
+
 ---
 
-### 4. Backend API Tool Wrapping Pattern
+### 5. Sessions (Persistent Memory)
 
-**Decision**: Create tool wrapper functions with consistent error handling and logging
+**Decision**: Use sessions for conversation history persistence
 
-**Rationale**:
-- Preserves backend READ-ONLY constraint
-- Provides consistent interface for agent
-- Centralizes error handling and retry logic
-- Enables comprehensive logging for debugging
+**Session Types Available**:
+- Basic Sessions - In-memory
+- SQLAlchemy Sessions - Database-backed
+- Advanced SQLite Sessions - File-based
+- Encrypted Sessions - Secure storage
 
-**Tool Structure**:
+**Pattern**:
 ```python
-from typing import Optional, List
-from sqlmodel import Session
-from src.core.database import get_session
+from agents import Runner, Session
 
-class TaskTools:
-    """Tool wrappers for task management backend APIs"""
-    
-    @staticmethod
-    async def create_task(
-        title: str,
-        description: Optional[str] = None,
-        due_date: Optional[datetime] = None,
-        priority: str = "medium",
-        tags: Optional[List[str]] = None
-    ) -> dict:
-        """Create a new task via backend API"""
-        try:
-            session = get_session()
-            # Call existing backend service
-            task = TaskService().create_task(session, TaskCreate(...))
-            return {"success": True, "task_id": str(task.id), "task": task.dict()}
-        except Exception as e:
-            logger.error(f"Failed to create task: {e}")
-            return {"success": False, "error": str(e)}
-    
-    @staticmethod
-    async def update_task(
-        task_id: str,
-        updates: dict
-    ) -> dict:
-        """Update existing task via backend API"""
-        ...
-    
-    # Similar patterns for: delete_task, get_tasks, mark_task_complete
+session = Session("user-123")  # User-specific session
+result = Runner.run_sync(agent, "Create task...", session=session)
 ```
 
+**Benefits**:
+- Maintains conversation context
+- Multiple conversation support
+- Persistent across runs
+- Built-in state management
+
 ---
 
-### 5. Redux State Synchronization Pattern
+### 6. Guardrails
 
-**Decision**: Implement optimistic updates with rollback on failure
+**Decision**: Implement guardrails for input/output validation
 
-**Rationale**:
-- Provides instant UI feedback (<1s sync requirement)
-- Maintains Redux state integrity
-- Handles API failures gracefully
-- Aligns with existing Redux patterns in application
+**Pattern**:
+```python
+from agents import Agent, InputGuardrail, OutputGuardrail
 
-**Implementation Pattern**:
-```typescript
-// Redux slice for agent chat
-const agentChatSlice = createSlice({
-  name: 'agentChat',
-  initialState,
-  reducers: {
-    addMessage: (state, action) => {
-      state.messages.push(action.payload);
-    },
-    updateMessageStatus: (state, action) => {
-      // Update message status (sending, sent, failed)
-    },
-  },
-  extraReducers: (builder) => {
-    builder
-      // On successful task creation via chat
-      .addCase(createTask.fulfilled, (state, action) => {
-        // Sync to tasks slice
-        state.lastAction = { type: 'create_task', taskId: action.payload.id };
-      })
-      // On failure
-      .addCase(createTask.rejected, (state, action) => {
-        // Show error, maintain state integrity
-        state.error = action.payload;
-      });
-  },
-});
+agent = Agent(
+    name="TodoAssistant",
+    instructions="...",
+    input_guardrails=[...],
+    output_guardrails=[...]
+)
 ```
 
----
-
-### 6. Rate Limiting Pattern for Agent Endpoint
-
-**Decision**: Implement token bucket rate limiting per user session
-
-**Rationale**:
-- Prevents abuse of LLM API (cost control)
-- Ensures fair usage across concurrent users
-- Aligns with constitution security principle
-- Configurable limits based on user tier
-
-**Implementation Pattern**:
-```python
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-limiter = Limiter(key_func=get_remote_address)
-
-@router.post("/chat")
-@limiter.limit("10/minute")  # 10 requests per minute per user
-async def chat_endpoint(request: Request, message: ChatMessage):
-    """Chat endpoint with rate limiting"""
-    # Process message
-    pass
-```
+**Features**:
+- Parallel input validation
+- Output safety checks
+- Fail-fast behavior
+- Built-in safety mechanisms
 
 ---
 
-### 7. Error Handling and Retry Strategy
+### 7. Tracing
 
-**Decision**: Implement exponential backoff with jitter for transient failures
+**Decision**: Enable built-in tracing for observability
 
-**Rationale**:
-- Handles transient API failures gracefully
-- Prevents thundering herd on retry
-- Provides user-friendly fallback messages
-- Maintains Redux state integrity during errors
+**Features**:
+- Automatic trace/span creation
+- Workflow visualization
+- Debugging support
+- OpenAI evaluation tools integration
+- Fine-tuning data collection
 
-**Implementation Pattern**:
+**Pattern**:
 ```python
-import asyncio
-import random
+from agents import set_trace_processors
 
-async def retry_with_backoff(func, max_retries=3, base_delay=1.0):
-    """Retry with exponential backoff and jitter"""
-    for attempt in range(max_retries):
-        try:
-            return await func()
-        except TransientError as e:
-            if attempt == max_retries - 1:
-                raise
-            
-            delay = base_delay * (2 ** attempt) + random.uniform(0, 0.1)
-            logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {delay:.1f}s")
-            await asyncio.sleep(delay)
+set_trace_processors([...])
 ```
 
 ---
@@ -272,19 +202,132 @@ async def retry_with_backoff(func, max_retries=3, base_delay=1.0):
 
 | Component | Choice | Rationale |
 |-----------|--------|-----------|
-| LLM Provider | Google Gemini 1.5 Flash | Constraint compliance, cost-effective, excellent NLP |
-| SDK | OpenAI Agents SDK | Compatibility layer, familiar patterns |
-| Date Parsing | `dateutil` | Production-tested, timezone-aware, extensible |
-| Rate Limiting | `slowapi` | FastAPI integration, per-user limits |
-| State Management | Redux Toolkit | Existing application pattern, optimistic updates |
-| Error Handling | Exponential backoff + jitter | Industry standard, prevents thundering herd |
+| LLM/Agent SDK | OpenAI Agents Python (`openai-agents`) | Official SDK, built-in MCP, production-ready |
+| LLM Provider | Google Gemini 2.0 Flash | Cost-effective, excellent NLP, OpenAI-compatible endpoint |
+| Installation | `uv add openai-agents` | Consistent with project uv workflow |
+| Agent Pattern | `Agent(name="...", instructions="...")` | SDK standard pattern |
+| Runner Pattern | `Runner.run_sync()` or `Runner.run()` | SDK execution pattern |
+| Model Configuration | `OpenAIChatCompletionsModel` with Gemini | OpenAI-compatible endpoint for Gemini |
+| Tools | `@function_tool` decorator | Automatic schema, type-safe |
+| MCP | Built-in MCP server tool calling | Native SDK support |
+| Sessions | SQLAlchemy/SQLite Sessions | Persistent conversation history |
+| Guardrails | Input/Output guardrails with `@input_guardrail`, `@output_guardrail` | Safety and validation |
+| Tracing | Built-in tracing (optional disabled) | Observability and debugging |
+| Model Settings | `ModelSettings(temperature=0.4, max_tokens=700, tool_choice="auto")` | Fine-tuned for task management |
+
+---
+
+## Google Gemini Integration Reference Implementation
+
+**Complete working example from existing implementation**:
+
+```python
+from agents import Agent, Runner, OpenAIChatCompletionsModel, function_tool
+from agents import GuardrailFunctionOutput, TResponseInputItem, RunContextWrapper
+from agents import input_guardrail, output_guardrail, RunConfig
+from agents import InputGuardrailTripwireTriggered, OutputGuardrailTripwireTriggered
+from openai import AsyncOpenAI
+from .config import GEMINI_API_KEY, logger
+from agents import enable_verbose_stdout_logging
+
+# Enable verbose logging (optional)
+enable_verbose_stdout_logging()
+
+# Configure Gemini API via OpenAI-compatible endpoint
+client = AsyncOpenAI(
+    api_key=GEMINI_API_KEY,
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+)
+
+# Configure model
+model = OpenAIChatCompletionsModel(
+    model="gemini-2.0-flash",
+    openai_client=client,
+)
+
+# Run configuration (tracing disabled for production)
+config = RunConfig(
+    model=model,
+    model_provider=client,
+    tracing_disabled=True
+)
+
+# Define guardrail agent for input validation
+guardrail_agent = Agent(
+    name="Guardrail Agent",
+    instructions=f"You are a guardrail agent that checks if the user's query is valid. The current date is {datetime.now().strftime('%Y-%m-%d')}.",
+    output_type=News
+)
+
+# Input guardrail
+@input_guardrail
+async def news_guardrail(ctx: RunContextWrapper, agent: Agent, input: str | list):
+    result = await Runner.run(guardrail_agent, input, context=ctx.context, run_config=config)
+    return GuardrailFunctionOutput(
+        output_info=result.final_output,
+        tripwire_triggered=result.final_output.is_not_news
+    )
+
+# Output guardrail
+@output_guardrail
+async def news_output_guardrails(ctx: RunContextWrapper, agent: Agent, output):
+    if isinstance(output, str):
+        try:
+            output = GuardrailOutput.parse_raw(output)
+        except Exception as e:
+            logger.error(f"Parse failed {repr(e)}")
+            return GuardrailFunctionOutput(
+                output_info=News(is_not_news=True, reasoning=f"Invalid output: {repr(e)}"),
+                tripwire_triggered=True
+            )
+    
+    result = await Runner.run(guardrail_output_agent, output_str, context=ctx.context, run_config=config)
+    return GuardrailFunctionOutput(
+        output_info=result.final_output,
+        tripwire_triggered=result.final_output.is_not_news
+    )
+
+# Define function tool
+@function_tool
+def create_task(title: str, description: str = None, due_date: str = None):
+    """Create a new task in the todo app"""
+    # Implementation calls existing backend API
+    return {"success": True, "task_id": "..."}
+
+# Create main agent with tools and guardrails
+agent = Agent(
+    name="TodoAssistant",
+    instructions="You are a senior AI assistant for a production Todo app...",
+    tools=[create_task, ...],  # List of function tools
+    input_guardrails=[news_guardrail],  # Optional
+    output_guardrails=[news_output_guardrails],  # Optional
+    output_type=GuardrailOutput,
+    model_settings=ModelSettings(temperature=0.4, max_tokens=700, tool_choice="auto")
+)
+
+# Run agent
+result = Runner.run_sync(agent, "Create a task to buy groceries tomorrow", run_config=config)
+print(result.final_output)
+```
+
+**Key Configuration Points**:
+1. **Gemini API Key**: Load from environment variable `GEMINI_API_KEY`
+2. **Base URL**: Use `https://generativelanguage.googleapis.com/v1beta/openai/` for OpenAI compatibility
+3. **Model**: Use `gemini-2.0-flash` for best performance/cost balance
+4. **Guardrails**: Optional but recommended for production (input and output validation)
+5. **Model Settings**: 
+   - `temperature=0.4` - Balanced creativity/accuracy for task management
+   - `max_tokens=700` - Sufficient for most responses
+   - `tool_choice="auto"` - Let model decide when to use tools
+6. **Tracing**: Can be disabled for production (`tracing_disabled=True`)
+7. **Verbose Logging**: Enable with `enable_verbose_stdout_logging()` for debugging
 
 ---
 
 ## Next Steps
 
 1. **Phase 1**: Generate data-model.md with AI Agent entities
-2. **Phase 1**: Create API contracts for chat endpoint and tools
-3. **Phase 1**: Generate quickstart.md with Gemini setup guide
-4. **Phase 1**: Update agent context with new technologies
+2. **Phase 1**: Create API contracts from tools
+3. **Phase 1**: Generate quickstart.md with OpenAI Agents SDK + Gemini setup
+4. **Phase 1**: Update agent context with SDK patterns
 5. **Re-check Constitution Check** post-design
