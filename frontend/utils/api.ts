@@ -1,15 +1,24 @@
 import { toast } from 'react-hot-toast';
 import { redirectToLogin } from './auth';
-import { 
-  TagDto, 
-  CreateTagDto, 
-  UpdateTagDto, 
+import {
+  TagDto,
+  CreateTagDto,
+  UpdateTagDto,
   Tag,
   UserDto,
   TaskDto,
-  NotificationDto
+  NotificationDto,
+  ChatMessageDto,
+  ChatMessage,
+  ChatConversationDto,
+  ChatConversation,
+  ChatAction,
+  SendMessageRequest,
+  SendMessageResponse,
+  GetConversationsResponse,
+  GetMessagesResponse,
 } from '@/types';
-import { 
+import {
   transformTagDtosToFrontendModels,
   transformTagDtoToFrontendModel,
   transformTaskDtoToFrontendModel,
@@ -17,7 +26,7 @@ import {
   transformUserDtoToFrontendModel,
   transformUserDtosToFrontendModels,
   transformNotificationDtoToFrontendModel,
-  transformNotificationDtosToFrontendModels
+  transformNotificationDtosToFrontendModels,
 } from '@/utils/transformations';
 
 // Define types for API responses
@@ -653,4 +662,161 @@ export interface Reminder {
 export const remindersApi = {
   getUpcoming: () =>
     apiRequest<{ reminders: Reminder[] }>('/reminders/upcoming'),
+};
+
+// ============================================================================
+// AI Task Assistant Chat API functions
+// ============================================================================
+
+/**
+ * Transform ChatMessageDto to ChatMessage (snake_case to camelCase)
+ */
+const transformChatMessageDtoToFrontendModel = (dto: ChatMessageDto): ChatMessage => ({
+  id: dto.id,
+  conversationId: dto.conversation_id,
+  role: dto.role,
+  content: dto.content,
+  timestamp: dto.timestamp,
+  status: dto.status,
+  actions: dto.actions?.map((action) => ({
+    ...action,
+    task_id: action.task_id,
+    tag_id: action.tag_id,
+  })),
+  metadata: dto.metadata,
+});
+
+/**
+ * Transform ChatMessage to ChatMessageDto (camelCase to snake_case)
+ */
+const transformChatMessageToBackendDto = (message: ChatMessage): ChatMessageDto => ({
+  id: message.id,
+  conversation_id: message.conversationId,
+  role: message.role,
+  content: message.content,
+  timestamp: message.timestamp,
+  status: message.status,
+  actions: message.actions,
+  metadata: message.metadata,
+});
+
+/**
+ * Transform ChatConversationDto to ChatConversation (snake_case to camelCase)
+ */
+const transformChatConversationDtoToFrontendModel = (dto: ChatConversationDto): ChatConversation => ({
+  id: dto.id,
+  userId: dto.user_id,
+  title: dto.title,
+  createdAt: dto.created_at,
+  updatedAt: dto.updated_at,
+  isActive: dto.is_active,
+  messageCount: dto.message_count,
+});
+
+/**
+ * Transform array of ChatConversationDto to ChatConversation
+ */
+const transformChatConversationDtosToFrontendModels = (dtos: ChatConversationDto[]): ChatConversation[] =>
+  dtos.map(transformChatConversationDtoToFrontendModel);
+
+export interface CreateConversationRequest {
+  title: string;
+}
+
+export interface UpdateConversationRequest {
+  title: string;
+}
+
+export const chatApi = {
+  /**
+   * Send a message to the AI assistant
+   */
+  sendMessage: async (request: SendMessageRequest): Promise<SendMessageResponse> => {
+    console.log('[chatApi.sendMessage] Sending message:', request);
+    const response: any = await apiRequest<any>('/agent/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversation_id: request.conversation_id,
+        content: request.content,
+      }),
+    });
+    console.log('[chatApi.sendMessage] Response:', response);
+
+    // Transform response to frontend models
+    const transformedResponse: SendMessageResponse = {
+      message: transformChatMessageDtoToFrontendModel(response.message),
+      actions: response.actions,
+    };
+
+    if (response.conversation) {
+      transformedResponse.conversation = transformChatConversationDtoToFrontendModel(response.conversation);
+    }
+
+    return transformedResponse;
+  },
+
+  /**
+   * Get all conversations for the current user
+   */
+  getConversations: async (): Promise<ChatConversation[]> => {
+    console.log('[chatApi.getConversations] Fetching conversations...');
+    const response: { conversations: ChatConversationDto[] } = await apiRequest<{ conversations: ChatConversationDto[] }>('/agent/conversations');
+    console.log('[chatApi.getConversations] Response:', response);
+    return transformChatConversationDtosToFrontendModels(response.conversations);
+  },
+
+  /**
+   * Get messages for a specific conversation
+   */
+  getMessages: async (conversationId: string): Promise<GetMessagesResponse> => {
+    console.log('[chatApi.getMessages] Fetching messages for conversation:', conversationId);
+    const response: any = await apiRequest<GetMessagesResponse>(`/agent/conversations/${conversationId}/messages`);
+    console.log('[chatApi.getMessages] Response:', response);
+
+    return {
+      messages: response.messages.map(transformChatMessageDtoToFrontendModel),
+      conversation: response.conversation
+        ? transformChatConversationDtoToFrontendModel(response.conversation)
+        : undefined,
+    };
+  },
+
+  /**
+   * Create a new conversation
+   */
+  createConversation: async (title: string): Promise<ChatConversation> => {
+    console.log('[chatApi.createConversation] Creating conversation:', title);
+    const response: ChatConversationDto = await apiRequest<ChatConversationDto>('/agent/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ title }),
+    });
+    console.log('[chatApi.createConversation] Response:', response);
+    return transformChatConversationDtoToFrontendModel(response);
+  },
+
+  /**
+   * Update a conversation title
+   */
+  updateConversation: async (conversationId: string, title: string): Promise<ChatConversation> => {
+    console.log('[chatApi.updateConversation] Updating conversation:', conversationId, 'title:', title);
+    const response: ChatConversationDto = await apiRequest<ChatConversationDto>(
+      `/agent/conversations/${conversationId}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ title }),
+      }
+    );
+    console.log('[chatApi.updateConversation] Response:', response);
+    return transformChatConversationDtoToFrontendModel(response);
+  },
+
+  /**
+   * Delete a conversation (soft delete)
+   */
+  deleteConversation: async (conversationId: string): Promise<void> => {
+    console.log('[chatApi.deleteConversation] Deleting conversation:', conversationId);
+    await apiRequest(`/agent/conversations/${conversationId}`, {
+      method: 'DELETE',
+    });
+  },
 };

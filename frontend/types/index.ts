@@ -190,3 +190,123 @@ export interface UiState {
   loading: boolean;
   error: string | null;
 }
+
+// ============================================================================
+// AI Task Assistant Chat Types
+// ============================================================================
+
+// Chat message role types
+export type ChatMessageRole = 'user' | 'assistant' | 'system';
+
+// Chat message status types
+export type ChatMessageStatus = 'sending' | 'sent' | 'delivered' | 'failed';
+
+// Chat action types for task operations
+export type ChatActionType = 
+  | 'create_task'
+  | 'update_task'
+  | 'delete_task'
+  | 'complete_task'
+  | 'create_tag'
+  | 'update_tag'
+  | 'delete_tag'
+  | 'assign_tag'
+  | 'create_recurrence'
+  | 'update_recurrence'
+  | 'cancel_recurrence'
+  | 'schedule_reminder'
+  | 'query_tasks';
+
+// Chat action interface - represents actions extracted from chat messages
+export interface ChatAction {
+  type: ChatActionType;
+  task_id?: string;
+  tag_id?: string;
+  details?: Record<string, any>;
+  confirmed?: boolean;
+}
+
+// Chat message interface - DTO format (snake_case for backend compatibility)
+export interface ChatMessageDto {
+  id: string;
+  conversation_id: string;
+  role: ChatMessageRole;
+  content: string;
+  timestamp: string;
+  status?: ChatMessageStatus;
+  actions?: ChatAction[];
+  metadata?: Record<string, any>;
+}
+
+// Chat message interface - Frontend model (camelCase)
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  role: ChatMessageRole;
+  content: string;
+  timestamp: string;
+  status?: ChatMessageStatus;
+  actions?: ChatAction[];
+  metadata?: Record<string, any>;
+}
+
+// Chat conversation interface - DTO format
+export interface ChatConversationDto {
+  id: string;
+  user_id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  message_count?: number;
+}
+
+// Chat conversation interface - Frontend model
+export interface ChatConversation {
+  id: string;
+  userId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+  messageCount?: number;
+}
+
+// Chat state interface for Redux store
+export interface ChatState {
+  messages: ChatMessage[];
+  conversations: ChatConversation[];
+  currentConversationId: string | null;
+  isLoading: boolean;
+  isSending: boolean;
+  error: string | null;
+  typingIndicator: boolean;
+}
+
+// Chat API request/response types
+export interface SendMessageRequest {
+  conversation_id?: string;
+  content: string;
+}
+
+export interface SendMessageResponse {
+  message: ChatMessage;
+  conversation?: ChatConversation;
+  actions?: ChatAction[];
+}
+
+export interface GetConversationsResponse {
+  conversations: ChatConversationDto[];
+}
+
+export interface GetMessagesResponse {
+  messages: ChatMessage[];
+  conversation?: ChatConversation;
+}
+
+// Chat configuration types
+export interface ChatConfig {
+  maxHistoryLength: number;
+  typingIndicatorDelay: number;
+  retryAttempts: number;
+}

@@ -6,6 +6,7 @@ import authReducer from './slices/authSlice';
 import tasksReducer from './slices/tasksSlice';
 import tagsReducer from './slices/tagsSlice';
 import uiReducer from './slices/uiSlice';
+import agentChatReducer from './slices/agentChat';
 
 // Middleware to handle 401 errors globally
 const unauthenticatedMiddleware: Middleware = (storeAPI) => (next) => (action: any) => {
@@ -49,9 +50,18 @@ const tasksPersistConfig = {
   whitelist: ['tasks'],
 };
 
+// Configure Redux Persist for agentChat slice
+const agentChatPersistConfig = {
+  key: 'agentChat',
+  storage,
+  // Only persist conversations and currentConversationId, not transient states
+  whitelist: ['conversations', 'currentConversationId'],
+};
+
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedTagsReducer = persistReducer(tagsPersistConfig, tagsReducer);
 const persistedTasksReducer = persistReducer(tasksPersistConfig, tasksReducer);
+const persistedAgentChatReducer = persistReducer(agentChatPersistConfig, agentChatReducer);
 
 export const store = configureStore({
   reducer: {
@@ -59,6 +69,7 @@ export const store = configureStore({
     tasks: persistedTasksReducer,
     tags: persistedTagsReducer,
     ui: uiReducer,
+    agentChat: persistedAgentChatReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
