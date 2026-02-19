@@ -30,6 +30,7 @@ import {
   XMarkIcon,
   ChatBubbleLeftRightIcon,
   ChevronLeftIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline';
 import {
   CheckCircleIcon as CheckCircleSolidIcon,
@@ -81,6 +82,12 @@ const ActionConfirmation: React.FC<{
         return <TagIcon className="w-5 h-5" />;
       case 'create_recurrence':
         return <ClockIcon className="w-5 h-5" />;
+      case 'update_recurrence':
+        return <ArrowPathIcon className="w-5 h-5" />;
+      case 'cancel_recurrence':
+        return <TrashIcon className="w-5 h-5" />;
+      case 'schedule_reminder':
+        return <BellIcon className="w-5 h-5" />;
       default:
         return <SparklesIcon className="w-5 h-5" />;
     }
@@ -99,8 +106,20 @@ const ActionConfirmation: React.FC<{
         return `Mark task complete: "${details?.title || action.task_id}"`;
       case 'create_tag':
         return `Create tag: "${details?.name || 'Untitled'}"`;
+      case 'update_tag':
+        return `Update tag: "${details?.name || action.tag_id}"`;
+      case 'delete_tag':
+        return `Delete tag: "${details?.name || action.tag_id}"`;
+      case 'assign_tag':
+        return `Add tag to task: "${details?.tag_name || 'Tag'}"`;
       case 'create_recurrence':
         return `Create recurring task: "${details?.title || 'Untitled'}"`;
+      case 'update_recurrence':
+        return `Update recurring pattern: "${details?.title || 'Untitled'}"`;
+      case 'cancel_recurrence':
+        return `Cancel recurring task: "${details?.title || 'Untitled'}"`;
+      case 'schedule_reminder':
+        return `Set reminder: "${details?.title || 'Task'}"`;
       default:
         return 'Confirm action';
     }
@@ -110,17 +129,170 @@ const ActionConfirmation: React.FC<{
     const details = action.details;
     const parts: string[] = [];
 
-    if (details?.due_date) {
-      parts.push(`Due: ${new Date(details.due_date).toLocaleDateString()}`);
+    // Handle update_task specific details
+    if (action.type === 'update_task') {
+      if (details?.due_date) {
+        const dueDate = new Date(details.due_date);
+        const formattedDate = dueDate.toLocaleDateString([], { 
+          weekday: 'short', 
+          month: 'short', 
+          day: 'numeric',
+          year: 'numeric'
+        });
+        parts.push(`📅 Due: ${formattedDate}`);
+      }
+      if (details?.priority) {
+        const priorityIcons: Record<string, string> = {
+          high: '🔴',
+          medium: '🟡',
+          low: '🟢'
+        };
+        parts.push(`${priorityIcons[details.priority] || '⚪'} Priority: ${details.priority}`);
+      }
+      if (details?.status) {
+        const statusIcons: Record<string, string> = {
+          completed: '✅',
+          in_progress: '🔄',
+          pending: '⏳'
+        };
+        parts.push(`${statusIcons[details.status] || ''} Status: ${details.status}`);
+      }
+      if (details?.tag_name) {
+        parts.push(`🏷️ Tag: ${details.tag_name}`);
+      }
+      if (details?.title && action.confirmed) {
+        // Show title change only after confirmation
+        parts.push(`📝 Title: ${details.title}`);
+      }
     }
-    if (details?.priority) {
-      parts.push(`Priority: ${details.priority}`);
+    
+    // Handle other action types
+    if (action.type === 'create_task') {
+      if (details?.due_date) {
+        parts.push(`Due: ${new Date(details.due_date).toLocaleDateString()}`);
+      }
+      if (details?.priority) {
+        parts.push(`Priority: ${details.priority}`);
+      }
     }
-    if (details?.pattern) {
-      parts.push(`Repeats: ${details.pattern}`);
+    
+    if (action.type === 'complete_task') {
+      parts.push('Task marked as done');
     }
-    if (details?.color) {
-      parts.push(`Color: ${details.color}`);
+    
+    if (action.type === 'assign_tag') {
+      if (details?.tag_name) {
+        parts.push(`🏷️ Tag: ${details.tag_name}`);
+      }
+      if (details?.tag_color) {
+        parts.push(`Color: ${details.tag_color}`);
+      }
+      if (details?.title) {
+        parts.push(`Task: ${details.title}`);
+      }
+    }
+
+    if (action.type === 'create_tag') {
+      if (details?.color) {
+        parts.push(`🎨 Color: ${details.color}`);
+      }
+      if (details?.color_name) {
+        parts.push(`Color name: ${details.color_name}`);
+      }
+    }
+
+    if (action.type === 'update_tag') {
+      if (details?.updates) {
+        const updates = details.updates;
+        if (updates.name) {
+          parts.push(`📝 New name: ${updates.name}`);
+        }
+        if (updates.color) {
+          parts.push(`🎨 New color: ${updates.color}`);
+        }
+      }
+    }
+
+    if (action.type === 'delete_tag') {
+      parts.push('Tag will be permanently deleted');
+    }
+
+    if (action.type === 'create_recurrence') {
+      if (details?.pattern) {
+        parts.push(`Repeats: ${details.pattern}`);
+      }
+      if (details?.interval) {
+        parts.push(`Every: ${details.interval}`);
+      }
+      if (details?.days_of_week) {
+        const dayNames: Record<string, string> = {
+          mon: 'Monday',
+          tue: 'Tuesday',
+          wed: 'Wednesday',
+          thu: 'Thursday',
+          fri: 'Friday',
+          sat: 'Saturday',
+          sun: 'Sunday',
+        };
+        const days = details.days_of_week.map((d: string) => dayNames[d] || d).join(', ');
+        parts.push(`On: ${days}`);
+      }
+      if (details?.day_of_month) {
+        const getOrdinal = (n: number) => {
+          const s = ['th', 'st', 'nd', 'rd'];
+          const v = n % 100;
+          return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        };
+        parts.push(`On the ${getOrdinal(details.day_of_month)} of each month`);
+      }
+      if (details?.end_condition === 'after' && details?.end_after_occurrences) {
+        parts.push(`For ${details.end_after_occurrences} occurrences`);
+      }
+      if (details?.end_condition === 'on_date' && details?.end_date) {
+        const endDate = new Date(details.end_date);
+        parts.push(`Until ${endDate.toLocaleDateString()}`);
+      }
+      if (details?.time) {
+        parts.push(`At ${details.time}`);
+      }
+      if (details?.recurrence_summary) {
+        // Use the pre-formatted summary from backend
+        parts.unshift(details.recurrence_summary);
+      }
+    }
+
+    if (action.type === 'update_recurrence') {
+      if (details?.recurrence_summary) {
+        parts.push(`New pattern: ${details.recurrence_summary}`);
+      }
+      if (details?.updated_fields) {
+        parts.push(`Updated: ${details.updated_fields.join(', ')}`);
+      }
+    }
+
+    if (action.type === 'cancel_recurrence') {
+      parts.push('Recurring pattern will be cancelled');
+      parts.push('Future occurrences will not be created');
+    }
+
+    if (action.type === 'schedule_reminder') {
+      if (details?.is_recurring && details?.recurrence_description) {
+        parts.push(`🔁 ${details.recurrence_description}`);
+      } else if (details?.reminder_time_display) {
+        parts.push(`⏰ ${details.reminder_time_display}`);
+      }
+      if (details?.delivery_name) {
+        const deliveryIcons: Record<string, string> = {
+          browser: '🔔',
+          email: '📧',
+          push: '📱',
+        };
+        const icon = deliveryIcons[details.delivery_method] || '🔔';
+        parts.push(`${icon} ${details.delivery_name}`);
+      }
+      if (details?.message) {
+        parts.push(`💬 ${details.message}`);
+      }
     }
 
     return parts.join(' • ') || 'No additional details';
@@ -167,6 +339,100 @@ const ActionConfirmation: React.FC<{
         <span className="text-xs text-muted-foreground self-center">
           Click to execute this action
         </span>
+      </div>
+    </motion.div>
+  );
+};
+
+/**
+ * Task disambiguation component for selecting from multiple matching tasks
+ */
+const TaskDisambiguation: React.FC<{
+  taskMatches: Array<{
+    id: string;
+    title: string;
+    due_date?: string | null;
+    priority?: string;
+    status?: string;
+  }>;
+  onSelectTask: (taskIndex: number) => void;
+  taskReference?: string;
+}> = ({ taskMatches, onSelectTask, taskReference }) => {
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case 'high':
+        return 'text-red-500';
+      case 'medium':
+        return 'text-yellow-500';
+      case 'low':
+        return 'text-green-500';
+      default:
+        return 'text-muted-foreground';
+    }
+  };
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'completed':
+        return <span className="px-2 py-0.5 bg-green-500/10 text-green-500 text-xs rounded-full">Done</span>;
+      case 'in_progress':
+        return <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-xs rounded-full">In Progress</span>;
+      default:
+        return <span className="px-2 py-0.5 bg-gray-500/10 text-gray-500 text-xs rounded-full">Pending</span>;
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-3 p-4 bg-amber-500/5 border border-amber-500/20 rounded-lg"
+    >
+      <div className="flex items-start gap-3 mb-3">
+        <ExclamationCircleIcon className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <p className="font-semibold text-foreground text-sm">
+            I found multiple tasks matching "{taskReference || 'your description'}"
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Which one did you mean?
+          </p>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {taskMatches.slice(0, 5).map((task, index) => (
+          <motion.button
+            key={task.id}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05 }}
+            onClick={() => onSelectTask(index)}
+            className="w-full flex items-center gap-3 p-3 bg-card border border-border rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
+          >
+            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-semibold flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+              {index + 1}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
+              <div className="flex items-center gap-2 mt-1">
+                {task.due_date && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <CalendarIcon className="w-3 h-3" />
+                    {new Date(task.due_date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                  </span>
+                )}
+                {task.priority && (
+                  <span className={`text-xs ${getPriorityColor(task.priority)} flex items-center gap-1`}>
+                    <span className="w-2 h-2 rounded-full bg-current" />
+                    {task.priority}
+                  </span>
+                )}
+                {task.status && getStatusBadge(task.status)}
+              </div>
+            </div>
+            <ChevronLeftIcon className="w-4 h-4 text-muted-foreground rotate-180 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </motion.button>
+        ))}
       </div>
     </motion.div>
   );
@@ -262,13 +528,34 @@ const ChatMessageItem: React.FC<{
         {!isUser && message.actions && message.actions.length > 0 && (
           <div className="w-full mt-2">
             {message.actions.map((action, index) => (
-              <ActionConfirmation
-                key={index}
-                action={action}
-                onConfirm={() => onConfirmAction(index)}
-                isConfirmed={action.confirmed || false}
-              />
+              action.type === 'query_tasks' ? (
+                <TaskQueryResults
+                  key={index}
+                  action={action}
+                />
+              ) : (
+                <ActionConfirmation
+                  key={index}
+                  action={action}
+                  onConfirm={() => onConfirmAction(index)}
+                  isConfirmed={action.confirmed || false}
+                />
+              )
             ))}
+          </div>
+        )}
+
+        {/* Task disambiguation for assistant messages */}
+        {!isUser && message.metadata?.task_matches && message.metadata.task_matches.length > 0 && (
+          <div className="w-full mt-2">
+            <TaskDisambiguation
+              taskMatches={message.metadata.task_matches}
+              taskReference={message.metadata.task_reference}
+              onSelectTask={(taskIndex) => {
+                // Dispatch action to select task and continue with update
+                onConfirmAction(0); // Trigger first action with selected task
+              }}
+            />
           </div>
         )}
       </div>
@@ -277,6 +564,200 @@ const ChatMessageItem: React.FC<{
 });
 
 ChatMessageItem.displayName = 'ChatMessageItem';
+
+/**
+ * Task list display component for query results (US4)
+ */
+const TaskList: React.FC<{
+  tasks: Array<{
+    id: string;
+    title: string;
+    description?: string | null;
+    due_date?: string | null;
+    priority?: string;
+    status?: string;
+    tags?: string[];
+  }>;
+  queryType?: string;
+}> = ({ tasks, queryType = 'general' }) => {
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case 'high':
+        return 'text-red-500 bg-red-500/10';
+      case 'medium':
+        return 'text-yellow-500 bg-yellow-500/10';
+      case 'low':
+        return 'text-green-500 bg-green-500/10';
+      default:
+        return 'text-gray-500 bg-gray-500/10';
+    }
+  };
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'completed':
+        return <span className="px-2 py-0.5 bg-green-500/10 text-green-500 text-xs rounded-full">Done</span>;
+      case 'in_progress':
+        return <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-xs rounded-full">In Progress</span>;
+      default:
+        return <span className="px-2 py-0.5 bg-gray-500/10 text-gray-500 text-xs rounded-full">Pending</span>;
+    }
+  };
+
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return null;
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = date.getTime() - now.getTime();
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return 'Tomorrow';
+      if (diffDays < 7) return date.toLocaleDateString([], { weekday: 'short' });
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const isOverdue = (task: any) => {
+    if (!task.due_date || task.status === 'completed') return false;
+    try {
+      const dueDate = new Date(task.due_date);
+      const now = new Date();
+      return dueDate < now;
+    } catch {
+      return false;
+    }
+  };
+
+  if (tasks.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <CalendarIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+        <p>No tasks found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 space-y-2">
+      {tasks.slice(0, 10).map((task, index) => (
+        <motion.div
+          key={task.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.05 }}
+          className="p-3 bg-card border border-border rounded-lg hover:border-primary/30 transition-all"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
+                {isOverdue(task) && (
+                  <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 text-xs rounded font-medium">
+                    Overdue
+                  </span>
+                )}
+              </div>
+              {task.description && (
+                <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {task.priority && (
+                <span className={`px-2 py-0.5 text-xs rounded-full capitalize ${getPriorityColor(task.priority)}`}>
+                  {task.priority}
+                </span>
+              )}
+              {task.status && getStatusBadge(task.status)}
+            </div>
+          </div>
+          <div className="flex items-center gap-4 mt-2">
+            {task.due_date && (
+              <span className={`text-xs flex items-center gap-1 ${isOverdue(task) ? 'text-red-500' : 'text-muted-foreground'}`}>
+                <CalendarIcon className="w-3 h-3" />
+                {formatDate(task.due_date)}
+              </span>
+            )}
+          </div>
+        </motion.div>
+      ))}
+      {tasks.length > 10 && (
+        <p className="text-center text-sm text-muted-foreground pt-2">
+          ... and {tasks.length - 10} more task{tasks.length - 10 === 1 ? '' : 's'}
+        </p>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Task query results display component (US4)
+ */
+const TaskQueryResults: React.FC<{
+  action: ChatAction;
+}> = ({ action }) => {
+  const details = action.details;
+  const tasks = details?.tasks || [];
+  const count = details?.count || 0;
+  const queryType = details?.query_type || 'general';
+  const summary = details?.summary || '';
+
+  const getQueryTypeIcon = () => {
+    switch (queryType) {
+      case 'time_based':
+        return <CalendarIcon className="w-5 h-5" />;
+      case 'priority':
+        return <SparklesIcon className="w-5 h-5" />;
+      case 'tag':
+        return <TagIcon className="w-5 h-5" />;
+      case 'status':
+        return <CheckCircleIcon className="w-5 h-5" />;
+      default:
+        return <SparklesIcon className="w-5 h-5" />;
+    }
+  };
+
+  const getQueryTypeColor = () => {
+    switch (queryType) {
+      case 'time_based':
+        return 'text-blue-500 bg-blue-500/10';
+      case 'priority':
+        return 'text-purple-500 bg-purple-500/10';
+      case 'tag':
+        return 'text-green-500 bg-green-500/10';
+      case 'status':
+        return 'text-orange-500 bg-orange-500/10';
+      default:
+        return 'text-gray-500 bg-gray-500/10';
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-3 p-4 bg-card border border-border rounded-lg"
+    >
+      <div className="flex items-start gap-3 mb-3">
+        <div className={`p-2 rounded-lg ${getQueryTypeColor()}`}>
+          {getQueryTypeIcon()}
+        </div>
+        <div className="flex-1">
+          <p className="font-semibold text-foreground text-sm">
+            {count} Task{count === 1 ? '' : 's'} Found
+          </p>
+          {summary && (
+            <p className="text-xs text-muted-foreground mt-1">{summary}</p>
+          )}
+        </div>
+      </div>
+      <TaskList tasks={tasks} queryType={queryType} />
+    </motion.div>
+  );
+};
 
 /**
  * Typing indicator component
@@ -312,7 +793,77 @@ const TypingIndicator: React.FC = () => (
 );
 
 /**
- * Conversation list sidebar component
+ * Clear all history confirmation dialog
+ */
+const ClearAllConfirmationDialog: React.FC<{
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  conversationCount: number;
+}> = ({ isOpen, onConfirm, onCancel, conversationCount }) => {
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+      onClick={onCancel}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 20 }}
+        className="bg-card rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-border"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-destructive/10 rounded-lg">
+              <ExclamationCircleIcon className="w-6 h-6 text-destructive" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">Clear All History</h3>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <p className="text-foreground mb-2">
+            Are you sure you want to delete all {conversationCount} conversation{conversationCount !== 1 ? 's' : ''}?
+          </p>
+          <p className="text-sm text-muted-foreground">
+            This action will soft-delete all your conversations. They won't be visible in your history,
+            but can be restored if needed. This action cannot be undone.
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="p-6 pt-0 flex gap-3">
+          <Button
+            variant="outline"
+            fullWidth
+            onClick={onCancel}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            fullWidth
+            onClick={onConfirm}
+            startIcon={<TrashIcon className="w-4 h-4" />}
+          >
+            Delete All ({conversationCount})
+          </Button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+/**
+ * Conversation list sidebar component with search
  */
 const ConversationList: React.FC<{
   conversations: ChatConversation[];
@@ -320,81 +871,191 @@ const ConversationList: React.FC<{
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
   onDeleteConversation: (id: string) => void;
+  onClearAllConversations: () => void;
   onClose: () => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }> = ({
   conversations,
   currentConversationId,
   onSelectConversation,
   onNewConversation,
   onDeleteConversation,
+  onClearAllConversations,
   onClose,
-}) => (
-  <div className="flex flex-col h-full bg-card border-r border-border">
-    {/* Header */}
-    <div className="flex items-center justify-between p-4 border-b border-border">
-      <h2 className="font-semibold text-foreground">Conversations</h2>
-      <Button variant="ghost" size="sm" onClick={onClose} className="p-1">
-        <XMarkIcon className="w-5 h-5" />
-      </Button>
-    </div>
+  searchQuery,
+  onSearchChange,
+}) => {
+  const [showClearAllDialog, setShowClearAllDialog] = useState(false);
 
-    {/* New conversation button */}
-    <div className="p-3">
-      <Button
-        variant="primary"
-        fullWidth
-        size="sm"
-        onClick={onNewConversation}
-        startIcon={<ChatBubbleLeftRightIcon className="w-4 h-4" />}
-      >
-        New Chat
-      </Button>
-    </div>
+  // Filter conversations based on search query
+  const filteredConversations = searchQuery.trim()
+    ? conversations.filter((conv) =>
+        conv.title.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : conversations;
 
-    {/* Conversation list */}
-    <div className="flex-1 overflow-y-auto">
-      {conversations.length === 0 ? (
-        <div className="p-4 text-center text-muted-foreground text-sm">
-          No conversations yet
-        </div>
-      ) : (
-        conversations.map((conv) => (
-          <motion.div
-            key={conv.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className={`
-              group flex items-center gap-3 p-3 mx-2 my-1 rounded-lg cursor-pointer
-              transition-colors
-              ${currentConversationId === conv.id
-                ? 'bg-primary/10 border border-primary/30'
-                : 'hover:bg-muted'
-              }
-            `}
-            onClick={() => onSelectConversation(conv.id)}
+  const handleClearAll = () => {
+    setShowClearAllDialog(true);
+  };
+
+  const handleConfirmClearAll = () => {
+    onClearAllConversations();
+    setShowClearAllDialog(false);
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-card border-r border-border">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-border">
+        <h2 className="font-semibold text-foreground">Conversations</h2>
+        <Button variant="ghost" size="sm" onClick={onClose} className="p-1">
+          <XMarkIcon className="w-5 h-5" />
+        </Button>
+      </div>
+
+      {/* Search input */}
+      <div className="p-3 border-b border-border">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search conversations..."
+            className="w-full px-4 py-2 pl-10 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm text-foreground placeholder:text-muted-foreground/50"
+          />
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{conv.title}</p>
-              <p className="text-xs text-muted-foreground">
-                {new Date(conv.updatedAt).toLocaleDateString()}
-              </p>
-            </div>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          {searchQuery && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteConversation(conv.id);
-              }}
-              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 rounded transition-all"
-              aria-label="Delete conversation"
+              onClick={() => onSearchChange('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded"
             >
-              <TrashIcon className="w-4 h-4 text-destructive" />
+              <XMarkIcon className="w-3 h-3 text-muted-foreground" />
             </button>
-          </motion.div>
-        ))
+          )}
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="p-3 flex gap-2 border-b border-border">
+        <Button
+          variant="primary"
+          size="sm"
+          fullWidth
+          onClick={onNewConversation}
+          startIcon={<ChatBubbleLeftRightIcon className="w-4 h-4" />}
+        >
+          New Chat
+        </Button>
+        {conversations.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearAll}
+            className="text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+            startIcon={<TrashIcon className="w-4 h-4" />}
+          >
+            Clear All
+          </Button>
+        )}
+      </div>
+
+      {/* Conversation list */}
+      <div className="flex-1 overflow-y-auto">
+        {filteredConversations.length === 0 ? (
+          <div className="p-4 text-center">
+            {searchQuery ? (
+              <>
+                <p className="text-sm text-muted-foreground mb-2">
+                  No conversations matching "{searchQuery}"
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSearchChange('')}
+                >
+                  Clear search
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No conversations yet
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="p-2">
+            {filteredConversations.map((conv) => (
+              <motion.div
+                key={conv.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className={`
+                  group flex items-center gap-3 p-3 rounded-lg cursor-pointer
+                  transition-colors mb-1
+                  ${currentConversationId === conv.id
+                    ? 'bg-primary/10 border border-primary/30'
+                    : 'hover:bg-muted border border-transparent'
+                  }
+                `}
+                onClick={() => onSelectConversation(conv.id)}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {conv.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(conv.updatedAt).toLocaleDateString([], {
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteConversation(conv.id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 rounded transition-all"
+                  aria-label="Delete conversation"
+                >
+                  <TrashIcon className="w-4 h-4 text-destructive" />
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Footer with count */}
+      {conversations.length > 0 && (
+        <div className="p-3 border-t border-border text-xs text-muted-foreground text-center">
+          {filteredConversations.length} of {conversations.length} conversations
+        </div>
       )}
+
+      {/* Clear all confirmation dialog */}
+      <ClearAllConfirmationDialog
+        isOpen={showClearAllDialog}
+        onConfirm={handleConfirmClearAll}
+        onCancel={() => setShowClearAllDialog(false)}
+        conversationCount={conversations.length}
+      />
     </div>
-  </div>
-);
+  );
+};
 
 /**
  * Main Chat Modal Component
@@ -423,8 +1084,17 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
 
   const [inputValue, setInputValue] = useState('');
   const [showConversationList, setShowConversationList] = useState(false);
+  const [conversationSearchQuery, setConversationSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Fetch conversations when modal opens
+  useEffect(() => {
+    if (isOpen && conversations.length === 0) {
+      // In a real implementation, this would dispatch fetchConversations()
+      // For now, conversations are managed locally
+    }
+  }, [isOpen, conversations.length]);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
@@ -515,6 +1185,17 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
     },
     [dispatch]
   );
+
+  // Clear all conversations
+  const handleClearAllConversations = useCallback(() => {
+    // In a real implementation, this would dispatch a clearAllConversations action
+    // For now, we'll delete each conversation individually
+    conversations.forEach((conv) => {
+      dispatch(deleteConversation(conv.id));
+    });
+    setConversationSearchQuery('');
+    setShowConversationList(false);
+  }, [conversations, dispatch]);
 
   // Toggle conversation list
   const toggleConversationList = () => {
@@ -611,7 +1292,10 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
                     onSelectConversation={handleSelectConversation}
                     onNewConversation={handleNewConversation}
                     onDeleteConversation={handleDeleteConversation}
+                    onClearAllConversations={handleClearAllConversations}
                     onClose={() => setShowConversationList(false)}
+                    searchQuery={conversationSearchQuery}
+                    onSearchChange={setConversationSearchQuery}
                   />
                 </motion.div>
               )}

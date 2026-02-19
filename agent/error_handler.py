@@ -52,7 +52,7 @@ class ToolExecutionError(AgentError):
 
 class ClarificationNeededError(AgentError):
     """Intent is ambiguous and requires user clarification."""
-    
+
     def __init__(self, questions: list, context: Dict = None):
         super().__init__(
             "Clarification needed",
@@ -60,6 +60,18 @@ class ClarificationNeededError(AgentError):
             details={"questions": questions, **(context or {})}
         )
         self.questions = questions
+
+
+class ValidationError(AgentError):
+    """Validation error for input data."""
+
+    def __init__(self, tool_name: str, message: str, details: Dict = None):
+        super().__init__(
+            f"Validation failed for '{tool_name}': {message}",
+            code="VALIDATION_ERROR",
+            details={"tool_name": tool_name, **(details or {})}
+        )
+        self.tool_name = tool_name
 
 
 def get_user_friendly_message(error: Exception) -> str:
