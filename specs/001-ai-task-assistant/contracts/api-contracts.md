@@ -421,6 +421,256 @@
 
 ---
 
+## Conversation Management Endpoints
+
+### GET /api/conversations
+
+**Description**: Retrieve all conversations for the authenticated user
+
+**Query Parameters**:
+```json
+{
+  "limit": {
+    "type": "integer",
+    "default": 50,
+    "maximum": 100,
+    "description": "Maximum number of conversations to return"
+  },
+  "offset": {
+    "type": "integer",
+    "default": 0,
+    "description": "Number of conversations to skip for pagination"
+  },
+  "search": {
+    "type": "string",
+    "description": "Search term to filter conversations by title"
+  },
+  "include_deleted": {
+    "type": "boolean",
+    "default": false,
+    "description": "Include soft-deleted conversations"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "success": { "type": "boolean" },
+  "conversations": {
+    "type": "array",
+    "items": { "$ref": "#/definitions/ChatConversation" }
+  },
+  "total": { "type": "integer" },
+  "limit": { "type": "integer" },
+  "offset": { "type": "integer" }
+}
+```
+
+---
+
+### GET /api/conversations/{conversation_id}
+
+**Description**: Retrieve a specific conversation by ID
+
+**Path Parameters**:
+```json
+{
+  "conversation_id": {
+    "type": "string",
+    "format": "uuid",
+    "description": "The conversation ID to retrieve"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "success": { "type": "boolean" },
+  "conversation": { "$ref": "#/definitions/ChatConversation" },
+  "messages": {
+    "type": "array",
+    "items": { "$ref": "#/definitions/ChatMessage" }
+  }
+}
+```
+
+---
+
+### POST /api/conversations
+
+**Description**: Create a new conversation
+
+**Request Body**:
+```json
+{
+  "title": {
+    "type": "string",
+    "maxLength": 200,
+    "description": "Initial conversation title (auto-generated if not provided)"
+  },
+  "first_message": {
+    "type": "string",
+    "maxLength": 4000,
+    "description": "Optional first message to send with the conversation"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "success": { "type": "boolean" },
+  "conversation": { "$ref": "#/definitions/ChatConversation" }
+}
+```
+
+---
+
+### PUT /api/conversations/{conversation_id}
+
+**Description**: Update a conversation's title
+
+**Path Parameters**:
+```json
+{
+  "conversation_id": {
+    "type": "string",
+    "format": "uuid"
+  }
+}
+```
+
+**Request Body**:
+```json
+{
+  "title": {
+    "type": "string",
+    "minLength": 1,
+    "maxLength": 200,
+    "description": "New conversation title"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "success": { "type": "boolean" },
+  "conversation": { "$ref": "#/definitions/ChatConversation" }
+}
+```
+
+---
+
+### DELETE /api/conversations/{conversation_id}
+
+**Description**: Soft-delete a conversation (can be restored)
+
+**Path Parameters**:
+```json
+{
+  "conversation_id": {
+    "type": "string",
+    "format": "uuid"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "success": { "type": "boolean" },
+  "message": { "type": "string" }
+}
+```
+
+---
+
+### POST /api/conversations/{conversation_id}/restore
+
+**Description**: Restore a soft-deleted conversation
+
+**Path Parameters**:
+```json
+{
+  "conversation_id": {
+    "type": "string",
+    "format": "uuid"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "success": { "type": "boolean" },
+  "conversation": { "$ref": "#/definitions/ChatConversation" }
+}
+```
+
+---
+
+### DELETE /api/conversations/all
+
+**Description**: Soft-delete all conversations for the user
+
+**Request Body** (optional):
+```json
+{
+  "confirm": {
+    "type": "boolean",
+    "description": "Must be true to confirm bulk deletion"
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "success": { "type": "boolean" },
+  "deleted_count": { "type": "integer" },
+  "message": { "type": "string" }
+}
+```
+
+---
+
+### GET /api/conversations/search
+
+**Description**: Search conversations by title or message content
+
+**Query Parameters**:
+```json
+{
+  "q": {
+    "type": "string",
+    "minLength": 2,
+    "description": "Search query string"
+  },
+  "limit": {
+    "type": "integer",
+    "default": 20,
+    "maximum": 50
+  }
+}
+```
+
+**Response**:
+```json
+{
+  "success": { "type": "boolean" },
+  "conversations": {
+    "type": "array",
+    "items": { "$ref": "#/definitions/ChatConversation" }
+  },
+  "total": { "type": "integer" }
+}
+```
+
+---
+
 ## Error Codes
 
 | Code | HTTP Status | Description |
@@ -428,9 +678,11 @@
 | `INVALID_INPUT` | 400 | Request body doesn't match schema |
 | `TASK_NOT_FOUND` | 404 | Task ID doesn't exist |
 | `TAG_NOT_FOUND` | 404 | Tag ID doesn't exist |
+| `CONVERSATION_NOT_FOUND` | 404 | Conversation ID doesn't exist |
 | `UNAUTHORIZED` | 401 | User not authenticated |
 | `FORBIDDEN` | 403 | User doesn't own this resource |
 | `RATE_LIMITED` | 429 | Too many requests |
 | `LLM_ERROR` | 500 | Gemini API error |
 | `BACKEND_ERROR` | 500 | Backend API error |
 | `CLARIFICATION_NEEDED` | 400 | Intent ambiguous, needs clarification |
+| `CONFIRMATION_REQUIRED` | 400 | Bulk action requires confirmation |

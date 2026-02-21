@@ -310,3 +310,181 @@ export interface ChatConfig {
   typingIndicatorDelay: number;
   retryAttempts: number;
 }
+
+// ============================================================================
+// Additional Chat-Related Types (US4 - Task Queries)
+// ============================================================================
+
+// Task query result types
+export interface TaskQueryResult {
+  tasks: Array<{
+    id: string;
+    title: string;
+    description?: string | null;
+    due_date?: string | null;
+    priority?: 'low' | 'medium' | 'high';
+    status?: 'pending' | 'in_progress' | 'completed';
+    tags?: string[];
+  }>;
+  count: number;
+  query_type?: 'time_based' | 'priority' | 'tag' | 'status' | 'general';
+  summary?: string;
+}
+
+// Task match for disambiguation
+export interface TaskMatch {
+  id: string;
+  title: string;
+  due_date?: string | null;
+  priority?: string;
+  status?: string;
+  match_score?: number;
+}
+
+// Clarification request from agent
+export interface ClarificationRequest {
+  questions: string[];
+  options?: Array<{
+    label: string;
+    value: string;
+  }>;
+  context?: Record<string, any>;
+}
+
+// Chat message metadata for disambiguation
+export interface ChatMessageMetadata {
+  task_matches?: TaskMatch[];
+  task_reference?: string;
+  clarification_needed?: boolean;
+  clarification_request?: ClarificationRequest;
+  query_result?: TaskQueryResult;
+  [key: string]: any;
+}
+
+// ============================================================================
+// Recurrence Types
+// ============================================================================
+
+// Recurrence pattern types
+export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
+export type RecurrenceEndCondition = 'never' | 'after' | 'on_date';
+export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export interface RecurrencePattern {
+  id?: string;
+  frequency: RecurrenceFrequency;
+  interval: number;
+  days_of_week?: DayOfWeek[];
+  day_of_month?: number;
+  end_condition: RecurrenceEndCondition;
+  end_after_occurrences?: number;
+  end_date?: string;
+  time?: string;
+}
+
+export interface RecurrencePatternDto {
+  id: string;
+  frequency: RecurrenceFrequency;
+  interval: number;
+  days_of_week?: DayOfWeek[];
+  day_of_month?: number;
+  end_condition: RecurrenceEndCondition;
+  end_after_occurrences?: number;
+  end_date?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================================
+// Reminder Types
+// ============================================================================
+
+export type ReminderDeliveryMethod = 'browser' | 'email' | 'push';
+
+export interface Reminder {
+  id: string;
+  task_id: string;
+  reminder_time: string;
+  delivery_method: ReminderDeliveryMethod;
+  message: string;
+  is_triggered: boolean;
+  triggered_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReminderDto {
+  id: string;
+  task_id: string;
+  reminder_time: string;
+  delivery_method: ReminderDeliveryMethod;
+  message: string;
+  is_triggered: boolean;
+  triggered_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================================
+// Conversation Management Types
+// ============================================================================
+
+// Conversation list response
+export interface ConversationListResponse {
+  success: boolean;
+  conversations: ChatConversationDto[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+// Conversation search response
+export interface ConversationSearchResponse {
+  success: boolean;
+  conversations: ChatConversationDto[];
+  total: number;
+}
+
+// Conversation delete response
+export interface ConversationDeleteResponse {
+  success: boolean;
+  message: string;
+}
+
+// Bulk conversation delete response
+export interface BulkConversationDeleteResponse {
+  success: boolean;
+  deleted_count: number;
+  message: string;
+}
+
+// ============================================================================
+// API Utility Types
+// ============================================================================
+
+// Paginated response wrapper
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+// Error response structure
+export interface ErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: Record<string, any>;
+  };
+}
+
+// Loading state type for async operations
+export interface LoadingState {
+  isLoading: boolean;
+  isSaving: boolean;
+  isDeleting: boolean;
+  error: string | null;
+}

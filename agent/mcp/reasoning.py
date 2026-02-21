@@ -7,69 +7,124 @@ Provides date ambiguity detection, clarification question generation, and multi-
 
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
-from agents import Agent, Runner
-from pydantic import BaseModel, Field
+from agents import Agent, Runner, AgentOutputSchema
+from pydantic import BaseModel
 import re
 
-from ..config import logger
-from ..logger import agent_logger, log_intent
-from ..error_handler import ClarificationNeededError
-from ..utils.date_parser import (
-    parse_relative_date,
-    parse_time_expression,
-    parse_natural_date,
-    DAY_NAMES,
-    RELATIVE_DAYS,
-)
-from ..utils.recurrence_parser import (
-    parse_recurrence_pattern,
-    format_recurrence_summary,
-    validate_recurrence_pattern,
-)
+# Handle both relative and absolute imports
+try:
+    from ..config import logger
+    from ..logger import agent_logger, log_intent
+    from ..error_handler import ClarificationNeededError
+    from ..utils.date_parser import (
+        parse_relative_date,
+        parse_time_expression,
+        parse_natural_date,
+        DAY_NAMES,
+        RELATIVE_DAYS,
+    )
+    from ..utils.recurrence_parser import (
+        parse_recurrence_pattern,
+        format_recurrence_summary,
+        validate_recurrence_pattern,
+    )
+except (ImportError, ModuleNotFoundError):
+    from config import logger
+    from logger import agent_logger, log_intent
+    from error_handler import ClarificationNeededError
+    from utils.date_parser import (
+        parse_relative_date,
+        parse_time_expression,
+        parse_natural_date,
+        DAY_NAMES,
+        RELATIVE_DAYS,
+    )
+    from utils.recurrence_parser import (
+        parse_recurrence_pattern,
+        format_recurrence_summary,
+        validate_recurrence_pattern,
+    )
 
 
 class DateInterpretation(BaseModel):
     """Represents a possible interpretation of an ambiguous date expression."""
-    interpretation: str = Field(description="Human-readable interpretation")
-    datetime: Optional[str] = Field(default=None, description="ISO 8601 datetime string")
-    date: Optional[str] = Field(default=None, description="Date string (YYYY-MM-DD)")
-    time: Optional[str] = Field(default=None, description="Time string (HH:MM)")
-    confidence: float = Field(description="Confidence score for this interpretation")
-    is_ambiguous: bool = Field(default=False, description="Whether this interpretation is ambiguous")
+    interpretation: str
+    datetime: Optional[str] = None
+    date: Optional[str] = None
+    time: Optional[str] = None
+    confidence: float
+    is_ambiguous: bool = False
 
 
 class IntentResult(BaseModel):
     """Parsed intent with confidence and entities."""
-    intent_type: str = Field(description="Type of intent (e.g., create_task, update_task)")
-    confidence: float = Field(description="Confidence score 0.0 to 1.0")
-    entities: Dict[str, Any] = Field(default_factory=dict, description="Extracted entities")
-    requires_clarification: bool = Field(default=False, description="Whether clarification is needed")
-    clarification_questions: List[str] = Field(default_factory=list, description="Questions to ask user")
-    date_interpretations: List[DateInterpretation] = Field(
-        default_factory=list,
-        description="Multiple possible date interpretations when ambiguous"
-    )
-    selected_interpretation: Optional[DateInterpretation] = Field(
-        default=None,
-        description="Selected date interpretation after clarification"
-    )
+    intent_type: str
+    confidence: float
+    entities: Dict[str, Any] = {}
+    requires_clarification: bool = False
+    clarification_questions: List[str] = []
+    date_interpretations: List[DateInterpretation] = []
+    selected_interpretation: Optional[DateInterpretation] = None
 
 
 class ClarificationResult(BaseModel):
     """Clarification response from MCP."""
-    is_clear: bool = Field(description="Whether intent is now clear")
-    answers: Dict[str, str] = Field(default_factory=dict, description="User's answers")
-    refined_intent: Optional[str] = Field(default=None, description="Refined intent type")
-    selected_date_interpretation: Optional[int] = Field(
-        default=None,
-        description="Index of selected date interpretation (0-based)"
-    )
+    is_clear: bool
+    answers: Dict[str, str] = {}
+    refined_intent: Optional[str] = None
+    selected_date_interpretation: Optional[int] = None
 
 
 # MCP Agent for intent parsing
-intent_parser_agent = Agent(
-    name="IntentParser",
-    instructions="""You are an expert at parsing natural language intents for task management.
+# Configure to use OpenRouter with Qwen3-14B (same as main agent)
+# This must work when imported from both agent module and backend
+
+import sys
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Disable tracing for intent parser
+os.environ['OPENAI_AGENTS_DISABLE_TRACING'] = '1'
+try:
+    from agents import set_tracing_disabled
+    set_tracing_disabled(True)
+except ImportError:
+    pass
+
+# Load environment to get OpenRouter config
+load_dotenv(Path(__file__).parent.parent / '.env')
+
+# Get OpenRouter configuration
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
+OPENROUTER_BASE_URL = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
+MODEL_NAME = os.getenv('MODEL_NAME', 'qwen/qwen3-14b')
+
+# Import OpenAI SDK components
+try:
+    from agents import OpenAIChatCompletionsModel
+    from openai import AsyncOpenAI
+except ImportError:
+    # Fallback if agents package not available
+    OpenAIChatCompletionsModel = None
+    AsyncOpenAI = None
+
+# Create OpenRouter client if we have the SDK
+if AsyncOpenAI and OPENROUTER_API_KEY:
+    openrouter_client = AsyncOpenAI(
+        api_key=OPENROUTER_API_KEY,
+        base_url=OPENROUTER_BASE_URL,
+        organization=None,
+    )
+    
+    # Create intent parser agent with OpenRouter model
+    intent_parser_agent = Agent(
+        name="IntentParser",
+        model=OpenAIChatCompletionsModel(
+            model=MODEL_NAME,
+            openai_client=openrouter_client,
+        ),
+        instructions="""You are an expert at parsing natural language intents for task management.
 
 Supported intent types:
 - create_task: Create a new task
@@ -190,9 +245,24 @@ CRITICAL RULES:
 12. For tag rename/update, extract new_name or updates object appropriately
 
 Output must be valid JSON matching IntentResult schema.
+DO NOT add any text before or after the JSON.
+Only output the JSON object, nothing else.
+
+EXAMPLES OF CORRECT OUTPUT:
+
+For "Create a task to buy groceries tomorrow":
+{"intent_type": "create_task", "confidence": 0.95, "entities": {"title": "buy groceries", "due_date": "tomorrow"}, "requires_clarification": false, "clarification_questions": []}
+
+For "What tasks do I have?":
+{"intent_type": "query_tasks", "confidence": 0.95, "entities": {}, "requires_clarification": false, "clarification_questions": []}
+
+For "Mark the meeting as complete":
+{"intent_type": "update_task", "confidence": 0.95, "entities": {"task_reference": "meeting", "updates": {"status": "completed"}}, "requires_clarification": false, "clarification_questions": []}
+
+For "Create a work tag in red":
+{"intent_type": "create_tag", "confidence": 0.95, "entities": {"tag_name": "work", "color": "red"}, "requires_clarification": false, "clarification_questions": []}
 """,
-    output_type=IntentResult,
-)
+    )
 
 
 async def parse_intent(user_message: str, tasks_context: Optional[List[Dict[str, Any]]] = None) -> IntentResult:
@@ -206,13 +276,94 @@ async def parse_intent(user_message: str, tasks_context: Optional[List[Dict[str,
     Returns:
         IntentResult with parsed intent, entities, and clarification needs
     """
+    import re
+    import json
+
     try:
         result = await Runner.run(
             intent_parser_agent,
             user_message,
         )
+        
+        # Extract JSON from response (handle text before/after JSON)
+        response_text = result.final_output
+        agent_logger.info(f"Raw response from Qwen: {response_text[:500]}")
 
-        intent = result.final_output
+        # Strategy 1: Find first { and last } to capture full JSON object
+        start_idx = response_text.find('{')
+        end_idx = response_text.rfind('}') + 1
+        
+        if start_idx == -1 or end_idx <= start_idx:
+            # Strategy 2: Try regex for nested JSON
+            import re
+            json_pattern = r'\{(?:[^{}]|(?:\{[^{}]*\}))*\}'
+            matches = re.findall(json_pattern, response_text, re.DOTALL)
+            if matches:
+                # Try each match until one works
+                for match in matches:
+                    try:
+                        intent_dict = json.loads(match)
+                        if "intent_type" in intent_dict or "intent" in intent_dict:
+                            json_str = match
+                            break
+                    except:
+                        continue
+                else:
+                    # No valid JSON found
+                    agent_logger.warning(f"No valid JSON found in response: {response_text}")
+                    return IntentResult(
+                        intent_type="query_tasks",
+                        confidence=0.5,
+                        requires_clarification=True,
+                        clarification_questions=["Could you rephrase your request?"]
+                    )
+            else:
+                agent_logger.warning(f"No JSON found in response: {response_text}")
+                return IntentResult(
+                    intent_type="query_tasks",
+                    confidence=0.5,
+                    requires_clarification=True,
+                    clarification_questions=["Could you rephrase your request?"]
+                )
+        else:
+            json_str = response_text[start_idx:end_idx]
+
+        # Parse the JSON with error handling
+        try:
+            intent_dict = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            agent_logger.error(f"JSON parsing error: {e}")
+            agent_logger.error(f"JSON string: {json_str}")
+            # Try to fix common JSON issues
+            try:
+                # Fix single quotes to double quotes
+                json_str_fixed = json_str.replace("'", '"')
+                intent_dict = json.loads(json_str_fixed)
+            except:
+                return IntentResult(
+                    intent_type="query_tasks",
+                    confidence=0.5,
+                    requires_clarification=True,
+                    clarification_questions=["Could you rephrase your request?"]
+                )
+
+        # Convert to IntentResult manually
+        # Handle both "intent_type" and "intent" keys (model may use either)
+        intent = IntentResult(
+            intent_type=intent_dict.get("intent_type") or intent_dict.get("intent", "query_tasks"),
+            confidence=float(intent_dict.get("confidence", 0.5)),
+            entities=intent_dict.get("entities", {}),
+            requires_clarification=bool(intent_dict.get("requires_clarification", False)),
+            clarification_questions=intent_dict.get("clarification_questions", []),
+            date_interpretations=[],
+            selected_interpretation=None,
+        )
+
+        # FALLBACK: If entities are empty but we have a clear intent, extract from user message
+        if not intent.entities and intent.intent_type in ["create_task", "update_task", "delete_task"]:
+            agent_logger.info(f"Empty entities detected, extracting from user message: {user_message}")
+            intent.entities = extract_entities_fallback(user_message, intent.intent_type)
+            agent_logger.info(f"Extracted entities: {intent.entities}")
 
         # Detect date ambiguities and enhance with interpretations
         if "due_date" in intent.entities:
@@ -235,7 +386,7 @@ async def parse_intent(user_message: str, tasks_context: Optional[List[Dict[str,
                     # Add parsed recurrence details to entities
                     intent.entities["parsed_recurrence"] = parsed_recurrence
                     intent.entities["recurrence_summary"] = format_recurrence_summary(parsed_recurrence)
-                    
+
                     # Validate the parsed pattern
                     is_valid, error_msg = validate_recurrence_pattern(parsed_recurrence)
                     if not is_valid:
@@ -269,11 +420,11 @@ async def parse_intent(user_message: str, tasks_context: Optional[List[Dict[str,
             # Set default color for tag creation if not specified
             if intent.intent_type == "create_tag" and "color" not in intent.entities:
                 intent.entities["color"] = "#0000FF"  # Default blue
-            
+
             # Build updates object for update_tag
             if intent.intent_type == "update_tag":
                 intent.entities["updates"] = build_tag_updates_from_entities(intent.entities)
-            
+
             # Handle tag assignment disambiguation
             if intent.intent_type == "assign_tag" and "task_reference" in intent.entities and tasks_context:
                 task_matches = find_task_matches(
@@ -310,6 +461,9 @@ async def parse_intent(user_message: str, tasks_context: Optional[List[Dict[str,
 
     except Exception as e:
         agent_logger.error(f"Intent parsing failed: {e}")
+        agent_logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        agent_logger.error(f"Traceback: {traceback.format_exc()}")
         # Return fallback intent
         return IntentResult(
             intent_type="query_tasks",
@@ -374,6 +528,50 @@ def build_tag_updates_from_entities(entities: Dict[str, Any]) -> Dict[str, Any]:
         updates["color"] = entities["color"]
 
     return updates
+
+
+def extract_entities_fallback(user_message: str, intent_type: str) -> Dict[str, Any]:
+    """
+    Extract entities from user message as fallback when model returns empty entities.
+    """
+    import re
+    entities = {}
+    
+    if intent_type == "create_task":
+        patterns = [
+            r"(?:create|add|schedule|make|set)\s+(?:a\s+)?(?:task\s+)?(?:to\s+)?(.+?)(?:\s+(?:for|tomorrow|next|at|on|$))",
+            r"(?:need\s+to|want\s+to|have\s+to)\s+(.+?)(?:\s+(?:tomorrow|next|at|on|$))",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, user_message, re.IGNORECASE)
+            if match:
+                entities["title"] = match.group(1).strip()
+                break
+        if "title" not in entities:
+            clean_message = re.sub(r'(create|add|schedule|make|set|a|an|the|task|to|for|i\s+need|please)\s*', '', user_message, flags=re.IGNORECASE)
+            entities["title"] = clean_message.strip()
+        if re.search(r'tomorrow', user_message, re.IGNORECASE):
+            entities["due_date"] = "tomorrow"
+        elif re.search(r'next\s+monday', user_message, re.IGNORECASE):
+            entities["due_date"] = "next monday"
+    elif intent_type == "update_task":
+        if re.search(r'\b(complete|done|finished)\b', user_message, re.IGNORECASE):
+            entities["updates"] = {"status": "completed"}
+        elif re.search(r'\b(high|urgent)\b', user_message, re.IGNORECASE):
+            entities["updates"] = {"priority": "high"}
+    elif intent_type == "create_tag":
+        tag_match = re.search(r'(?:create|make|add)\s+(?:a\s+)?(\w+)\s+tag', user_message, re.IGNORECASE)
+        if tag_match:
+            entities["tag_name"] = tag_match.group(1)
+        if re.search(r'\bred\b', user_message, re.IGNORECASE):
+            entities["color"] = "red"
+        elif re.search(r'\bblue\b', user_message, re.IGNORECASE):
+            entities["color"] = "blue"
+        elif re.search(r'\bgreen\b', user_message, re.IGNORECASE):
+            entities["color"] = "green"
+        else:
+            entities["color"] = "blue"
+    return entities
 
 
 def find_task_matches(
@@ -798,164 +996,55 @@ def _interpret_today_time(expression: str, now: datetime) -> List[DateInterpreta
 def detect_ambiguity(intent: IntentResult) -> bool:
     """
     Detect if intent requires clarification.
-
-    Args:
-        intent: Parsed intent
-
-    Returns:
-        True if clarification needed
+    
+    PRODUCTION RULE: TRUST the model when it says no clarification needed!
+    Only override in EXTREME cases.
     """
-    # Already flagged for clarification
-    if intent.requires_clarification:
-        return True
-
-    # Low confidence
-    if intent.confidence < 0.7:
-        return True
-
-    # Multiple date interpretations exist
-    if len(intent.date_interpretations) > 1:
-        return True
-
-    # Check for ambiguous date interpretations
-    for interpretation in intent.date_interpretations:
-        if interpretation.is_ambiguous:
+    # RULE 1: If model explicitly says NO clarification, TRUST IT!
+    if not intent.requires_clarification:
+        return False
+    
+    # RULE 2: If model provided clarification questions, respect that
+    if intent.clarification_questions and len(intent.clarification_questions) > 0:
+        # But only if questions are meaningful (not empty strings)
+        meaningful_questions = [q for q in intent.clarification_questions if q and len(q.strip()) > 5]
+        if len(meaningful_questions) > 0:
             return True
-
-    # Missing critical entities
-    critical_entities = {
-        "create_task": ["title"],
-        "update_task": ["task_id", "updates"],
-        "delete_task": ["task_id"],
-        "assign_tag": ["tag_id", "task_id"],
-        "create_recurring": ["task_id", "pattern"],
-        "schedule_reminder": ["task_id", "reminder_time"],
-    }
-
-    required = critical_entities.get(intent.intent_type, [])
-    for entity in required:
-        if entity not in intent.entities:
-            return True
-
-    # Check for task_reference without task_id (user referenced task by name)
-    if "task_reference" in intent.entities and "task_id" not in intent.entities:
+    
+    # RULE 3: ONLY override model in extreme cases
+    
+    # Very very low confidence (< 0.3)
+    if intent.confidence < 0.3:
         return True
-
+    
+    # Multiple conflicting date interpretations (not just one)
+    if len(intent.date_interpretations) > 2:
+        return True
+    
+    # That's it! Trust the model for everything else.
     return False
 
 
 def generate_clarification_questions(intent: IntentResult) -> List[str]:
     """
     Generate clarification questions based on missing information.
-
-    Args:
-        intent: Parsed intent with missing entities
-
-    Returns:
-        List of clarification questions
+    
+    PRODUCTION RULE: Only generate questions if model explicitly requested them!
     """
     questions = []
 
-    # Handle task disambiguation first (multiple matches)
-    if "task_matches" in intent.entities and len(intent.entities["task_matches"]) > 1:
-        matches = intent.entities["task_matches"]
-        task_list = "\n".join([
-            f"  {i+1}. \"{t['title']}\" (Due: {t.get('due_date', 'No date')}, Priority: {t.get('priority', 'N/A')})"
-            for i, t in enumerate(matches[:5])  # Show max 5 matches
-        ])
-        questions.append(f"I found multiple tasks matching \"{intent.entities.get('task_reference', 'your description')}\":\n{task_list}\n\nWhich one did you mean? (reply with number)")
-
-    # Handle date ambiguities
-    if intent.date_interpretations:
-        if len(intent.date_interpretations) > 1:
-            # Present options to user
-            options = " or ".join([
-                f"{i+1}) {interp.interpretation}"
-                for i, interp in enumerate(intent.date_interpretations)
-            ])
-            questions.append(f"When exactly? Choose: {options}")
-        elif intent.date_interpretations[0].is_ambiguous:
-            interp = intent.date_interpretations[0]
-            questions.append(f"Did you mean {interp.interpretation}?")
-
-    if intent.intent_type == "create_task":
-        if "title" not in intent.entities:
-            questions.append("What would you like to call this task?")
-        if "due_date" in intent.entities and not intent.date_interpretations:
-            # Check for ambiguous date expressions
-            due_date = str(intent.entities.get("due_date", "")).lower()
-            if any(pattern in due_date for pattern in ["next week", "next month", "friday", "monday"]):
-                questions.append(f"You mentioned '{intent.entities['due_date']}' - could you specify the exact date?")
-        if "priority" not in intent.entities:
-            # Don't ask for priority - use default
-            pass
-
-    elif intent.intent_type == "update_task":
-        if "task_id" not in intent.entities and "task_matches" not in intent.entities:
-            if "task_reference" in intent.entities:
-                questions.append(f"Which task are you referring to when you say '{intent.entities['task_reference']}'?")
-            else:
-                questions.append("Which task would you like to update?")
-        if "updates" not in intent.entities or not intent.entities.get("updates"):
-            # Check if we have any update fields extracted
-            has_update = any(k in intent.entities for k in ["due_date", "priority", "title", "description", "status", "tag_name"])
-            if not has_update:
-                questions.append("What would you like to change about the task?")
-
-    elif intent.intent_type == "delete_task":
-        if "task_id" not in intent.entities:
-            if "task_reference" in intent.entities:
-                questions.append(f"Which task are you referring to when you say '{intent.entities['task_reference']}'?")
-            else:
-                questions.append("Which task would you like to delete?")
-
-    elif intent.intent_type == "create_recurring":
-        if "task_id" not in intent.entities and "task_matches" not in intent.entities:
-            if "task_reference" in intent.entities:
-                questions.append(f"Which task should be set to repeat when you say '{intent.entities['task_reference']}'?")
-            else:
-                questions.append("Which task should be set to repeat?")
-        if "recurrence_pattern" not in intent.entities and "parsed_recurrence" not in intent.entities:
-            questions.append("How often should this task repeat? (e.g., 'every Monday', 'monthly on the 15th', 'daily')")
-        if intent.entities.get("recurrence_error"):
-            questions.append(f"There's an issue with the recurrence pattern: {intent.entities['recurrence_error']}. Could you clarify?")
-        if "parsed_recurrence" in intent.entities and not intent.entities.get("recurrence_error"):
-            # Show summary for confirmation
-            summary = intent.entities.get("recurrence_summary", "")
-            if summary:
-                questions.append(f"Please confirm: {summary}")
-
-    elif intent.intent_type == "update_recurrence":
-        if "recurrence_id" not in intent.entities:
-            if "task_reference" in intent.entities:
-                questions.append(f"Which recurring task's pattern should be updated when you say '{intent.entities['task_reference']}'?")
-            else:
-                questions.append("Which recurring task pattern should be updated?")
-        if "recurrence_pattern" not in intent.entities:
-            questions.append("What should the new recurrence pattern be?")
-
-    elif intent.intent_type == "cancel_recurrence":
-        if "recurrence_id" not in intent.entities:
-            if "task_reference" in intent.entities:
-                questions.append(f"Which recurring task should be cancelled when you say '{intent.entities['task_reference']}'?")
-            else:
-                questions.append("Which recurring task pattern should be cancelled?")
-        else:
-            questions.append("Are you sure you want to cancel this recurring pattern? Future occurrences will not be created.")
-
-    elif intent.intent_type == "schedule_reminder":
-        if "task_id" not in intent.entities:
-            questions.append("Which task needs a reminder?")
-        if "reminder_time" not in intent.entities:
-            questions.append("When should I remind you? (e.g., '30 minutes before', '1 day before')")
-
-    elif intent.intent_type == "assign_tag":
-        if "tag_name" not in intent.entities and "tag_id" not in intent.entities:
-            questions.append("Which tag would you like to assign?")
-        if "task_id" not in intent.entities:
-            questions.append("Which task should get this tag?")
-
-    return questions or ["Could you provide more details about what you'd like to do?"]
+    # Only generate questions if model explicitly said clarification is needed
+    # AND provided questions
+    if intent.requires_clarification and intent.clarification_questions:
+        # Use model's questions if they're meaningful
+        meaningful = [q for q in intent.clarification_questions if q and len(q.strip()) > 5]
+        if meaningful:
+            return meaningful
+    
+    # Don't generate our own questions - trust the model!
+    # The model knows best what to ask.
+    
+    return []
 
 
 def format_clarification_response(
@@ -970,6 +1059,33 @@ def format_clarification_response(
         questions: Generated clarification questions
 
     Returns:
+        Dictionary with clarification data
+    """
+    import uuid
+    
+    return {
+        "questions": questions,
+        "date_options": [
+            {
+                "interpretation": interp.interpretation,
+                "datetime": interp.datetime,
+                "confidence": interp.confidence,
+            }
+            for interp in intent.date_interpretations
+        ] if intent.date_interpretations else None,
+        "intent_type": intent.intent_type,
+        "entities": intent.entities,
+        "context_id": str(uuid.uuid4()),
+    }
+
+
+def find_task_matches(
+    task_reference: str,
+    tasks: List[Dict[str, Any]],
+    threshold: float = 0.5
+) -> List[Dict[str, Any]]:
+    """
+    Find tasks matching a reference string.
         Dictionary with clarification data for frontend
     """
     response = {
@@ -1096,12 +1212,12 @@ def resolve_clarification(
 
 class QueryIntent(BaseModel):
     """Represents a parsed query intent for task filtering."""
-    intent_type: str = Field(default="query_tasks", description="Always query_tasks for queries")
-    query_type: str = Field(description="Type of query: time_based, priority, tag, status, general")
-    filters: Dict[str, Any] = Field(default_factory=dict, description="Filters to apply")
-    natural_language: str = Field(description="Original user query")
-    confidence: float = Field(description="Confidence score 0.0 to 1.0")
-    summary_template: str = Field(description="Template for summarizing results")
+    intent_type: str = "query_tasks"
+    query_type: str
+    filters: Dict[str, Any] = {}
+    natural_language: str
+    confidence: float
+    summary_template: str
 
 
 QUERY_PATTERNS = {

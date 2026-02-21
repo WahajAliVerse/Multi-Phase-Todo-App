@@ -25,9 +25,9 @@ from .. import conversation_store
 
 @function_tool
 async def get_conversations(
-    user_id: str = Field(description="User identifier"),
-    limit: int = Field(default=50, description="Maximum number of conversations to return"),
-    include_deleted: bool = Field(default=False, description="Include soft-deleted conversations")
+    user_id: str,
+    limit: int= 50,
+    include_deleted: bool= False
 ) -> Dict[str, Any]:
     """
     Retrieve conversation history for a user.
@@ -86,8 +86,8 @@ async def get_conversations(
 
 @function_tool
 async def get_conversation(
-    conversation_id: str = Field(description="Conversation identifier"),
-    include_messages: bool = Field(default=True, description="Include messages in the response")
+    conversation_id: str,
+    include_messages: bool= True
 ) -> Dict[str, Any]:
     """
     Retrieve a specific conversation with its messages.
@@ -158,8 +158,8 @@ async def get_conversation(
 
 @function_tool
 async def delete_conversation(
-    conversation_id: str = Field(description="Conversation identifier to delete"),
-    user_id: Optional[str] = Field(default=None, description="User identifier for verification")
+    conversation_id: str,
+    user_id: Optional[str]= None
 ) -> Dict[str, Any]:
     """
     Soft-delete a conversation (mark as deleted without permanent removal).
@@ -223,7 +223,7 @@ async def delete_conversation(
 
 @function_tool
 async def restore_conversation(
-    conversation_id: str = Field(description="Conversation identifier to restore")
+    conversation_id: str
 ) -> Dict[str, Any]:
     """
     Restore a soft-deleted conversation.
@@ -274,8 +274,8 @@ async def restore_conversation(
 
 @function_tool
 async def clear_all_conversations(
-    user_id: str = Field(description="User identifier"),
-    confirm: bool = Field(default=False, description="Confirmation flag - must be True to proceed")
+    user_id: str,
+    confirm: bool= False
 ) -> Dict[str, Any]:
     """
     Soft-delete all conversations for a user.
@@ -334,8 +334,8 @@ async def clear_all_conversations(
 
 @function_tool
 async def create_conversation(
-    user_id: str = Field(description="User identifier"),
-    title: str = Field(default="New Conversation", description="Conversation title")
+    user_id: str,
+    title: str= "New Conversation"
 ) -> Dict[str, Any]:
     """
     Create a new conversation.
@@ -384,9 +384,9 @@ async def create_conversation(
 
 @function_tool
 async def add_message_to_conversation(
-    conversation_id: str = Field(description="Conversation identifier"),
-    role: str = Field(description="Message role: user, assistant, or system"),
-    content: str = Field(description="Message content")
+    conversation_id: str,
+    role: str,
+    content: str
 ) -> Dict[str, Any]:
     """
     Add a message to a conversation.

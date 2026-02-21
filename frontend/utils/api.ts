@@ -733,11 +733,11 @@ export const chatApi = {
    */
   sendMessage: async (request: SendMessageRequest): Promise<SendMessageResponse> => {
     console.log('[chatApi.sendMessage] Sending message:', request);
-    const response: any = await apiRequest<any>('/agent/chat', {
+    const response: any = await apiRequest<any>('/chat', {
       method: 'POST',
       body: JSON.stringify({
         conversation_id: request.conversation_id,
-        content: request.content,
+        message: request.content,  // Changed from 'content' to 'message'
       }),
     });
     console.log('[chatApi.sendMessage] Response:', response);
@@ -760,7 +760,7 @@ export const chatApi = {
    */
   getConversations: async (): Promise<ChatConversation[]> => {
     console.log('[chatApi.getConversations] Fetching conversations...');
-    const response: { conversations: ChatConversationDto[] } = await apiRequest<{ conversations: ChatConversationDto[] }>('/agent/conversations');
+    const response: { conversations: ChatConversationDto[] } = await apiRequest<{ conversations: ChatConversationDto[] }>('/chat/conversations');
     console.log('[chatApi.getConversations] Response:', response);
     return transformChatConversationDtosToFrontendModels(response.conversations);
   },
@@ -770,7 +770,7 @@ export const chatApi = {
    */
   getMessages: async (conversationId: string): Promise<GetMessagesResponse> => {
     console.log('[chatApi.getMessages] Fetching messages for conversation:', conversationId);
-    const response: any = await apiRequest<GetMessagesResponse>(`/agent/conversations/${conversationId}/messages`);
+    const response: any = await apiRequest<GetMessagesResponse>(`/chat/conversations/${conversationId}`);
     console.log('[chatApi.getMessages] Response:', response);
 
     return {
@@ -786,7 +786,7 @@ export const chatApi = {
    */
   createConversation: async (title: string): Promise<ChatConversation> => {
     console.log('[chatApi.createConversation] Creating conversation:', title);
-    const response: ChatConversationDto = await apiRequest<ChatConversationDto>('/agent/conversations', {
+    const response: ChatConversationDto = await apiRequest<ChatConversationDto>('/chat/conversations', {
       method: 'POST',
       body: JSON.stringify({ title }),
     });
@@ -800,7 +800,7 @@ export const chatApi = {
   updateConversation: async (conversationId: string, title: string): Promise<ChatConversation> => {
     console.log('[chatApi.updateConversation] Updating conversation:', conversationId, 'title:', title);
     const response: ChatConversationDto = await apiRequest<ChatConversationDto>(
-      `/agent/conversations/${conversationId}`,
+      `/chat/conversations/${conversationId}`,
       {
         method: 'PUT',
         body: JSON.stringify({ title }),
@@ -815,7 +815,7 @@ export const chatApi = {
    */
   deleteConversation: async (conversationId: string): Promise<void> => {
     console.log('[chatApi.deleteConversation] Deleting conversation:', conversationId);
-    await apiRequest(`/agent/conversations/${conversationId}`, {
+    await apiRequest(`/chat/conversations/${conversationId}`, {
       method: 'DELETE',
     });
   },

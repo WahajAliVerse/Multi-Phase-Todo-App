@@ -145,8 +145,8 @@ def get_color_preview(color: str) -> str:
 
 @function_tool
 async def create_tag(
-    name: str = Field(description="Tag name (required, max 50 chars)"),
-    color: str = Field(description="Tag color - named (red, blue, green) or hex (#FF5733)")
+    name: str,
+    color: str
 ) -> Dict[str, Any]:
     """
     Create a new tag.
@@ -261,8 +261,8 @@ async def get_tags() -> Dict[str, Any]:
 
 @function_tool
 async def update_tag(
-    tag_id: str = Field(description="Tag UUID to update"),
-    updates: Dict[str, Any] = Field(description="Fields to update: name, color")
+    tag_id: str,
+    updates: object
 ) -> Dict[str, Any]:
     """
     Update an existing tag.
@@ -326,7 +326,7 @@ async def update_tag(
 
 
 @function_tool
-async def delete_tag(tag_id: str = Field(description="Tag UUID to delete")) -> Dict[str, Any]:
+async def delete_tag(tag_id: str) -> Dict[str, Any]:
     """
     Delete a tag.
 
@@ -375,8 +375,8 @@ async def delete_tag(tag_id: str = Field(description="Tag UUID to delete")) -> D
 
 @function_tool
 async def assign_tag_to_task(
-    tag_id: str = Field(description="Tag UUID to assign"),
-    task_id: str = Field(description="Task UUID to assign tag to")
+    tag_id: str,
+    task_id: str
 ) -> Dict[str, Any]:
     """
     Assign a tag to a task.

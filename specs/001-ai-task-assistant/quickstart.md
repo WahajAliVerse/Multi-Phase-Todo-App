@@ -7,6 +7,28 @@
 - Google Gemini API key
 - Existing Todo application backend running
 
+## Environment Variables Reference
+
+### Backend (.env in backend/todo-backend/)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GEMINI_API_KEY` | Yes | - | Your Google Gemini API key |
+| `GEMINI_MODEL` | No | `gemini-1.5-flash` | Model to use for chat completions |
+| `OPENAI_BASE_URL` | No | `https://generativelanguage.googleapis.com/v1beta/openai/` | Gemini API base URL |
+| `RATE_LIMIT_REQUESTS` | No | `10` | Max requests per window |
+| `RATE_LIMIT_WINDOW` | No | `60` | Rate limit window in seconds |
+| `LOG_LEVEL` | No | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
+
+### Frontend (.env.local in frontend/)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `NEXT_PUBLIC_CHAT_API_URL` | No | `http://localhost:8000/api/chat` | Chat API endpoint |
+| `NEXT_PUBLIC_AI_AGENT_ENABLED` | No | `true` | Enable/disable AI agent feature |
+
+---
+
 ## Step 1: Obtain Google Gemini API Key
 
 1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
@@ -169,7 +191,90 @@ grep NEXT_PUBLIC_AI_AGENT_ENABLED frontend/.env.local
 npm run build
 ```
 
-## Next Steps
+### "ModuleNotFoundError: No module named 'openai'"
+
+**Solution**: Reinstall agent dependencies
+
+```bash
+cd agent
+source .venv/bin/activate
+uv add openai python-dotenv slowapi
+```
+
+### "CORS error" in browser console
+
+**Solution**: Ensure backend CORS is configured correctly
+
+```bash
+# Check backend CORS settings in backend/todo-backend/src/core/config.py
+# Ensure frontend origin (http://localhost:3000) is allowed
+```
+
+### Typing indicator not showing
+
+**Solution**: Verify Redux state and WebSocket connection
+
+```bash
+# Check Redux DevTools for agentChat.typingIndicator state
+# Verify backend is sending typing events
+```
+
+### Messages not persisting after refresh
+
+**Solution**: Check Redux Persist configuration
+
+```bash
+# Verify localStorage in browser DevTools
+# Check redux/store.ts for persist configuration
+```
+
+---
+
+## Production Deployment
+
+### Environment Variables for Production
+
+```bash
+# Backend Production .env
+GEMINI_API_KEY=your-production-key
+GEMINI_MODEL=gemini-1.5-flash
+OPENAI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+RATE_LIMIT_REQUESTS=30
+RATE_LIMIT_WINDOW=60
+LOG_LEVEL=WARNING
+DATABASE_URL=postgresql://user:pass@host:5432/db
+
+# Frontend Production .env.local
+NEXT_PUBLIC_CHAT_API_URL=https://your-api-domain.com/api/chat
+NEXT_PUBLIC_AI_AGENT_ENABLED=true
+```
+
+### Docker Deployment
+
+```bash
+# Build and run with Docker Compose
+cd deployment
+docker-compose up -d
+```
+
+### Kubernetes Deployment
+
+```bash
+# Apply Kubernetes manifests
+kubectl apply -f deployment/k8s/
+```
+
+### Monitoring Setup
+
+```bash
+# Enable Prometheus metrics
+# Configure Grafana dashboards
+# Set up alerting rules
+```
+
+---
+
+## Security Best Practices
 
 1. **Customize Agent Instructions**: Edit `backend/todo-backend/src/agent/agent.py`
 2. **Add More Tools**: Create tool wrappers in `backend/todo-backend/src/agent/tools/`

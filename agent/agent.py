@@ -1,39 +1,173 @@
 """
-AI Agent Implementation using OpenAI Agents SDK with Google Gemini
+AI Agent Implementation using OpenAI Agents SDK with Multi-Provider Support
 
-Provides the main agent loop for natural language task management.
+Supports Google Gemini, OpenAI GPT, and Anthropic Claude via LiteLLM integration.
+Reference: https://github.com/panaversity/learn-agentic-ai/tree/main/01_ai_agents_first/05_model_configuration
 """
 
-from agents import Agent, Runner, OpenAIChatCompletionsModel, ModelSettings
+from agents import Agent, Runner, ModelSettings, OpenAIChatCompletionsModel, set_tracing_disabled
+from agents.run import RunConfig
 from openai import AsyncOpenAI
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
 from datetime import datetime
 import asyncio
+import os
 
-from .config import (
-    GEMINI_API_KEY,
-    GEMINI_MODEL,
-    OPENAI_BASE_URL,
-    RATE_LIMIT_REQUESTS,
-    RATE_LIMIT_WINDOW,
-    logger
+# Disable OpenAI tracing globally to prevent API calls to OpenAI when using Gemini
+# This MUST be done before any agent operations
+os.environ['OPENAI_AGENTS_DISABLE_TRACING'] = '1'
+set_tracing_disabled(True)
+
+# Conditional import for LiteLLM (optional dependency)
+if TYPE_CHECKING:
+    from agents.extensions.models.litellm_model import LitellmModel
+else:
+    try:
+        from agents.extensions.models.litellm_model import LitellmModel
+        LITELLM_AVAILABLE = True
+    except ImportError:
+        LitellmModel = None  # type: ignore
+        LITELLM_AVAILABLE = False
+
+# Handle both relative and absolute imports
+try:
+    from .config import (
+        ModelProvider,
+        ModelConfigService,
+        get_model_config,
+        USE_LITELLM,
+        GEMINI_API_KEY,
+        GEMINI_MODEL,
+        GEMINI_BASE_URL,
+        RATE_LIMIT_REQUESTS,
+        RATE_LIMIT_WINDOW,
+        MODEL_NAME,
+        MODEL_TEMPERATURE,
+        MODEL_MAX_TOKENS,
+        MODEL_TOP_P,
+        logger
+    )
+    from .error_handler import handle_llm_errors, retry_with_backoff, LLMError
+    from .logger import agent_logger, log_chat_message, log_tool_execution
+except (ImportError, ModuleNotFoundError):
+    from config import (
+        ModelProvider,
+        ModelConfigService,
+        get_model_config,
+        USE_LITELLM,
+        GEMINI_API_KEY,
+        GEMINI_MODEL,
+        GEMINI_BASE_URL,
+        RATE_LIMIT_REQUESTS,
+        RATE_LIMIT_WINDOW,
+        MODEL_NAME,
+        MODEL_TEMPERATURE,
+        MODEL_MAX_TOKENS,
+        MODEL_TOP_P,
+        logger
+    )
+    from error_handler import handle_llm_errors, retry_with_backoff, LLMError
+    from logger import agent_logger, log_chat_message, log_tool_execution
+
+
+# Get model configuration service
+model_config = get_model_config()
+
+# Disable OpenAI tracing globally to prevent API calls to OpenAI when using Gemini
+# This must be set BEFORE importing Runner or creating any agents
+os.environ['OPENAI_DISABLE_TRACING'] = '1'
+
+
+def configure_model():
+    """
+    Configure the model based on provider and LiteLLM settings.
+
+    Returns:
+        Model instance configured for the selected provider
+    """
+    if USE_LITELLM:
+        # Use LiteLLM for multi-provider support
+        if not LITELLM_AVAILABLE:
+            logger.warning(
+                "LiteLLM is not installed. Install with: uv sync --extra litellm. "
+                "Falling back to direct provider."
+            )
+            # Fall through to direct provider
+        else:
+            logger.info(f"Using LiteLLM with model: {model_config.model}")
+            litellm_model_string = model_config.get_litellm_model_string()
+
+            return LitellmModel(
+                model=litellm_model_string,
+                api_key=model_config.api_key,
+            )
+
+    # Check for OpenRouter first
+    if model_config.provider == ModelProvider.OPENROUTER:
+        # Use OpenRouter API
+        logger.info(f"Using OpenRouter with model: {model_config.model}")
+        
+        openrouter_client = AsyncOpenAI(
+            api_key=model_config.api_key,
+            base_url=model_config.base_url,
+            organization=None,
+        )
+        
+        # Add optional headers for app attribution
+        openrouter_referer = os.getenv('OPENROUTER_REFERER')
+        openrouter_title = os.getenv('OPENROUTER_TITLE')
+        
+        if openrouter_referer:
+            openrouter_client.default_headers['HTTP-Referer'] = openrouter_referer
+        if openrouter_title:
+            openrouter_client.default_headers['X-Title'] = openrouter_title
+        
+        return OpenAIChatCompletionsModel(
+            model=model_config.model,
+            openai_client=openrouter_client,
+        )
+
+    if model_config.provider == ModelProvider.GEMINI:
+        # Use Gemini via OpenAI-compatible Chat Completions API
+        logger.info(f"Using Gemini with OpenAI-compatible endpoint: {model_config.model}")
+
+        # IMPORTANT: Do NOT set OPENAI_API_KEY globally - this causes tracing to fail
+        # Instead, pass the Gemini key directly to the AsyncOpenAI client
+        gemini_client = AsyncOpenAI(
+            api_key=GEMINI_API_KEY,
+            base_url=GEMINI_BASE_URL,
+            # Disable default organization and other OpenAI-specific settings
+            organization=None,
+        )
+
+        return OpenAIChatCompletionsModel(
+            model=GEMINI_MODEL,
+            openai_client=gemini_client,
+        )
+    else:
+        # Use provider's native SDK or default
+        logger.info(f"Using default model: {model_config.model}")
+        return None
+
+
+# Configure model instance
+configured_model = configure_model()
+
+
+# Model settings from configuration
+default_model_settings = ModelSettings(
+    temperature=MODEL_TEMPERATURE,  # Balanced creativity/accuracy
+    max_tokens=MODEL_MAX_TOKENS,    # Sufficient for most responses
+    top_p=MODEL_TOP_P,              # Nucleus sampling
+    tool_choice="auto",             # Let model decide when to use tools
 )
-from .error_handler import handle_llm_errors, retry_with_backoff, LLMError
-from .logger import agent_logger, log_chat_message, log_tool_execution
 
-
-# Configure Gemini API client
-gemini_client = AsyncOpenAI(
-    api_key=GEMINI_API_KEY,
-    base_url=OPENAI_BASE_URL,
-) if GEMINI_API_KEY else None
-
-
-# Configure model
-gemini_model = OpenAIChatCompletionsModel(
-    model=GEMINI_MODEL,
-    openai_client=gemini_client,
-) if gemini_client else None
+# Run config with configured model
+default_run_config = RunConfig(
+    model=configured_model,
+    model_settings=default_model_settings,
+    tracing_disabled=True,
+) if configured_model else None
 
 
 def format_update_confirmation(
@@ -584,7 +718,8 @@ def create_agent(
     name: str = "TodoAssistant",
     instructions: str = None,
     tools: list = None,
-    model_settings: ModelSettings = None
+    model_settings: ModelSettings = None,
+    model=None
 ) -> Agent:
     """
     Create and configure the AI agent.
@@ -594,6 +729,7 @@ def create_agent(
         instructions: System instructions for agent behavior
         tools: List of function tools for the agent
         model_settings: Model configuration (temperature, max_tokens, etc.)
+        model: Optional model instance (uses configured_model if not provided)
 
     Returns:
         Configured Agent instance
@@ -617,20 +753,26 @@ Task Update Patterns:
 - "Reschedule [task]" → Update due date
 """
 
-    default_model_settings = ModelSettings(
-        temperature=0.4,  # Balanced creativity/accuracy
-        max_tokens=700,   # Sufficient for most responses
-        tool_choice="auto"  # Let model decide when to use tools
+    # Use provided model_settings or create from configuration
+    effective_model_settings = model_settings or ModelSettings(
+        temperature=MODEL_TEMPERATURE,  # Balanced creativity/accuracy
+        max_tokens=MODEL_MAX_TOKENS,    # Sufficient for most responses
+        top_p=MODEL_TOP_P,              # Nucleus sampling
+        tool_choice="auto",             # Let model decide when to use tools
     )
+
+    # Use provided model or configured model
+    effective_model = model or configured_model
 
     agent = Agent(
         name=name,
         instructions=instructions or default_instructions,
         tools=tools or [],
-        model_settings=model_settings or default_model_settings,
+        model=effective_model,
+        model_settings=effective_model_settings,
     )
 
-    agent_logger.info(f"Agent created: {name} with model {GEMINI_MODEL}")
+    agent_logger.info(f"Agent created: {name} with model {MODEL_NAME} (provider: {model_config.provider.value})")
     return agent
 
 
@@ -638,13 +780,14 @@ class AgentRunner:
     """
     Manages agent execution with conversation history and error handling.
     """
-    
+
     def __init__(self, agent: Agent):
         self.agent = agent
         self.conversation_history: List[Dict[str, Any]] = []
+        self.run_config = default_run_config
     
     @handle_llm_errors
-    @retry_with_backoff(max_retries=3)
+    @retry_with_backoff(max_retries=1, base_delay=0.5, max_delay=2.0)
     async def run_async(
         self,
         user_message: str,
@@ -652,25 +795,48 @@ class AgentRunner:
     ) -> Dict[str, Any]:
         """
         Run agent asynchronously with user message.
-        
+
         Args:
             user_message: User's natural language input
             conversation_id: Optional conversation identifier
-        
+
         Returns:
             Dictionary with response, action, and metadata
         """
         log_chat_message("user", user_message, conversation_id)
-        
+
         # Build conversation context
         messages = self._build_messages(user_message)
-        
-        # Run agent
-        result = await Runner.run(
-            self.agent,
-            messages,
-        )
-        
+
+        # Run agent with RunConfig for Chat Completions API
+        # Add timeout to prevent hanging
+        import asyncio
+        try:
+            result = await asyncio.wait_for(
+                Runner.run(
+                    self.agent,
+                    messages,
+                    run_config=self.run_config,
+                ),
+                timeout=30.0  # 30 second timeout
+            )
+        except asyncio.TimeoutError:
+            agent_logger.error(f"Agent request timed out for message: {user_message[:100]}")
+            return {
+                "success": False,
+                "message": {
+                    "role": "assistant",
+                    "content": "I'm taking too long to process this request. Please try again.",
+                },
+                "action": None,
+                "metadata": {
+                    "conversation_id": conversation_id,
+                    "model": MODEL_NAME,
+                    "provider": model_config.provider.value,
+                    "error": "timeout",
+                }
+            }
+
         # Extract response
         response = {
             "success": True,
@@ -681,15 +847,16 @@ class AgentRunner:
             "action": self._extract_action(result),
             "metadata": {
                 "conversation_id": conversation_id,
-                "model": GEMINI_MODEL,
+                "model": MODEL_NAME,
+                "provider": model_config.provider.value,
             }
         }
-        
+
         log_chat_message("assistant", result.final_output, conversation_id)
         return response
-    
+
     @handle_llm_errors
-    @retry_with_backoff(max_retries=3)
+    @retry_with_backoff(max_retries=1, base_delay=0.5, max_delay=2.0)
     def run_sync(
         self,
         user_message: str,
@@ -697,25 +864,26 @@ class AgentRunner:
     ) -> Dict[str, Any]:
         """
         Run agent synchronously with user message.
-        
+
         Args:
             user_message: User's natural language input
             conversation_id: Optional conversation identifier
-        
+
         Returns:
             Dictionary with response, action, and metadata
         """
         log_chat_message("user", user_message, conversation_id)
-        
+
         # Build conversation context
         messages = self._build_messages(user_message)
-        
-        # Run agent
+
+        # Run agent with RunConfig for Chat Completions API
         result = Runner.run_sync(
             self.agent,
             messages,
+            run_config=self.run_config,
         )
-        
+
         # Extract response
         response = {
             "success": True,
@@ -726,13 +894,14 @@ class AgentRunner:
             "action": self._extract_action(result),
             "metadata": {
                 "conversation_id": conversation_id,
-                "model": GEMINI_MODEL,
+                "model": MODEL_NAME,
+                "provider": model_config.provider.value,
             }
         }
-        
+
         log_chat_message("assistant", result.final_output, conversation_id)
         return response
-    
+
     def _build_messages(self, user_message: str) -> List[Dict[str, str]]:
         """
         Build message list with conversation history.
@@ -797,13 +966,33 @@ class AgentRunner:
 
 
 # Default agent instance
-default_agent = create_agent() if gemini_model else None
+default_agent = create_agent() if configured_model else None
 default_runner = AgentRunner(default_agent) if default_agent else None
 
 
 def get_default_runner() -> Optional[AgentRunner]:
     """Get the default agent runner."""
     return default_runner
+
+
+def get_model_info() -> Dict[str, Any]:
+    """
+    Get current model configuration information.
+    
+    Returns:
+        Dictionary with model and provider details
+    """
+    capabilities = model_config.get_model_capabilities()
+    return {
+        "provider": model_config.provider.value,
+        "model": MODEL_NAME,
+        "temperature": MODEL_TEMPERATURE,
+        "max_tokens": MODEL_MAX_TOKENS,
+        "top_p": MODEL_TOP_P,
+        "use_litellm": USE_LITELLM,
+        "litellm_string": model_config.get_litellm_model_string() if USE_LITELLM else None,
+        "capabilities": capabilities,
+    }
 
 
 # =============================================================================

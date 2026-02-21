@@ -849,7 +849,7 @@ const ClearAllConfirmationDialog: React.FC<{
             Cancel
           </Button>
           <Button
-            variant="destructive"
+            variant="danger"
             fullWidth
             onClick={onConfirm}
             startIcon={<TrashIcon className="w-4 h-4" />}
@@ -1087,6 +1087,59 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
   const [conversationSearchQuery, setConversationSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Store previous focus and restore on close
+  useEffect(() => {
+    if (isOpen) {
+      // Store the element that had focus before modal opened
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      
+      // Focus the input when modal opens
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    } else {
+      // Restore focus when modal closes
+      previousFocusRef.current?.focus();
+    }
+  }, [isOpen]);
+
+  // Focus trap for accessibility
+  useEffect(() => {
+    if (!isOpen || !modalRef.current) return;
+
+    const modal = modalRef.current;
+    const focusableElements = modal.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements[0] as HTMLElement;
+    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        // Shift + Tab
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+
+    modal.addEventListener('keydown', handleTabKey);
+    return () => modal.removeEventListener('keydown', handleTabKey);
+  }, [isOpen, messages.length, showConversationList]);
 
   // Fetch conversations when modal opens
   useEffect(() => {
@@ -1218,6 +1271,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
 
       {/* Modal container */}
       <motion.div
+        ref={modalRef}
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -1226,6 +1280,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
         role="dialog"
         aria-modal="true"
         aria-labelledby="chat-modal-title"
+        aria-describedby="chat-modal-description"
       >
         <div className="flex-1 flex flex-col bg-card rounded-2xl shadow-2xl overflow-hidden border border-border">
           {/* Header */}
@@ -1254,6 +1309,9 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
                     : 'New conversation'}
                 </p>
               </div>
+              <span id="chat-modal-description" className="sr-only">
+                Chat with AI assistant to create and manage tasks using natural language
+              </span>
             </div>
             <div className="flex items-center gap-2">
               {typingIndicator && (

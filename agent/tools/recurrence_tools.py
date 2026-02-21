@@ -19,14 +19,14 @@ from .task_tools import http_client
 
 @function_tool
 async def create_recurring_task(
-    task_id: str = Field(description="Task UUID to make recurring"),
-    frequency: str = Field(description="Recurrence frequency: daily, weekly, monthly, yearly"),
-    interval: int = Field(default=1, description="How often to repeat (every N days/weeks/etc.)"),
-    days_of_week: Optional[List[str]] = Field(default=None, description="Days of week for weekly patterns (mon, tue, etc.)"),
-    day_of_month: Optional[int] = Field(default=None, description="Day of month (1-31) for monthly patterns"),
-    end_condition: str = Field(default="never", description="End condition: never, after, on_date"),
-    end_after_occurrences: Optional[int] = Field(default=None, description="Number of occurrences before stopping"),
-    end_date: Optional[str] = Field(default=None, description="End date in ISO format")
+    task_id: str,
+    frequency: str,
+    interval: int= 1,
+    days_of_week: Optional[List[str]]= None,
+    day_of_month: Optional[int]= None,
+    end_condition: str= "never",
+    end_after_occurrences: Optional[int]= None,
+    end_date: Optional[str]= None
 ) -> Dict[str, Any]:
     """
     Create a recurring task pattern.
@@ -103,7 +103,7 @@ async def create_recurring_task(
 
 @function_tool
 async def cancel_recurrence(
-    recurrence_id: str = Field(description="Recurrence pattern UUID to cancel")
+    recurrence_id: str
 ) -> Dict[str, Any]:
     """
     Cancel a recurring task pattern.
@@ -154,10 +154,10 @@ async def cancel_recurrence(
 
 @function_tool
 async def schedule_task_reminder(
-    task_id: str = Field(description="Task UUID to schedule reminder for"),
-    reminder_time: str = Field(description="Reminder time in ISO 8601 format"),
-    delivery_method: str = Field(default="browser", description="Delivery method: browser, email, push"),
-    message: Optional[str] = Field(default=None, description="Reminder message")
+    task_id: str,
+    reminder_time: str,
+    delivery_method: str= "browser",
+    message: Optional[str]= None
 ) -> Dict[str, Any]:
     """
     Schedule a reminder for a task.
@@ -219,14 +219,14 @@ async def schedule_task_reminder(
 
 @function_tool
 async def update_recurrence_pattern(
-    recurrence_id: str = Field(description="Recurrence pattern UUID to update"),
-    frequency: Optional[str] = Field(default=None, description="New frequency: daily, weekly, monthly, yearly"),
-    interval: Optional[int] = Field(default=None, description="New repeat interval"),
-    days_of_week: Optional[List[str]] = Field(default=None, description="New days of week for weekly patterns"),
-    day_of_month: Optional[int] = Field(default=None, description="New day of month for monthly patterns"),
-    end_condition: Optional[str] = Field(default=None, description="New end condition: never, after, on_date"),
-    end_after_occurrences: Optional[int] = Field(default=None, description="New max occurrences"),
-    end_date: Optional[str] = Field(default=None, description="New end date in ISO format")
+    recurrence_id: str,
+    frequency: Optional[str]= None,
+    interval: Optional[int]= None,
+    days_of_week: Optional[List[str]]= None,
+    day_of_month: Optional[int]= None,
+    end_condition: Optional[str]= None,
+    end_after_occurrences: Optional[int]= None,
+    end_date: Optional[str]= None
 ) -> Dict[str, Any]:
     """
     Update an existing recurring task pattern.
@@ -313,8 +313,8 @@ async def update_recurrence_pattern(
 
 @function_tool
 async def generate_next_occurrence(
-    recurrence_id: str = Field(description="Recurrence pattern UUID"),
-    current_date: str = Field(description="Current date in ISO format (YYYY-MM-DD)")
+    recurrence_id: str,
+    current_date: str
 ) -> Dict[str, Any]:
     """
     Calculate the next occurrence date for a recurring task.
