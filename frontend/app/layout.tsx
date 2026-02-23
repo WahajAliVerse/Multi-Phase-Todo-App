@@ -8,6 +8,7 @@ import ToastWrapper from '@/components/common/ToastWrapper';
 import ModalProvider from '@/components/providers/ModalProvider';
 import { AuthInitializer } from '@/components/providers/AuthInitializer';
 import { ProtectedRouteHandler } from '@/components/providers/ProtectedRouteHandler';
+import { ChatAssistantProvider } from '@/components/providers/ChatAssistantProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,16 +29,18 @@ export default function RootLayout({
           <AuthInitializer />
           <ProtectedRouteHandler />
           <ModalProvider>
-            <div className="flex min-h-screen">
-              <Sidebar />
-              <div className="flex-1 flex flex-col w-full">
-                <main className="flex-grow w-full">
-                  {children}
-                </main>
-                <Footer />
+            <ChatAssistantProvider>
+              <div className="flex min-h-screen">
+                <Sidebar />
+                <div className="flex-1 flex flex-col w-full">
+                  <main className="flex-grow w-full">
+                    {children}
+                  </main>
+                  <Footer />
+                </div>
               </div>
-            </div>
-            <ToastWrapper />
+              <ToastWrapper />
+            </ChatAssistantProvider>
           </ModalProvider>
         </Providers>
       </body>

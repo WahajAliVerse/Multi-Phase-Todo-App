@@ -240,6 +240,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Client-side state management with Redux Toolkit; backend persistence with FastAPI + SQLModel + Neon DB (004-frontend-debug-fixes)
 - TypeScript 5.x (with JavaScript compatibility), Python 3.12+ + Next.js 14+ (with App Router), React 18+, Redux Toolkit, FastAPI, SQLModel (005-fix-tags-display-flow)
 - SQLite (development), with migration path to PostgreSQL (production) (005-fix-tags-display-flow)
+- Python 3.12+ (backend), TypeScript 5.x (frontend) + FastAPI (backend), Next.js 14+ (frontend), Google Gemini via OpenAI Agents SDK (001-ai-task-assistant)
+- SQLite (development), PostgreSQL (production) - via existing backend (001-ai-task-assistant)
 
 ## Recent Changes
 - 001-console-todo-app: Added Python 3.12+ + Standard libraries only (no external dependencies)

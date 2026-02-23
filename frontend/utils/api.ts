@@ -1,15 +1,25 @@
 import { toast } from 'react-hot-toast';
 import { redirectToLogin } from './auth';
-import { 
-  TagDto, 
-  CreateTagDto, 
-  UpdateTagDto, 
+import {
+  TagDto,
+  CreateTagDto,
+  UpdateTagDto,
   Tag,
   UserDto,
   TaskDto,
-  NotificationDto
+  NotificationDto,
+  ChatMessageDto,
+  ChatMessage,
+  ChatConversationDto,
+  ChatConversation,
+  ChatAction,
+  ChatActionType,
+  SendMessageRequest,
+  SendMessageResponse,
+  GetConversationsResponse,
+  GetMessagesResponse,
 } from '@/types';
-import { 
+import {
   transformTagDtosToFrontendModels,
   transformTagDtoToFrontendModel,
   transformTaskDtoToFrontendModel,
@@ -17,7 +27,7 @@ import {
   transformUserDtoToFrontendModel,
   transformUserDtosToFrontendModels,
   transformNotificationDtoToFrontendModel,
-  transformNotificationDtosToFrontendModels
+  transformNotificationDtosToFrontendModels,
 } from '@/utils/transformations';
 
 // Define types for API responses
@@ -52,7 +62,7 @@ export interface User {
 
 // Base API configuration
 // Update this to point to your deployed backend
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'; // Default to local backend
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8003/api'; // Default to local backend
 const DEFAULT_HEADERS = {
   'Content-Type': 'application/json',
 };
@@ -653,4 +663,264 @@ export interface Reminder {
 export const remindersApi = {
   getUpcoming: () =>
     apiRequest<{ reminders: Reminder[] }>('/reminders/upcoming'),
+};
+
+// ============================================================================
+// AI Task Assistant Chat API functions
+// ============================================================================
+
+/**
+ * Transform ChatMessageDto to ChatMessage (snake_case to camelCase)
+ */
+const transformChatMessageDtoToFrontendModel = (dto: ChatMessageDto): ChatMessage => ({
+  id: dto.id,
+  conversationId: dto.conversation_id,
+  role: dto.role,
+  content: dto.content,
+  timestamp: dto.timestamp,
+  status: dto.status,
+  actions: dto.actions?.map((action) => ({
+    ...action,
+    task_id: action.task_id,
+    tag_id: action.tag_id,
+  })),
+  metadata: dto.metadata,
+});
+
+/**
+ * Transform ChatMessage to ChatMessageDto (camelCase to snake_case)
+ */
+const transformChatMessageToBackendDto = (message: ChatMessage): ChatMessageDto => ({
+  id: message.id,
+  conversation_id: message.conversationId,
+  role: message.role,
+  content: message.content,
+  timestamp: message.timestamp,
+  status: message.status,
+  actions: message.actions,
+  metadata: message.metadata,
+});
+
+/**
+ * Transform ChatConversationDto to ChatConversation (snake_case to camelCase)
+ */
+const transformChatConversationDtoToFrontendModel = (dto: ChatConversationDto): ChatConversation => ({
+  id: dto.id,
+  userId: dto.user_id,
+  title: dto.title,
+  createdAt: dto.created_at,
+  updatedAt: dto.updated_at,
+  isActive: dto.is_active,
+  messageCount: dto.message_count,
+});
+
+/**
+ * Transform array of ChatConversationDto to ChatConversation
+ */
+const transformChatConversationDtosToFrontendModels = (dtos: ChatConversationDto[]): ChatConversation[] =>
+  dtos.map(transformChatConversationDtoToFrontendModel);
+
+/**
+ * Transform backend action format to frontend ChatAction format
+ * Backend returns: { type: 'tool_call', tool_name: 'create_task', arguments: {...}, result: {...} }
+ * Frontend expects: { type: 'create_task', details: {...}, confirmed: true }
+ */
+const transformBackendActionToFrontend = (backendAction: any): ChatAction[] => {
+  if (!backendAction) return [];
+
+  // Handle both single action and array of actions
+  const actions = Array.isArray(backendAction) ? backendAction : [backendAction];
+
+  return actions
+    .map((action: any): ChatAction | null => {
+      // Map tool_name to action type
+      const toolNameToType: Record<string, ChatActionType> = {
+        create_task: 'create_task',
+        update_task: 'update_task',
+        delete_task: 'delete_task',
+        mark_task_complete: 'complete_task',
+        create_tag: 'create_tag',
+        update_tag: 'update_tag',
+        delete_tag: 'delete_tag',
+        assign_tag: 'assign_tag',
+        create_recurring_task: 'create_recurrence',
+        cancel_recurrence: 'cancel_recurrence',
+        schedule_reminder: 'schedule_reminder',
+        get_tasks: 'query_tasks',
+      };
+
+      const actionType = action.tool_name
+        ? toolNameToType[action.tool_name] || (action.intent_type as ChatActionType)
+        : (action.intent_type as ChatActionType) || 'create_task';
+
+      // Extract task/tag data from result or arguments
+      const result = action.result || {};
+      const argumentsData = action.arguments || {};
+
+      // Build details object with camelCase conversion
+      const details: Record<string, any> = {};
+
+      // Extract task data
+      if (result.task) {
+        details.task = result.task;
+        // Add task fields to details for easier access
+        if (result.task.title) details.title = result.task.title;
+        if (result.task.description) details.description = result.task.description;
+        if (result.task.due_date) details.due_date = result.task.due_date;
+        if (result.task.priority) details.priority = result.task.priority;
+        if (result.task.status) details.status = result.task.status;
+        if (result.task.tags) details.tags = result.task.tags;
+      }
+
+      // Extract tag data
+      if (result.tag) {
+        details.tag = result.tag;
+        if (result.tag.name) details.name = result.tag.name;
+        if (result.tag.color) details.color = result.tag.color;
+      }
+
+      // Merge arguments into details
+      Object.assign(details, argumentsData);
+
+      // Since backend has already executed the action, mark as confirmed
+      // The action has been performed, we're just updating the UI
+      return {
+        type: actionType,
+        task_id: result.task?.id || result.id || action.task_id,
+        tag_id: result.tag?.id || result.id || action.tag_id,
+        details,
+        confirmed: true, // Backend already executed the action
+      };
+    })
+    .filter((action): action is ChatAction => action !== null);
+};
+
+/**
+ * Transform backend response actions to frontend format
+ * Handles both single action and array of actions
+ */
+const transformBackendActionsToFrontend = (backendActions: any): ChatAction[] => {
+  if (!backendActions) return [];
+
+  // Backend may return:
+  // 1. Single action object: { type, tool_name, result, ... }
+  // 2. Array of actions: [{...}, {...}]
+  // 3. Action wrapped in object: { action: {...} }
+
+  if (backendActions.action) {
+    // Wrapped in object
+    return transformBackendActionToFrontend(backendActions.action);
+  }
+
+  if (Array.isArray(backendActions)) {
+    // Array of actions - flatten all results
+    return backendActions.flatMap((action: any) => transformBackendActionToFrontend(action));
+  }
+
+  // Single action object
+  return transformBackendActionToFrontend(backendActions);
+};
+
+export interface CreateConversationRequest {
+  title: string;
+}
+
+export interface UpdateConversationRequest {
+  title: string;
+}
+
+export const chatApi = {
+  /**
+   * Send a message to the AI assistant
+   */
+  sendMessage: async (request: SendMessageRequest): Promise<SendMessageResponse> => {
+    console.log('[chatApi.sendMessage] Sending message:', request);
+    const response: any = await apiRequest<any>('/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversation_id: request.conversation_id,
+        message: request.content,  // Changed from 'content' to 'message'
+      }),
+    });
+    console.log('[chatApi.sendMessage] Response:', response);
+
+    // Transform response to frontend models
+    const transformedResponse: SendMessageResponse = {
+      message: transformChatMessageDtoToFrontendModel(response.message),
+      // Transform backend actions to frontend format
+      // Backend returns: { action: {...} } or { actions: [...] }
+      actions: transformBackendActionsToFrontend(response.action || response.actions),
+    };
+
+    if (response.conversation) {
+      transformedResponse.conversation = transformChatConversationDtoToFrontendModel(response.conversation);
+    }
+
+    return transformedResponse;
+  },
+
+  /**
+   * Get all conversations for the current user
+   */
+  getConversations: async (): Promise<ChatConversation[]> => {
+    console.log('[chatApi.getConversations] Fetching conversations...');
+    const response: { conversations: ChatConversationDto[] } = await apiRequest<{ conversations: ChatConversationDto[] }>('/chat/conversations');
+    console.log('[chatApi.getConversations] Response:', response);
+    return transformChatConversationDtosToFrontendModels(response.conversations);
+  },
+
+  /**
+   * Get messages for a specific conversation
+   */
+  getMessages: async (conversationId: string): Promise<GetMessagesResponse> => {
+    console.log('[chatApi.getMessages] Fetching messages for conversation:', conversationId);
+    const response: any = await apiRequest<GetMessagesResponse>(`/chat/conversations/${conversationId}`);
+    console.log('[chatApi.getMessages] Response:', response);
+
+    return {
+      messages: response.messages.map(transformChatMessageDtoToFrontendModel),
+      conversation: response.conversation
+        ? transformChatConversationDtoToFrontendModel(response.conversation)
+        : undefined,
+    };
+  },
+
+  /**
+   * Create a new conversation
+   */
+  createConversation: async (title: string): Promise<ChatConversation> => {
+    console.log('[chatApi.createConversation] Creating conversation:', title);
+    const response: ChatConversationDto = await apiRequest<ChatConversationDto>('/chat/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ title }),
+    });
+    console.log('[chatApi.createConversation] Response:', response);
+    return transformChatConversationDtoToFrontendModel(response);
+  },
+
+  /**
+   * Update a conversation title
+   */
+  updateConversation: async (conversationId: string, title: string): Promise<ChatConversation> => {
+    console.log('[chatApi.updateConversation] Updating conversation:', conversationId, 'title:', title);
+    const response: ChatConversationDto = await apiRequest<ChatConversationDto>(
+      `/chat/conversations/${conversationId}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ title }),
+      }
+    );
+    console.log('[chatApi.updateConversation] Response:', response);
+    return transformChatConversationDtoToFrontendModel(response);
+  },
+
+  /**
+   * Delete a conversation (soft delete)
+   */
+  deleteConversation: async (conversationId: string): Promise<void> => {
+    console.log('[chatApi.deleteConversation] Deleting conversation:', conversationId);
+    await apiRequest(`/chat/conversations/${conversationId}`, {
+      method: 'DELETE',
+    });
+  },
 };
