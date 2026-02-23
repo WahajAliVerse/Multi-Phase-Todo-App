@@ -46,18 +46,29 @@ interface ChatModalProps {
  * Formats a timestamp into a readable time/date string
  */
 const formatMessageTime = (timestamp: string): string => {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
+  if (!timestamp) return '';
+  try {
+    const date = new Date(timestamp);
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid timestamp provided:', timestamp);
+      return '';
+    }
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  if (diffDays < 7) return date.toLocaleDateString([], { weekday: 'short' });
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (diffDays < 7) return date.toLocaleDateString([], { weekday: 'short' });
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  } catch (error) {
+    console.error('Error formatting message time:', error, timestamp);
+    return '';
+  }
 };
 
 /**
@@ -400,39 +411,46 @@ const TaskDisambiguation: React.FC<{
         </div>
       </div>
       <div className="space-y-2">
-        {taskMatches.slice(0, 5).map((task, index) => (
-          <motion.button
-            key={task.id}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-            onClick={() => onSelectTask(index)}
-            className="w-full flex items-center gap-3 p-3 bg-card border border-border rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
-          >
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-semibold flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-              {index + 1}
-            </span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
-              <div className="flex items-center gap-2 mt-1">
-                {task.due_date && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <CalendarIcon className="w-3 h-3" />
-                    {new Date(task.due_date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                  </span>
-                )}
-                {task.priority && (
-                  <span className={`text-xs ${getPriorityColor(task.priority)} flex items-center gap-1`}>
-                    <span className="w-2 h-2 rounded-full bg-current" />
-                    {task.priority}
-                  </span>
-                )}
-                {task.status && getStatusBadge(task.status)}
+        {taskMatches.slice(0, 5).map((task, index) => {
+          // Generate unique key with fallback to prevent duplicate key errors
+          const taskKey = task.id && task.id.trim() !== ''
+            ? `${task.id}-${index}`
+            : `task-${index}`;
+          
+          return (
+            <motion.button
+              key={taskKey}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              onClick={() => onSelectTask(index)}
+              className="w-full flex items-center gap-3 p-3 bg-card border border-border rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
+            >
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-semibold flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                {index + 1}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  {task.due_date && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <CalendarIcon className="w-3 h-3" />
+                      {new Date(task.due_date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                    </span>
+                  )}
+                  {task.priority && (
+                    <span className={`text-xs ${getPriorityColor(task.priority)} flex items-center gap-1`}>
+                      <span className="w-2 h-2 rounded-full bg-current" />
+                      {task.priority}
+                    </span>
+                  )}
+                  {task.status && getStatusBadge(task.status)}
+                </div>
               </div>
-            </div>
-            <ChevronLeftIcon className="w-4 h-4 text-muted-foreground rotate-180 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </motion.button>
-        ))}
+              <ChevronLeftIcon className="w-4 h-4 text-muted-foreground rotate-180 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </motion.button>
+          );
+        })}
       </div>
     </motion.div>
   );
@@ -608,6 +626,11 @@ const TaskList: React.FC<{
     if (!dateString) return null;
     try {
       const date = new Date(dateString);
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date provided:', dateString);
+        return dateString; // Return original string if invalid
+      }
       const now = new Date();
       const diffMs = date.getTime() - now.getTime();
       const diffDays = Math.floor(diffMs / 86400000);
@@ -616,8 +639,9 @@ const TaskList: React.FC<{
       if (diffDays === 1) return 'Tomorrow';
       if (diffDays < 7) return date.toLocaleDateString([], { weekday: 'short' });
       return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    } catch {
-      return dateString;
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString);
+      return dateString; // Return original string on error
     }
   };
 
@@ -625,9 +649,15 @@ const TaskList: React.FC<{
     if (!task.due_date || task.status === 'completed') return false;
     try {
       const dueDate = new Date(task.due_date);
+      // Check if date is valid
+      if (isNaN(dueDate.getTime())) {
+        console.warn('Invalid due date provided:', task.due_date);
+        return false;
+      }
       const now = new Date();
       return dueDate < now;
-    } catch {
+    } catch (error) {
+      console.error('Error checking if task is overdue:', error, task.due_date);
       return false;
     }
   };
@@ -643,47 +673,54 @@ const TaskList: React.FC<{
 
   return (
     <div className="mt-3 space-y-2">
-      {tasks.slice(0, 10).map((task, index) => (
-        <motion.div
-          key={task.id}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05 }}
-          className="p-3 bg-card border border-border rounded-lg hover:border-primary/30 transition-all"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
-                {isOverdue(task) && (
-                  <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 text-xs rounded font-medium">
-                    Overdue
-                  </span>
+      {tasks.slice(0, 10).map((task, index) => {
+        // Generate unique key with fallback to prevent duplicate key errors
+        const taskKey = task.id && task.id.trim() !== ''
+          ? `${task.id}-${index}`
+          : `task-${index}`;
+        
+        return (
+          <motion.div
+            key={taskKey}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="p-3 bg-card border border-border rounded-lg hover:border-primary/30 transition-all"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm font-medium text-foreground truncate">{task.title}</p>
+                  {isOverdue(task) && (
+                    <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 text-xs rounded font-medium">
+                      Overdue
+                    </span>
+                  )}
+                </div>
+                {task.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>
                 )}
               </div>
-              {task.description && (
-                <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>
-              )}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {task.priority && (
+                  <span className={`px-2 py-0.5 text-xs rounded-full capitalize ${getPriorityColor(task.priority)}`}>
+                    {task.priority}
+                  </span>
+                )}
+                {task.status && getStatusBadge(task.status)}
+              </div>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {task.priority && (
-                <span className={`px-2 py-0.5 text-xs rounded-full capitalize ${getPriorityColor(task.priority)}`}>
-                  {task.priority}
+            <div className="flex items-center gap-4 mt-2">
+              {task.due_date && (
+                <span className={`text-xs flex items-center gap-1 ${isOverdue(task) ? 'text-red-500' : 'text-muted-foreground'}`}>
+                  <CalendarIcon className="w-3 h-3" />
+                  {formatDate(task.due_date)}
                 </span>
               )}
-              {task.status && getStatusBadge(task.status)}
             </div>
-          </div>
-          <div className="flex items-center gap-4 mt-2">
-            {task.due_date && (
-              <span className={`text-xs flex items-center gap-1 ${isOverdue(task) ? 'text-red-500' : 'text-muted-foreground'}`}>
-                <CalendarIcon className="w-3 h-3" />
-                {formatDate(task.due_date)}
-              </span>
-            )}
-          </div>
-        </motion.div>
-      ))}
+          </motion.div>
+        );
+      })}
       {tasks.length > 10 && (
         <p className="text-center text-sm text-muted-foreground pt-2">
           ... and {tasks.length - 10} more task{tasks.length - 10 === 1 ? '' : 's'}
@@ -1188,10 +1225,15 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
       content,
     };
 
+    // Dispatch send message action
+    // Typing indicator will be cleared automatically by Redux slice on fulfilled/rejected
     dispatch(sendMessage(request));
     setInputValue('');
 
-    // Reset typing indicator after delay
+    // Show typing indicator while waiting for response
+    // Note: The typing indicator is cleared in the Redux slice when:
+    // - sendMessage.fulfilled: Response received successfully
+    // - sendMessage.rejected: Error occurred
     dispatch(setTypingIndicator(true));
   }, [inputValue, isSending, currentConversationId, user, dispatch]);
 
@@ -1406,15 +1448,23 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose }) => {
                   </div>
                 ) : (
                   <>
-                    {messages.map((message, index) => (
-                      <ChatMessageItem
-                        key={message.id}
-                        message={message}
-                        onConfirmAction={(actionIndex) =>
-                          handleConfirmAction(message.id, actionIndex)
-                        }
-                      />
-                    ))}
+                    {messages.map((message, index) => {
+                      // Generate unique key with fallback to prevent duplicate key errors
+                      // Handles cases where message.id is empty, undefined, or duplicated
+                      const messageKey = message.id && message.id.trim() !== ''
+                        ? `${message.id}-${index}`
+                        : `msg-${message.timestamp || 'no-timestamp'}-${index}`;
+                      
+                      return (
+                        <ChatMessageItem
+                          key={messageKey}
+                          message={message}
+                          onConfirmAction={(actionIndex) =>
+                            handleConfirmAction(message.id, actionIndex)
+                          }
+                        />
+                      );
+                    })}
                     <AnimatePresence>
                       {typingIndicator && <TypingIndicator />}
                     </AnimatePresence>

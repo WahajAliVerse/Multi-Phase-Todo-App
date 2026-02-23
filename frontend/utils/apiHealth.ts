@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
  */
 export const checkApiHealth = async (): Promise<boolean> => {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8003/api';
     // Remove the '/api' part to check the root endpoint
     const healthUrl = baseUrl.replace(/\/api$/, '') + '/health';
     

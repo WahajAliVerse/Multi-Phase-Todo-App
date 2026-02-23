@@ -281,6 +281,9 @@ export interface ChatState {
   isSending: boolean;
   error: string | null;
   typingIndicator: boolean;
+  // Cross-slice state for auto-updates from agent actions
+  tasks?: any[];  // Task[] - lazy loaded to avoid circular dependencies
+  tags?: any[];   // Tag[] - lazy loaded to avoid circular dependencies
 }
 
 // Chat API request/response types

@@ -212,60 +212,67 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
 
       {/* Task list */}
       <div className="space-y-2">
-        {displayTasks.map((task, index) => (
-          <motion.div
-            key={task.id}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-            onClick={() => onTaskClick?.(task)}
-            className={`p-3 bg-card border border-border rounded-lg hover:border-primary/30 transition-all ${
-              onTaskClick ? 'cursor-pointer' : ''
-            }`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {task.title}
-                  </p>
-                  {isOverdue(task) && (
-                    <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 text-xs rounded font-medium flex-shrink-0">
-                      Overdue
-                    </span>
+        {displayTasks.map((task, index) => {
+          // Generate unique key with fallback to prevent duplicate key errors
+          const taskKey = task.id && task.id.trim() !== ''
+            ? `${task.id}-${index}`
+            : `task-${index}`;
+          
+          return (
+            <motion.div
+              key={taskKey}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              onClick={() => onTaskClick?.(task)}
+              className={`p-3 bg-card border border-border rounded-lg hover:border-primary/30 transition-all ${
+                onTaskClick ? 'cursor-pointer' : ''
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {task.title}
+                    </p>
+                    {isOverdue(task) && (
+                      <span className="px-1.5 py-0.5 bg-red-500/10 text-red-500 text-xs rounded font-medium flex-shrink-0">
+                        Overdue
+                      </span>
+                    )}
+                  </div>
+                  {task.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-1">
+                      {task.description}
+                    </p>
                   )}
                 </div>
-                {task.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-1">
-                    {task.description}
-                  </p>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {task.priority && getPriorityBadge(task.priority)}
+                  {task.status && getStatusBadge(task.status)}
+                </div>
+              </div>
+              <div className="flex items-center gap-4 mt-2">
+                {task.due_date && (
+                  <span
+                    className={`text-xs flex items-center gap-1 ${
+                      isOverdue(task) ? 'text-red-500' : 'text-muted-foreground'
+                    }`}
+                  >
+                    <CalendarIcon className="w-3 h-3" />
+                    {formatDueDate(task.due_date)}
+                  </span>
+                )}
+                {task.tags && task.tags.length > 0 && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <TagIcon className="w-3 h-3" />
+                    {task.tags.length} tag{task.tags.length === 1 ? '' : 's'}
+                  </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {task.priority && getPriorityBadge(task.priority)}
-                {task.status && getStatusBadge(task.status)}
-              </div>
-            </div>
-            <div className="flex items-center gap-4 mt-2">
-              {task.due_date && (
-                <span
-                  className={`text-xs flex items-center gap-1 ${
-                    isOverdue(task) ? 'text-red-500' : 'text-muted-foreground'
-                  }`}
-                >
-                  <CalendarIcon className="w-3 h-3" />
-                  {formatDueDate(task.due_date)}
-                </span>
-              )}
-              {task.tags && task.tags.length > 0 && (
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <TagIcon className="w-3 h-3" />
-                  {task.tags.length} tag{task.tags.length === 1 ? '' : 's'}
-                </span>
-              )}
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Overflow indicator */}

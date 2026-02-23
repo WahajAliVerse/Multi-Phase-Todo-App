@@ -2,6 +2,35 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { tagsApi } from '@/utils/api';
 import { Tag, CreateTagData, UpdateTagData } from '@/utils/validators';
 import { TagsState } from '@/types';
+import { sendMessage } from './agentChat';
+import { ChatAction } from '@/types';
+
+// ============================================================================
+// Helper Functions for Auto-Update from Chat Actions
+// ============================================================================
+
+/**
+ * Extract tag data from a chat action result
+ * Handles both snake_case (backend) and camelCase (frontend) formats
+ */
+const extractTagFromChatAction = (action: ChatAction): Partial<Tag> | null => {
+  if (!action.details) return null;
+
+  const details = action.details;
+  const tagData = details.tag || details;
+
+  // Convert snake_case to camelCase if needed
+  const tag: Partial<Tag> = {
+    id: tagData.id || action.tag_id,
+    name: tagData.name,
+    color: tagData.color,
+    userId: tagData.user_id || tagData.userId,
+    createdAt: tagData.created_at || tagData.createdAt || new Date().toISOString(),
+    updatedAt: tagData.updated_at || tagData.updatedAt || new Date().toISOString(),
+  };
+
+  return tag.id ? tag : null;
+};
 
 // Initial state
 const initialState: TagsState = {
@@ -81,6 +110,54 @@ const tagsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // ======================================================================
+      // AUTO-UPDATE FROM CHAT ACTIONS (Redux Auto-Sync Feature)
+      // When chat operations create/update/delete tags, automatically update
+      // the tags state without requiring a page refresh or re-fetch
+      // ======================================================================
+      .addCase(sendMessage.fulfilled, (state, action) => {
+        // Extract actions from the chat response
+        const chatActions = action.payload.actions || [];
+
+        chatActions.forEach((chatAction: ChatAction) => {
+          // Only process confirmed actions (backend has already executed them)
+          if (!chatAction.confirmed) return;
+
+          // Handle tag creation
+          if (chatAction.type === 'create_tag') {
+            const newTag = extractTagFromChatAction(chatAction);
+            if (newTag && newTag.id) {
+              const existingIndex = state.tags.findIndex(t => t.id === newTag.id);
+              if (existingIndex === -1) {
+                state.tags.push(newTag as Tag);
+                console.log('[tagsSlice] Auto-added tag from chat:', newTag.id);
+              }
+            }
+          }
+
+          // Handle tag update
+          if (chatAction.type === 'update_tag' && chatAction.tag_id) {
+            const updatedTag = extractTagFromChatAction(chatAction);
+            if (updatedTag && updatedTag.id) {
+              const index = state.tags.findIndex(t => t.id === updatedTag.id);
+              if (index !== -1) {
+                state.tags[index] = { ...state.tags[index], ...updatedTag } as Tag;
+                console.log('[tagsSlice] Auto-updated tag from chat:', updatedTag.id);
+              }
+            }
+          }
+
+          // Handle tag deletion
+          if (chatAction.type === 'delete_tag' && chatAction.tag_id) {
+            const initialCount = state.tags.length;
+            state.tags = state.tags.filter(t => t.id !== chatAction.tag_id);
+            if (state.tags.length !== initialCount) {
+              console.log('[tagsSlice] Auto-deleted tag from chat:', chatAction.tag_id);
+            }
+          }
+        });
+      })
+
       // Handle rehydration from Redux Persist
       .addCase('persist/REHYDRATE', (state, action: any) => {
         const incomingState = action.payload;

@@ -2,8 +2,12 @@
 import { tasksApi } from '@/utils/api';
 import { Task, CreateTaskData, UpdateTaskData } from '@/utils/validators';
 import { TasksState } from '@/types';
+import { sendMessage } from './agentChat';
+import { ChatAction } from '@/types';
 
-// Initial state
+// ============================================================================
+// Initial State
+// ============================================================================
 const initialState: TasksState = {
   tasks: [],
   loading: false,
@@ -120,6 +124,88 @@ const tasksSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // ======================================================================
+      // AUTO-UPDATE FROM CHAT ACTIONS (Redux Auto-Sync Feature)
+      // When chat operations create/update/delete tasks, automatically update
+      // the tasks state without requiring a page refresh or re-fetch
+      // ======================================================================
+      .addCase(sendMessage.fulfilled, (state, action) => {
+        // Extract actions from the chat response
+        const chatActions = action.payload.actions || [];
+
+        chatActions.forEach((chatAction: ChatAction) => {
+          // Only process confirmed actions (backend has already executed them)
+          if (!chatAction.confirmed) return;
+
+          // Handle task creation
+          if (chatAction.type === 'create_task' && chatAction.details) {
+            const taskData = chatAction.details.task || chatAction.details;
+            const taskId = taskData.id || chatAction.task_id;
+            if (taskId) {
+              const existingIndex = state.tasks.findIndex(t => t.id === taskId);
+              if (existingIndex === -1) {
+                const newTask: Task = {
+                  id: taskId,
+                  title: taskData.title || '',
+                  description: taskData.description,
+                  dueDate: taskData.due_date || taskData.dueDate,
+                  priority: (taskData.priority as Task['priority']) || 'medium',
+                  completed: taskData.status === 'completed' || taskData.completed === true,
+                  tags: (Array.isArray(taskData.tags) ? taskData.tags : []) as string[],
+                  userId: taskData.user_id || taskData.userId || '',
+                  createdAt: taskData.created_at || taskData.createdAt || new Date().toISOString(),
+                  updatedAt: taskData.updated_at || taskData.updatedAt || new Date().toISOString(),
+                  recurrence: taskData.recurrence_pattern_id ? {
+                    pattern: 'daily',
+                    interval: 1,
+                  } : undefined,
+                };
+                (state.tasks as Task[]).push(newTask);
+                console.log('[tasksSlice] Auto-added task from chat:', taskId);
+              }
+            }
+          }
+
+          // Handle task update
+          if (chatAction.type === 'update_task' && chatAction.task_id && chatAction.details) {
+            const taskData = chatAction.details.task || chatAction.details;
+            const taskId = taskData.id || chatAction.task_id;
+            if (taskId) {
+              const index = state.tasks.findIndex(t => t.id === taskId);
+              if (index !== -1) {
+                state.tasks[index].title = taskData.title || state.tasks[index].title;
+                state.tasks[index].description = taskData.description ?? state.tasks[index].description;
+                state.tasks[index].dueDate = taskData.due_date || taskData.dueDate || state.tasks[index].dueDate;
+                state.tasks[index].priority = (taskData.priority as Task['priority']) || state.tasks[index].priority;
+                state.tasks[index].completed = taskData.status === 'completed' || taskData.completed === true || state.tasks[index].completed;
+                state.tasks[index].tags = Array.isArray(taskData.tags) ? taskData.tags : state.tasks[index].tags;
+                state.tasks[index].updatedAt = taskData.updated_at || taskData.updatedAt || new Date().toISOString();
+                console.log('[tasksSlice] Auto-updated task from chat:', taskId);
+              }
+            }
+          }
+
+          // Handle task deletion
+          if (chatAction.type === 'delete_task' && chatAction.task_id) {
+            const initialCount = state.tasks.length;
+            state.tasks = state.tasks.filter(t => t.id !== chatAction.task_id);
+            if (state.tasks.length !== initialCount) {
+              console.log('[tasksSlice] Auto-deleted task from chat:', chatAction.task_id);
+            }
+          }
+
+          // Handle task completion
+          if (chatAction.type === 'complete_task' && chatAction.task_id) {
+            const task = state.tasks.find(t => t.id === chatAction.task_id);
+            if (task) {
+              task.completed = true;
+              task.status = 'completed';
+              console.log('[tasksSlice] Auto-completed task from chat:', chatAction.task_id);
+            }
+          }
+        });
+      })
+
       // Handle rehydration from Redux Persist
       .addCase('persist/REHYDRATE', (state, action: any) => {
         console.log('[tasksSlice] REHYDRATE action received:', action.payload);

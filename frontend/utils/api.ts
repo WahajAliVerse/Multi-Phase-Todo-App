@@ -13,6 +13,7 @@ import {
   ChatConversationDto,
   ChatConversation,
   ChatAction,
+  ChatActionType,
   SendMessageRequest,
   SendMessageResponse,
   GetConversationsResponse,
@@ -61,7 +62,7 @@ export interface User {
 
 // Base API configuration
 // Update this to point to your deployed backend
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'; // Default to local backend
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8003/api'; // Default to local backend
 const DEFAULT_HEADERS = {
   'Content-Type': 'application/json',
 };
@@ -719,6 +720,107 @@ const transformChatConversationDtoToFrontendModel = (dto: ChatConversationDto): 
 const transformChatConversationDtosToFrontendModels = (dtos: ChatConversationDto[]): ChatConversation[] =>
   dtos.map(transformChatConversationDtoToFrontendModel);
 
+/**
+ * Transform backend action format to frontend ChatAction format
+ * Backend returns: { type: 'tool_call', tool_name: 'create_task', arguments: {...}, result: {...} }
+ * Frontend expects: { type: 'create_task', details: {...}, confirmed: true }
+ */
+const transformBackendActionToFrontend = (backendAction: any): ChatAction[] => {
+  if (!backendAction) return [];
+
+  // Handle both single action and array of actions
+  const actions = Array.isArray(backendAction) ? backendAction : [backendAction];
+
+  return actions
+    .map((action: any): ChatAction | null => {
+      // Map tool_name to action type
+      const toolNameToType: Record<string, ChatActionType> = {
+        create_task: 'create_task',
+        update_task: 'update_task',
+        delete_task: 'delete_task',
+        mark_task_complete: 'complete_task',
+        create_tag: 'create_tag',
+        update_tag: 'update_tag',
+        delete_tag: 'delete_tag',
+        assign_tag: 'assign_tag',
+        create_recurring_task: 'create_recurrence',
+        cancel_recurrence: 'cancel_recurrence',
+        schedule_reminder: 'schedule_reminder',
+        get_tasks: 'query_tasks',
+      };
+
+      const actionType = action.tool_name
+        ? toolNameToType[action.tool_name] || (action.intent_type as ChatActionType)
+        : (action.intent_type as ChatActionType) || 'create_task';
+
+      // Extract task/tag data from result or arguments
+      const result = action.result || {};
+      const argumentsData = action.arguments || {};
+
+      // Build details object with camelCase conversion
+      const details: Record<string, any> = {};
+
+      // Extract task data
+      if (result.task) {
+        details.task = result.task;
+        // Add task fields to details for easier access
+        if (result.task.title) details.title = result.task.title;
+        if (result.task.description) details.description = result.task.description;
+        if (result.task.due_date) details.due_date = result.task.due_date;
+        if (result.task.priority) details.priority = result.task.priority;
+        if (result.task.status) details.status = result.task.status;
+        if (result.task.tags) details.tags = result.task.tags;
+      }
+
+      // Extract tag data
+      if (result.tag) {
+        details.tag = result.tag;
+        if (result.tag.name) details.name = result.tag.name;
+        if (result.tag.color) details.color = result.tag.color;
+      }
+
+      // Merge arguments into details
+      Object.assign(details, argumentsData);
+
+      // Since backend has already executed the action, mark as confirmed
+      // The action has been performed, we're just updating the UI
+      return {
+        type: actionType,
+        task_id: result.task?.id || result.id || action.task_id,
+        tag_id: result.tag?.id || result.id || action.tag_id,
+        details,
+        confirmed: true, // Backend already executed the action
+      };
+    })
+    .filter((action): action is ChatAction => action !== null);
+};
+
+/**
+ * Transform backend response actions to frontend format
+ * Handles both single action and array of actions
+ */
+const transformBackendActionsToFrontend = (backendActions: any): ChatAction[] => {
+  if (!backendActions) return [];
+
+  // Backend may return:
+  // 1. Single action object: { type, tool_name, result, ... }
+  // 2. Array of actions: [{...}, {...}]
+  // 3. Action wrapped in object: { action: {...} }
+
+  if (backendActions.action) {
+    // Wrapped in object
+    return transformBackendActionToFrontend(backendActions.action);
+  }
+
+  if (Array.isArray(backendActions)) {
+    // Array of actions - flatten all results
+    return backendActions.flatMap((action: any) => transformBackendActionToFrontend(action));
+  }
+
+  // Single action object
+  return transformBackendActionToFrontend(backendActions);
+};
+
 export interface CreateConversationRequest {
   title: string;
 }
@@ -745,7 +847,9 @@ export const chatApi = {
     // Transform response to frontend models
     const transformedResponse: SendMessageResponse = {
       message: transformChatMessageDtoToFrontendModel(response.message),
-      actions: response.actions,
+      // Transform backend actions to frontend format
+      // Backend returns: { action: {...} } or { actions: [...] }
+      actions: transformBackendActionsToFrontend(response.action || response.actions),
     };
 
     if (response.conversation) {
