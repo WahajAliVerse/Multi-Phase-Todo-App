@@ -124,7 +124,7 @@ export async function apiRequest<T>(
     // Handle 401 Unauthorized - likely means session expired
     if (response.status === 401) {
       // Redirect to login to re-authenticate
-      handleUnauthorized();
+      // handleUnauthorized();
       // Throw a specific error to prevent retries
       throw new ApiError('Session expired. Please log in again.', 401);
     }
