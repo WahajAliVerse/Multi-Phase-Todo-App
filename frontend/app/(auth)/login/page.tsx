@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import LoginForm from '@/components/forms/LoginForm';
 import { motion } from 'framer-motion';
@@ -8,26 +8,23 @@ import { useRouter } from 'next/navigation';
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleLoginSuccess = () => {
     console.log('[LoginPage] Login successful callback triggered');
-    console.log('[LoginPage] Current router state:', { pathname: window.location.pathname });
     
-    // Primary navigation method: Next.js router
-    try {
-      console.log('[LoginPage] Attempting router.push to /dashboard...');
-      const pushResult = router.push('/dashboard');
-      console.log('[LoginPage] router.push completed:', pushResult);
-    } catch (error) {
-      console.error('[LoginPage] router.push failed:', error);
-      
-      // Fallback: Hard navigation using window.location
-      try {
-        console.log('[LoginPage] Falling back to window.location.href');
-        window.location.href = '/dashboard';
-      } catch (fallbackError) {
-        console.error('[LoginPage] All navigation methods failed:', fallbackError);
-      }
+    // Ensure router is ready before navigation
+    if (isMounted && router) {
+      console.log('[LoginPage] Using router.replace for navigation');
+      // Use replace instead of push to prevent back button going to login
+      router.replace('/dashboard');
+    } else {
+      console.log('[LoginPage] Router not ready, using fallback');
+      window.location.href = '/dashboard';
     }
   };
 
