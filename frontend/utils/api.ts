@@ -510,7 +510,8 @@ export const tagsApi = {
   getAll: async () => {
     console.log('Fetching tags...');
     // The API returns an array directly, not an object with a tags property
-    const response = await apiRequest<TagDto[]>('/tags');
+    // CRITICAL FIX: Add trailing slash to prevent 307 redirect that breaks cookies
+    const response = await apiRequest<TagDto[]>('/tags/');
     console.log('Raw API response:', response);
     // Transform DTOs to frontend models
     // Since response is already an array, use it directly
