@@ -18,17 +18,8 @@ const Footer: React.FC = () => {
               &copy; {new Date().getFullYear()} TodoApp. All rights reserved.
             </p>
           </div>
-          <div className="mt-4 flex justify-center space-x-6 md:mt-0 md:justify-end">
-            <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="text-muted-foreground hover:text-foreground">
-              Terms
-            </Link>
-            <Link href="/contact" className="text-muted-foreground hover:text-foreground">
-              Contact
-            </Link>
-          </div>
+          {/* Removed non-existent page links that were causing 404 errors */}
+          {/* Links to /privacy, /terms, /contact removed - these routes don't exist */}
         </div>
       </div>
     </footer>

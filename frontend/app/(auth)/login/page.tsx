@@ -10,9 +10,25 @@ const LoginPage: React.FC = () => {
   const router = useRouter();
 
   const handleLoginSuccess = () => {
-    console.log('[LoginPage] Login successful, redirecting to dashboard...');
-    // Use Next.js router for navigation
-    router.push('/dashboard');
+    console.log('[LoginPage] Login successful callback triggered');
+    console.log('[LoginPage] Current router state:', { pathname: window.location.pathname });
+    
+    // Primary navigation method: Next.js router
+    try {
+      console.log('[LoginPage] Attempting router.push to /dashboard...');
+      const pushResult = router.push('/dashboard');
+      console.log('[LoginPage] router.push completed:', pushResult);
+    } catch (error) {
+      console.error('[LoginPage] router.push failed:', error);
+      
+      // Fallback: Hard navigation using window.location
+      try {
+        console.log('[LoginPage] Falling back to window.location.href');
+        window.location.href = '/dashboard';
+      } catch (fallbackError) {
+        console.error('[LoginPage] All navigation methods failed:', fallbackError);
+      }
+    }
   };
 
   return (

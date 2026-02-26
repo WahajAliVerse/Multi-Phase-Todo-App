@@ -11,9 +11,15 @@ import { loginUser, fetchUserProfile } from '@/redux/slices/authSlice';
 import { fetchTags } from '@/redux/slices/tagsSlice';
 import { addNotification } from '@/redux/slices/uiSlice';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-const LoginForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
+interface LoginFormProps {
+  onSuccess?: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -22,27 +28,70 @@ const LoginForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
     resolver: zodResolver(loginSchema),
   });
 
+  const navigateToDashboard = () => {
+    console.log('[LoginForm] Attempting navigation to dashboard...');
+    
+    // Primary: Try Next.js router
+    try {
+      router.push('/dashboard');
+      console.log('[LoginForm] router.push called successfully');
+    } catch (routerError) {
+      console.error('[LoginForm] router.push failed:', routerError);
+      
+      // Fallback: Use window.location for hard navigation
+      try {
+        console.log('[LoginForm] Falling back to window.location.href');
+        window.location.href = '/dashboard';
+      } catch (fallbackError) {
+        console.error('[LoginForm] All navigation methods failed:', fallbackError);
+        dispatch(addNotification({
+          type: 'error',
+          message: 'Login successful but navigation failed. Please refresh the page.'
+        }));
+      }
+    }
+  };
+
   const onSubmit = async (data: LoginData) => {
     try {
       console.log('[LoginForm] Attempting login...');
-      await dispatch(loginUser(data)).unwrap();
-      console.log('[LoginForm] Login successful!');
+      console.log('[LoginForm] Login payload:', { email: data.email, password: '***' });
+      
+      // Dispatch login action
+      const result = await dispatch(loginUser(data)).unwrap();
+      console.log('[LoginForm] Login successful! Response:', result);
+      
+      // Show success notification
       dispatch(addNotification({
         type: 'success',
         message: 'Login successful! Welcome back.'
       }));
 
+      // Small delay to ensure Redux state and cookies are fully updated
+      // This prevents race conditions with middleware
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('[LoginForm] Calling onSuccess callback...');
+      
+      // Call the onSuccess callback if provided
       if (onSuccess) {
-        console.log('[LoginForm] Calling onSuccess callback...');
         onSuccess();
       } else {
-        console.warn('[LoginForm] No onSuccess callback provided!');
+        // If no callback provided, navigate directly
+        console.log('[LoginForm] No onSuccess callback, navigating directly...');
+        navigateToDashboard();
       }
     } catch (error: any) {
       console.error('[LoginForm] Login failed:', error);
+      console.error('[LoginForm] Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        response: error?.response?.data
+      });
+      
       dispatch(addNotification({
         type: 'error',
-        message: error.message || 'Login failed'
+        message: error.message || 'Login failed. Please check your credentials.'
       }));
     }
   };
