@@ -95,11 +95,12 @@ export async function apiRequest<T>(
   const url = `${BASE_URL}${endpoint}`;
   console.log('Making API request to:', url, 'with options:', options);
 
-  // Add credentials and CORS settings to all requests for cookie authentication
+  // CRITICAL FIX: Spread options FIRST, then set credentials
+  // This ensures cookies are ALWAYS sent with requests
   const config: RequestInit = {
-    credentials: 'include', // This ensures cookies are sent with requests
-    mode: 'cors', // Enable CORS mode
-    ...options,
+    ...options,  // Spread user options first
+    credentials: 'include',  // THEN force credentials (overrides any options value)
+    mode: 'cors',  // Force CORS mode for all requests
     headers: {
       ...DEFAULT_HEADERS,
       ...options.headers,

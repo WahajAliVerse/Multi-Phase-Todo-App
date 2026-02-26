@@ -8,7 +8,18 @@ import { updateTask, deleteTask, toggleTaskCompletion } from '@/redux/slices/tas
 import { openModal } from '@/redux/slices/uiSlice';
 import TagChip from '@/components/common/TagChip';
 import Button from '@/components/ui/Button';
-import { PencilIcon, TrashIcon, ChevronUpIcon, ChevronDownIcon, CalendarIcon, ClockIcon, TagIcon } from '@heroicons/react/24/outline';
+import { 
+  PencilIcon, 
+  TrashIcon, 
+  ChevronUpIcon, 
+  ChevronDownIcon, 
+  CalendarIcon, 
+  ClockIcon, 
+  TagIcon,
+  ExclamationCircleIcon,
+  CheckCircleIcon
+} from '@heroicons/react/24/outline';
+import { CheckCircleIcon as CheckCircleSolidIcon } from '@heroicons/react/24/solid';
 import { formatDate } from '@/utils/dateUtils';
 
 interface TaskCardProps {
@@ -43,15 +54,21 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
     }
   };
 
-  // Modern gradient backgrounds for priorities
+  // Enhanced gradient backgrounds with modern color palette
   const priorityGradients = {
-    low: 'from-cyan-500/10 to-blue-500/10 border-cyan-500/30',
-    medium: 'from-amber-500/10 to-orange-500/10 border-amber-500/30',
-    high: 'from-rose-500/10 to-red-500/10 border-rose-500/30',
+    low: 'from-emerald-500/5 via-teal-500/5 to-cyan-500/5 border-emerald-500/20',
+    medium: 'from-amber-500/5 via-orange-500/5 to-yellow-500/5 border-amber-500/20',
+    high: 'from-rose-500/5 via-pink-500/5 to-red-500/5 border-rose-500/20',
+  };
+
+  const priorityAccentColors = {
+    low: 'from-emerald-500 to-teal-500',
+    medium: 'from-amber-500 to-orange-500',
+    high: 'from-rose-500 to-pink-500',
   };
 
   const priorityColors = {
-    low: 'text-cyan-600 dark:text-cyan-400',
+    low: 'text-emerald-600 dark:text-emerald-400',
     medium: 'text-amber-600 dark:text-amber-400',
     high: 'text-rose-600 dark:text-rose-400',
   };
@@ -69,8 +86,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -4, scale: 1.02 }}
+      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+      whileHover={{ y: -6, scale: 1.01 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onClick={() => setIsExpanded(!isExpanded)}
@@ -78,64 +95,72 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         relative overflow-hidden cursor-pointer
         bg-gradient-to-br ${priorityGradients[task.priority]}
         backdrop-blur-xl
-        border border-white/20 dark:border-white/10
-        rounded-2xl
-        shadow-lg hover:shadow-2xl
+        border rounded-2xl
+        shadow-md hover:shadow-2xl
         transition-all duration-500
         group
       `}
     >
-      {/* Animated background glow effect */}
+      {/* Animated priority accent bar */}
       <motion.div
-        className={`absolute inset-0 bg-gradient-to-br ${priorityGradients[task.priority]} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+        className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${priorityAccentColors[task.priority]}`}
+        initial={{ height: 0 }}
+        animate={{ height: '100%' }}
+        transition={{ duration: 0.5, delay: 0.2 }}
       />
 
-      {/* Completion status indicator */}
+      {/* Subtle animated background glow on hover */}
+      <motion.div
+        className={`absolute inset-0 bg-gradient-to-br ${priorityGradients[task.priority]} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}
+      />
+
+      {/* Completion status badge */}
       {task.completed && (
-        <div className="absolute top-0 right-0 w-20 h-20 bg-success/10 rounded-bl-full overflow-hidden">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-2 -right-2 w-10 h-10 bg-success/20 rounded-full blur-xl"
-          />
-        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute top-3 right-3 z-10"
+        >
+          <CheckCircleSolidIcon className="h-6 w-6 text-emerald-500 drop-shadow-lg" />
+        </motion.div>
       )}
 
-      {/* Overdue indicator */}
+      {/* Overdue badge */}
       {isOverdue && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-destructive/20 backdrop-blur-sm rounded-full"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-rose-500/90 backdrop-blur-sm rounded-full shadow-lg z-10"
         >
-          <ClockIcon className="h-3 w-3 text-destructive" />
-          <span className="text-xs font-medium text-destructive">Overdue</span>
+          <ExclamationCircleIcon className="h-3.5 w-3.5 text-white" />
+          <span className="text-xs font-semibold text-white">Overdue</span>
         </motion.div>
       )}
 
       <div className="relative p-5">
         <div className="flex items-start gap-4">
-          {/* Custom checkbox with animation */}
+          {/* Enhanced custom checkbox */}
           <motion.button
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.15, rotate: 5 }}
             whileTap={{ scale: 0.9 }}
             onClick={(e) => {
               e.stopPropagation();
               handleToggleCompletion();
             }}
             className={`
-              mt-1 flex-shrink-0 w-6 h-6 rounded-lg
+              mt-1 flex-shrink-0 w-6 h-6 rounded-xl
               border-2 transition-all duration-300
               flex items-center justify-center
               ${task.completed
-                ? 'bg-success border-success scale-105'
-                : 'border-white/30 dark:border-white/20 hover:border-primary/50'
+                ? 'bg-gradient-to-br from-emerald-500 to-teal-500 border-transparent scale-110 shadow-md'
+                : 'border-white/30 dark:border-white/20 hover:border-primary/50 hover:bg-primary/5'
               }
             `}
           >
             <motion.div
               initial={false}
-              animate={{ scale: task.completed ? 1 : 0 }}
+              animate={{ scale: task.completed ? 1 : 0, rotate: task.completed ? 0 : -90 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
               className="text-white"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -149,7 +174,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             {/* Title with completion styling */}
             <motion.h3
               className={`
-                text-lg font-bold mb-2 transition-all duration-300
+                text-lg font-bold mb-2 transition-all duration-300 line-clamp-2
                 ${task.completed
                   ? 'line-through text-muted-foreground/60'
                   : 'text-foreground'
@@ -159,7 +184,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
               {task.title}
             </motion.h3>
 
-            {/* Description preview or full */}
+            {/* Description with better typography */}
             <motion.p
               className={`
                 text-sm text-muted-foreground leading-relaxed
@@ -169,19 +194,23 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
               {task.description}
             </motion.p>
 
-            {/* Tags */}
+            {/* Enhanced tags section */}
             {(task.tags && task.tags.length > 0) && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-wrap gap-2 mt-3"
+                transition={{ delay: 0.1 }}
+                className="flex flex-wrap gap-2 mt-4"
               >
-                {(task.tags || []).map((tagId) => {
+                {(task.tags || []).map((tagId, index) => {
                   const fullTag = Array.isArray(allTags) ? allTags.find(tag => tag.id === tagId) : undefined;
                   return fullTag ? (
                     <motion.div
                       key={fullTag.id}
-                      whileHover={{ scale: 1.05 }}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ scale: 1.05, y: -2 }}
                       className="mr-2 mb-1"
                     >
                       <TagChip tag={fullTag} />
@@ -200,33 +229,31 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             )}
           </div>
 
-          {/* Right side metadata */}
-          <div className="flex flex-col items-end gap-2">
-            {/* Priority badge with modern design */}
+          {/* Right side metadata with enhanced styling */}
+          <div className="flex flex-col items-end gap-2.5">
+            {/* Priority badge with gradient */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               className={`
                 px-3 py-1.5 rounded-xl
-                bg-white/40 dark:bg-white/10
-                backdrop-blur-sm
-                border border-white/20
-                shadow-sm
+                bg-gradient-to-br ${priorityAccentColors[task.priority]}
+                shadow-md
               `}
             >
-              <span className={`text-xs font-semibold ${priorityColors[task.priority]}`}>
+              <span className="text-xs font-bold text-white drop-shadow-sm">
                 {priorityLabels[task.priority]}
               </span>
             </motion.div>
 
-            {/* Due date with icon */}
+            {/* Due date with enhanced styling */}
             {task.dueDate && (
               <motion.div
                 className={`
-                  flex items-center gap-1.5 text-xs
-                  ${isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground'}
+                  flex items-center gap-1.5 text-xs font-medium
+                  ${isOverdue ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}
                 `}
               >
-                <CalendarIcon className="h-3.5 w-3.5" />
+                <CalendarIcon className="h-4 w-4" />
                 <span>{formatDate(task.dueDate)}</span>
               </motion.div>
             )}
@@ -243,7 +270,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             >
               <motion.div
                 animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.3, type: "spring" }}
               >
                 <ChevronDownIcon className="h-4 w-4 text-muted-foreground" />
               </motion.div>
@@ -264,23 +291,33 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           >
             <div className="border-t border-white/10 dark:border-white/5 bg-black/5 dark:bg-white/5 px-5 py-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                {/* Metadata */}
-                <div className="flex flex-col gap-2 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2">
+                {/* Enhanced metadata */}
+                <div className="flex flex-col gap-2.5 text-xs text-muted-foreground">
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex items-center gap-2"
+                  >
                     <ClockIcon className="h-3.5 w-3.5" />
-                    <span>Created: {formatDate(task.createdAt)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
+                    <span>Created: <span className="font-medium text-foreground">{formatDate(task.createdAt)}</span></span>
+                  </motion.div>
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="flex items-center gap-2"
+                  >
                     <ClockIcon className="h-3.5 w-3.5" />
-                    <span>Updated: {formatDate(task.updatedAt)}</span>
-                  </div>
+                    <span>Updated: <span className="font-medium text-foreground">{formatDate(task.updatedAt)}</span></span>
+                  </motion.div>
                 </div>
 
-                {/* Action buttons */}
+                {/* Enhanced action buttons */}
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 }}
+                  transition={{ delay: 0.2 }}
                   className="flex gap-2"
                 >
                   <Button
@@ -290,7 +327,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                       e.stopPropagation();
                       handleEdit();
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium transition-all hover:shadow-md"
                   >
                     <PencilIcon className="h-3.5 w-3.5" />
                     Edit
@@ -302,7 +339,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                       e.stopPropagation();
                       handleDelete();
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium transition-all hover:shadow-md"
                   >
                     <TrashIcon className="h-3.5 w-3.5" />
                     Delete

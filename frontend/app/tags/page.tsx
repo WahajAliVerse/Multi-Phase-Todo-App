@@ -5,11 +5,13 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchTags, createTag, updateTag, deleteTag } from '@/redux/slices/tagsSlice';
 import { openModal, addNotification } from '@/redux/slices/uiSlice';
 import TagChip from '@/components/common/TagChip';
+import TagCard from '@/components/common/TagCard';
 import TagForm from '@/components/forms/TagForm';
 import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/Card';
 import { motion } from 'framer-motion';
 import Button from '@/components/ui/Button';
 import { formatDate } from '@/utils/dateUtils';
+import { Tag } from '@/types';
 
 const TagsPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -275,7 +277,7 @@ const TagsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Grid View of Tags */}
+                {/* Grid View of Tags with new TagCard component */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -283,48 +285,12 @@ const TagsPage: React.FC = () => {
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
                 >
                   {Array.isArray(paginatedTags) ? paginatedTags.map((tag) => (
-                    <motion.div
+                    <TagCard
                       key={tag.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.2 }}
-                      drag="x"
-                      dragConstraints={{ left: 0, right: 0 }}
-                      className="cursor-move"
-                    >
-                      <Card elevated>
-                        <CardBody>
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center space-x-2">
-                              <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                              </svg>
-                              <span className="font-medium text-foreground">{tag.name}</span>
-                            </div>
-                            <div className="flex space-x-2">
-                              <Button variant="secondary" size="sm" onClick={() => handleEdit(tag)}>
-                                Edit
-                              </Button>
-                              <Button variant="danger" size="sm" onClick={() => handleDelete(tag.id)}>
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-
-                          <div className="mt-4">
-                            <p className="text-sm text-muted-foreground">
-                              Used in {tag.taskCount || 0} tasks
-                            </p>
-                            <div className="mt-2 flex items-center text-xs text-muted-foreground">
-                              <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              Created: {formatDate(tag.createdAt)}
-                            </div>
-                          </div>
-                        </CardBody>
-                      </Card>
-                    </motion.div>
+                      tag={tag}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
                   )) : []}
                 </motion.div>
 
