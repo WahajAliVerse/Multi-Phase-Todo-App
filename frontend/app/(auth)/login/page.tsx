@@ -9,6 +9,12 @@ import { useRouter } from 'next/navigation';
 const LoginPage: React.FC = () => {
   const router = useRouter();
 
+  const handleLoginSuccess = () => {
+    console.log('[LoginPage] Login successful, redirecting to dashboard...');
+    // Use Next.js router for navigation
+    router.push('/dashboard');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
@@ -34,7 +40,7 @@ const LoginPage: React.FC = () => {
           </p>
         </div>
 
-        <LoginForm onSuccess={() => router.push('/dashboard')} />
+        <LoginForm onSuccess={handleLoginSuccess} />
       </motion.div>
     </div>
   );

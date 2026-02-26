@@ -24,16 +24,22 @@ const LoginForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
 
   const onSubmit = async (data: LoginData) => {
     try {
+      console.log('[LoginForm] Attempting login...');
       await dispatch(loginUser(data)).unwrap();
+      console.log('[LoginForm] Login successful!');
       dispatch(addNotification({
         type: 'success',
         message: 'Login successful! Welcome back.'
       }));
 
       if (onSuccess) {
+        console.log('[LoginForm] Calling onSuccess callback...');
         onSuccess();
+      } else {
+        console.warn('[LoginForm] No onSuccess callback provided!');
       }
     } catch (error: any) {
+      console.error('[LoginForm] Login failed:', error);
       dispatch(addNotification({
         type: 'error',
         message: error.message || 'Login failed'
