@@ -85,7 +85,36 @@ function handleUnauthorized() {
 }
 
 /**
+ * Get auth token from Redux store (client-side only)
+ * This is a safe way to access the token without circular dependencies
+ */
+function getAuthToken(): string | null {
+  if (typeof window === 'undefined') {
+    // Server-side: cannot access Redux store
+    return null;
+  }
+  
+  try {
+    // Access Redux store through window object (set by providers)
+    const store = (window as any).__REDUX_STORE__;
+    if (store) {
+      const state = store.getState();
+      return state?.auth?.token || null;
+    }
+  } catch (error) {
+    console.warn('Could not access Redux store for token:', error);
+  }
+  
+  return null;
+}
+
+/**
  * Wrapper for fetch requests with automatic error handling and retries
+ * 
+ * SECURITY: 
+ * - Sends Authorization header with JWT token (from Redux memory)
+ * - Sends cookies for backup authentication
+ * - Token is NEVER stored in localStorage
  */
 export async function apiRequest<T>(
   endpoint: string,
@@ -93,18 +122,33 @@ export async function apiRequest<T>(
   retries = MAX_RETRIES
 ): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;
-  console.log('Making API request to:', url, 'with options:', options);
+  
+  // Get token from Redux store (memory only)
+  const token = getAuthToken();
+  
+  // Build headers with Authorization token if available
+  const headers: Record<string, string> = {
+    ...DEFAULT_HEADERS,
+    ...options.headers,
+  };
+  
+  // Add Authorization header if token exists (primary auth method)
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  console.log('Making API request to:', url, {
+    hasToken: !!token,
+    hasAuthHeader: !!headers['Authorization'],
+  });
 
   // CRITICAL FIX: Spread options FIRST, then set credentials
-  // This ensures cookies are ALWAYS sent with requests
+  // This ensures cookies are ALWAYS sent with requests (backup auth)
   const config: RequestInit = {
     ...options,  // Spread user options first
-    credentials: 'include',  // THEN force credentials (overrides any options value)
+    credentials: 'include',  // THEN force cookies (backup auth)
     mode: 'cors',  // Force CORS mode for all requests
-    headers: {
-      ...DEFAULT_HEADERS,
-      ...options.headers,
-    },
+    headers,
   };
 
   // Log the request body if it exists

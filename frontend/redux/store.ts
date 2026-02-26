@@ -31,7 +31,10 @@ const unauthenticatedMiddleware: Middleware = (storeAPI) => (next) => (action: a
 const authPersistConfig = {
   key: 'auth',
   storage,
-  whitelist: ['user', 'isAuthenticated', 'token'], // Only persist these fields
+  // SECURITY: Only persist user and isAuthenticated, NOT token
+  // Token is stored in Redux memory only (cleared on page refresh)
+  // This prevents XSS attacks from stealing tokens via localStorage
+  whitelist: ['user', 'isAuthenticated'],
 };
 
 // Configure Redux Persist for tags slice

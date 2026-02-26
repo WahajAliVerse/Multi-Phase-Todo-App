@@ -14,6 +14,19 @@ export function Providers({ children }: ProvidersProps) {
 
   useEffect(() => {
     setMounted(true);
+    
+    // Expose Redux store on window for API utilities to access auth token
+    // This allows api.ts to get the token without circular dependencies
+    if (typeof window !== 'undefined') {
+      (window as any).__REDUX_STORE__ = store;
+    }
+    
+    return () => {
+      // Cleanup on unmount
+      if (typeof window !== 'undefined') {
+        delete (window as any).__REDUX_STORE__;
+      }
+    };
   }, []);
 
   return (

@@ -3,6 +3,18 @@ import { authApi } from '@/utils/api';
 import { LoginData, RegisterData, User } from '@/utils/validators';
 import { AuthState } from '@/types';
 
+/**
+ * SECURE AUTHENTICATION STATE MANAGEMENT
+ * 
+ * SECURITY NOTES:
+ * - Token is stored in Redux state (memory only) - NOT in localStorage
+ * - Token is cleared on page refresh (requires re-authentication)
+ * - HTTP-only cookies are used as backup auth (set by backend)
+ * - All API calls send token via Authorization header
+ * 
+ * This approach prevents XSS attacks from stealing tokens via localStorage.
+ */
+
 // Initial state
 const initialState: AuthState = {
   user: null,
@@ -39,8 +51,13 @@ export const registerUser = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
   'auth/logout',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
+      // Get current token to invalidate on backend
+      const state: any = getState();
+      const token = state.auth?.token;
+      
+      // Call logout endpoint (will clear cookies and blacklist token)
       await authApi.logout();
       return null;
     } catch (error: any) {
@@ -87,9 +104,18 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    setToken: (state, action: PayloadAction<string>) => {
+      // Store token in memory only (NOT localStorage)
+      state.token = action.payload;
+    },
+    clearToken: (state) => {
+      // Clear token from memory
+      state.token = null;
+    },
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
+      state.token = null; // Clear token from memory
       state.loading = false;
       state.error = null;
     },
@@ -103,14 +129,23 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        // The action.payload might contain both user and token
+        
+        // Extract user from response
         if (action.payload.user) {
           state.user = action.payload.user;
         } else {
           state.user = action.payload;
         }
+        
+        // Extract and store token in memory (NOT localStorage)
+        if (action.payload.token) {
+          state.token = action.payload.token;
+        } else if (action.payload.access_token) {
+          state.token = action.payload.access_token;
+        }
+        
         state.isAuthenticated = true;
-        state.error = null; // Clear any previous errors
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -125,6 +160,13 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
+        
+        // Store token if returned
+        if ((action.payload as any).token) {
+          state.token = (action.payload as any).token;
+        } else if ((action.payload as any).access_token) {
+          state.token = (action.payload as any).access_token;
+        }
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -134,39 +176,40 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
+        state.token = null; // Clear token from memory
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.error = action.payload as string;
       })
       // Fetch profile
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
-        // Extract user from payload (could be User or { user: User, token: any })
+        // Extract user from payload
         const user = (action.payload as any).user || action.payload;
         state.user = user;
         state.isAuthenticated = true;
         state.loading = false;
-        state.error = null; // Clear any previous errors
+        state.error = null;
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
-        // Don't set error for unauthorized access - just mark as not authenticated
-        // Only update state if we're not in the middle of a login process
-        if (action.payload === 'Session expired. Please log in again.' ||
-            action.payload === 'Unauthorized' ||
-            (action.payload as string)?.includes('401') ||
-            (action.payload as string)?.includes('404')) {
-          // Reset state to unauthenticated if we get a 401/404 error
-          // This prevents infinite loops when the token is invalid/expired
+        // Handle 401/404 errors - mark as unauthenticated
+        const errorMsg = action.payload as string;
+        if (
+          errorMsg === 'Session expired. Please log in again.' ||
+          errorMsg === 'Unauthorized' ||
+          errorMsg?.includes('401') ||
+          errorMsg?.includes('404')
+        ) {
           state.user = null;
           state.isAuthenticated = false;
-          state.error = null; // Don't show error for unauthorized access
+          state.token = null; // Clear token
+          state.error = null;
         } else {
-          state.error = action.payload as string;
+          state.error = errorMsg;
         }
         state.loading = false;
       })
       // Update profile
       .addCase(updateUserProfile.fulfilled, (state, action) => {
-        // Ensure we're properly updating the user object with the latest data
         if (state.user) {
           const payload = (action.payload as any).user || action.payload;
           state.user = {
@@ -183,22 +226,9 @@ const authSlice = createSlice({
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.error = action.payload as string;
         state.loading = false;
-      })
-      // Handle rehydration from persisted state
-      .addMatcher(
-        (action) => action.type === 'persist/REHYDRATE' && (action as any).payload?.auth,
-        (state, action) => {
-          const rehydratedAuth = (action as any).payload.auth;
-          if (rehydratedAuth) {
-            // Only update if we have actual auth data
-            state.user = rehydratedAuth.user || state.user;
-            state.isAuthenticated = rehydratedAuth.isAuthenticated || state.isAuthenticated;
-            state.token = rehydratedAuth.token || state.token;
-          }
-        }
-      );
+      });
   },
 });
 
-export const { clearError, setUser, logout } = authSlice.actions;
+export const { clearError, setUser, setToken, clearToken, logout } = authSlice.actions;
 export default authSlice.reducer;
