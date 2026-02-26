@@ -122,21 +122,21 @@ export async function apiRequest<T>(
   retries = MAX_RETRIES
 ): Promise<T> {
   const url = `${BASE_URL}${endpoint}`;
-  
+
   // Get token from Redux store (memory only)
   const token = getAuthToken();
-  
+
   // Build headers with Authorization token if available
   const headers: Record<string, string> = {
-    ...DEFAULT_HEADERS,
-    ...options.headers,
+    ...DEFAULT_HEADERS as Record<string, string>,
+    ...(options.headers as Record<string, string> | {}),
   };
-  
+
   // Add Authorization header if token exists (primary auth method)
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
+
   console.log('Making API request to:', url, {
     hasToken: !!token,
     hasAuthHeader: !!headers['Authorization'],
