@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: todo-app
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/component: api
+data:
+  ENVIRONMENT: "development"
+  ALGORITHM: "HS256"
+  ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"
+  JWT_AUDIENCE: "multi-phase-todo-api"
+  JWT_ISSUER: "multi-phase-todo-backend"
+  DATABASE_URL: "sqlite:///./data/todo_app.db"
+  REDIS_URL: "redis://redis-service:6379/0"
+  FRONTEND_BASE_URL: "http://localhost:30007"
+  
+  # AI/LLM Configuration - Qwen via OpenRouter (Default)
+  MODEL_PROVIDER: "openrouter"
+  MODEL_NAME: "qwen/qwen3-14b"
+  USE_LITELLM: "false"
+  DEFAULT_MODEL: "qwen/qwen3-14b"
+  
+  # Model Settings
+  MODEL_TEMPERATURE: "0.4"
+  MODEL_MAX_TOKENS: "700"
+  MODEL_TOP_P: "0.9"
+  
+  # Rate Limiting
+  RATE_LIMIT_REQUESTS: "10"
+  RATE_LIMIT_WINDOW: "60"
+  
+  HOST: "0.0.0.0"
+  PORT: "8000"
+  LOG_LEVEL: "INFO"
+  EMAIL_HOST: "smtp.gmail.com"
+  EMAIL_PORT: "587"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: todo-app
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/component: web
+data:
+  NEXT_PUBLIC_API_BASE_URL: "http://backend-service:8000/api"
+  NEXT_PUBLIC_APP_NAME: "Multi-Phase Todo"
+  NEXT_PUBLIC_ENVIRONMENT: "development"

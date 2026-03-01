@@ -1,45 +1,131 @@
 version: '3.8'
 
 services:
+  # Backend Service (FastAPI + Python)
   backend:
     build:
-      context: ./backend
+      context: ./backend/todo-backend
       dockerfile: Dockerfile
+    container_name: todo-backend
     ports:
-      - "8000:8000"
+      - "${PORT:-8000}:8000"
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/todoapp
-    depends_on:
-      - db
+      # Environment
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      
+      # Security - JWT Configuration
+      - SECRET_KEY=${SECRET_KEY:-your-default-secret-key-change-in-production}
+      - ALGORITHM=${ALGORITHM:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-multi-phase-todo-api}
+      - JWT_ISSUER=${JWT_ISSUER:-multi-phase-todo-backend}
+      
+      # Database Configuration
+      # Priority: NEON_DATABASE_URL > DATABASE_URL > SQLite default
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./todo_app.db}
+      - NEON_DATABASE_URL=${NEON_DATABASE_URL:-}
+      
+      # Cache & Rate Limiting
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      
+      # Email Configuration (Optional)
+      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_USERNAME=${EMAIL_USERNAME:-}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD:-}
+      - EMAIL_SENDER=${EMAIL_SENDER:-}
+      - SUPPORT_EMAIL=${SUPPORT_EMAIL:-support@example.com}
+      
+      # Frontend Integration
+      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-http://localhost:3000}
+      
+      # AI/LLM Configuration (Optional)
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-AIzaSyAWqzMP8cEe7FuGVPd5utWpWOn8IXpv9XI}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-gemini-2.0-flash}
+      
+      # Server Configuration
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-8000}
+      
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:
-      - ./backend:/app
-    command: uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+      - backend-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    profiles:
+      - dev
+      - prod
 
+  # Frontend Service (Next.js)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    container_name: todo-frontend
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
     environment:
-      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/v1
+      # Frontend environment variables
+      - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/api}
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-Multi-Phase Todo}
+      - NEXT_PUBLIC_ENVIRONMENT=${NEXT_PUBLIC_ENVIRONMENT:-development}
     depends_on:
-      - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm run dev
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    profiles:
+      - dev
+      - prod
 
-  db:
-    image: postgres:13
-    environment:
-      POSTGRES_DB: todoapp
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+  # Redis Service (for caching and rate limiting)
+  redis:
+    image: redis:7-alpine
+    container_name: todo-redis
     ports:
-      - "5432:5432"
+      - "6379:6379"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    profiles:
+      - dev
+      - prod
 
 volumes:
-  postgres_data:
+  backend-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

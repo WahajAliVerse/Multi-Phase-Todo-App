@@ -1,0 +1,16 @@
+# Kubernetes Secrets
+# ⚠️ CRITICAL: Never commit actual secrets to version control
+secrets-actual.yaml
+*-secret.yaml
+!secrets.template.yaml
+!secrets.yaml
+
+# Environment files with secrets
+.env.local
+.env.production
+.env.*.local
+*.env.secret
+
+# Generated configuration
+*-generated.yaml
+*.generated.yml

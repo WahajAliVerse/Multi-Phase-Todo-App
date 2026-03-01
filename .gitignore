@@ -161,6 +161,12 @@ docker-compose*
 # Environment variables
 .env*
 !.env.example
+!.env.docker
+
+# Kubernetes Secrets (CRITICAL - Never commit actual secrets)
+deployment/k8s/secrets-actual.yaml
+deployment/k8s/*-secret.yaml
+deployment/k8s/*.env.secret
 
 # Logs
 *.log
